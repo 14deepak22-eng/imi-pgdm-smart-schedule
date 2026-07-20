@@ -50,6 +50,7 @@ export const CANONICAL_SUBJECT_CODES_BY_BATCH: Record<string, readonly string[]>
     'FN604',
     'MK615',
     'OB618',
+    'ST509(B)(A)',
     'ST509(B)(B)',
     'ST509(B)(C)',
   ],
