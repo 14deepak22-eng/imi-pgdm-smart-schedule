@@ -1,0 +1,85 @@
+@import 'tailwindcss';
+
+/*
+  Design system: "session board" — a split-flap departure-board aesthetic,
+  fitting for a session-by-session academic timetable. Ink-navy surface as
+  the primary (dark) theme, amber for "live now", teal for events/next.
+*/
+
+:root {
+  --color-ink: #12141c;
+  --color-panel: #1b1f2a;
+  --color-panel-2: #232837;
+  --color-amber: #e8a33d;
+  --color-amber-soft: #f0c179;
+  --color-teal: #4fb6a8;
+  --color-paper: #f3f1ea;
+  --color-ink-soft: #8a8f9c;
+  --color-danger: #e2604f;
+
+  --background: var(--color-ink);
+  --foreground: var(--color-paper);
+  --surface: var(--color-panel);
+  --surface-2: var(--color-panel-2);
+  --accent: var(--color-amber);
+  --accent-soft: var(--color-amber-soft);
+  --accent-2: var(--color-teal);
+  --muted: var(--color-ink-soft);
+  --danger: var(--color-danger);
+  --border: rgba(243, 241, 234, 0.12);
+}
+
+.light {
+  --background: #f3f1ea;
+  --foreground: #14161c;
+  --surface: #ffffff;
+  --surface-2: #eae7dd;
+  --accent: #c97a22;
+  --accent-soft: #e0a862;
+  --accent-2: #2f8f82;
+  --muted: #6b7280;
+  --danger: #c94a3a;
+  --border: rgba(20, 22, 28, 0.1);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-2: var(--accent-2);
+  --color-muted: var(--muted);
+  --color-danger: var(--danger);
+  --color-border: var(--border);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Tabular figures everywhere numbers tick, so digits don't jitter in width. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
