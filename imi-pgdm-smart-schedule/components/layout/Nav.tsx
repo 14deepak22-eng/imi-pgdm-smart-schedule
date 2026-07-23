@@ -8,6 +8,7 @@ const LINKS = [
   { href: '/', label: 'Board' },
   { href: '/events', label: 'Events' },
   { href: '/notices', label: 'Notice' },
+  { href: '/progress', label: 'Progress' },
   { href: '/settings', label: 'Settings' },
 ];
 
