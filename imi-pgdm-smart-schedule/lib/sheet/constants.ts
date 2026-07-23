@@ -3,21 +3,6 @@
  * Keeping these here (not hardcoded in parser logic) means the
  * app can be re-pointed at a new term/batch by editing this file
  * or the equivalent env vars, without touching parsing code.
- *
- * Nothing here hardcodes a specific batch or subject list — those are
- * read live from the sheet itself:
- *   - Batches: lib/sheet/matchBatch.ts
- *   - Subjects: lib/sheet/resolveSubjectIdentity.ts (cross-references
- *     the sheet's own data to tell a genuine subject-code qualifier
- *     apart from a redundant section tag — no fixed subject list)
- *   - Session times: lib/sheet/parseSessionTimeHeaders.ts tries to read
- *     each batch's own "Session No. - PGDM YYYY-YY" header + Time row
- *     first. If that row isn't found/formatted as expected for a given
- *     batch, lib/sheet/parseSchedule.ts falls back to the year-rank-based
- *     defaults below — junior (1st year) gets FALLBACK_SESSION_TIMES_JUNIOR,
- *     everyone senior to that gets FALLBACK_SESSION_TIMES_SENIOR — so
- *     the two years never show identical/wrong times even when the
- *     sheet's header row can't be matched for some reason.
  */
 
 export const TARGET_SECTIONS = ['A', 'B', 'C'] as const;
@@ -26,6 +11,39 @@ export type TargetSection = (typeof TARGET_SECTIONS)[number];
 // Credit line shown in the header. Change this if you'd like the wording
 // or name updated.
 export const CREATOR_CREDIT = 'Made by Deepak Kumar · 25PGDM-BHU081';
+
+/**
+ * The complete, authoritative list of subject codes offered per batch.
+ * This is the single source of truth used by lib/sheet/parseCell.ts to
+ * correctly identify each class, and by the Settings page subject
+ * picker (every one of these is always offered as a choice, regardless
+ * of what's been seen in the sheet yet, so nothing is ever missing
+ * while data is still loading).
+ */
+export const CANONICAL_SUBJECT_CODES_BY_BATCH: Record<string, readonly string[]> = {
+  'PGDM 2025-27': [
+    'MK629(A)',
+    'MK629(B)',
+    'MK630(A)',
+    'MK630(B)',
+    'MK602',
+    'MK618',
+    'FN642',
+    'MK608',
+    'IS621',
+    'OM606',
+    'FN643',
+    'OM625',
+    'HR604',
+    'IS618',
+    'FN604',
+    'MK615',
+    'OB618',
+    'ST509(B)(A)',
+    'ST509(B)(B)',
+    'ST509(B)(C)',
+  ],
+};
 
 // Ordered session columns as laid out left-to-right in the sheet.
 export const SESSION_ORDER = ['I', 'II', 'III', 'LUNCH', 'IV', 'V', 'VI'] as const;
@@ -46,8 +64,7 @@ export const EVENT_KEYWORDS = [
 
 /**
  * Used for the most recently started batch (rank 0 — "1st Year" /
- * junior) whenever its own sheet header row isn't found or doesn't
- * parse. Edit these directly if the junior timing changes.
+ * junior). Edit these directly if the junior timing changes.
  */
 export const FALLBACK_SESSION_TIMES_JUNIOR: Record<string, { start: string; end: string }> = {
   I: { start: '08:30', end: '10:00' },
@@ -61,9 +78,8 @@ export const FALLBACK_SESSION_TIMES_JUNIOR: Record<string, { start: string; end:
 
 /**
  * Used for every batch other than the most recently started one (rank 1
- * and beyond — "2nd Year" and senior) whenever its own sheet header row
- * isn't found or doesn't parse. Edit these directly if senior timing
- * changes.
+ * and beyond — "2nd Year" and senior). Edit these directly if senior
+ * timing changes.
  */
 export const FALLBACK_SESSION_TIMES_SENIOR: Record<string, { start: string; end: string }> = {
   I: { start: '09:00', end: '10:30' },
