@@ -1,6 +1,6 @@
 import type { DaySchedule, TargetSection } from '@/types/timetable';
 import { Card } from '@/components/ui/Card';
-import { SESSION_ORDER, SESSION_TIMES } from '@/lib/sheet/constants';
+import { SESSION_ORDER } from '@/lib/sheet/constants';
 import { sessionLabel, formatSessionTimeRange, toLocalISODate } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
 
@@ -11,6 +11,29 @@ interface WeeklyTimetableProps {
   query?: string;
   /** How many consecutive weeks to render, starting from the current week (1-4). */
   weeksToShow?: number;
+}
+
+/**
+ * Reads the actual session time labels straight from the parsed data
+ * (which already carries each batch's correct junior/senior times on
+ * every slot, from lib/sheet/parseSchedule.ts) rather than any single
+ * global constant — so the label row always matches whichever batch
+ * `days` has been scoped to.
+ */
+function deriveSessionTimeLookup(
+  days: DaySchedule[],
+): Partial<Record<string, { start: string; end: string }>> {
+  const lookup: Partial<Record<string, { start: string; end: string }>> = {};
+  for (const day of days) {
+    if (day.isHoliday) continue;
+    for (const slot of day.sessions) {
+      if (!lookup[slot.session]) {
+        lookup[slot.session] = { start: slot.startTime, end: slot.endTime };
+      }
+    }
+    if (Object.keys(lookup).length >= SESSION_ORDER.length) break;
+  }
+  return lookup;
 }
 
 function startOfWeek(date: Date): Date {
@@ -38,9 +61,17 @@ interface SingleWeekTableProps {
   now: Date;
   query: string;
   weekStart: Date;
+  sessionTimes: Partial<Record<string, { start: string; end: string }>>;
 }
 
-function SingleWeekTable({ days, section, now, query, weekStart }: SingleWeekTableProps) {
+function SingleWeekTable({
+  days,
+  section,
+  now,
+  query,
+  weekStart,
+  sessionTimes,
+}: SingleWeekTableProps) {
   const q = query.trim().toLowerCase();
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
@@ -89,9 +120,14 @@ function SingleWeekTable({ days, section, now, query, weekStart }: SingleWeekTab
             <tr key={session} className="border-border border-b last:border-0">
               <td className="text-muted px-3 py-2.5 align-top text-xs">
                 <div className="text-foreground font-medium">{sessionLabel(session)}</div>
-                <div className="tabular mt-0.5 font-mono text-[11px]">
-                  {formatSessionTimeRange(SESSION_TIMES[session].start, SESSION_TIMES[session].end)}
-                </div>
+                {sessionTimes[session] && (
+                  <div className="tabular mt-0.5 font-mono text-[11px]">
+                    {formatSessionTimeRange(
+                      sessionTimes[session]!.start,
+                      sessionTimes[session]!.end,
+                    )}
+                  </div>
+                )}
               </td>
               {visibleDates.map((iso) => {
                 const day = byDate.get(iso);
@@ -147,6 +183,7 @@ export function WeeklyTimetable({
 }: WeeklyTimetableProps) {
   const clampedWeeks = Math.min(4, Math.max(1, weeksToShow));
   const currentWeekStart = startOfWeek(now);
+  const sessionTimes = deriveSessionTimeLookup(days);
 
   const weeks = Array.from({ length: clampedWeeks }, (_, i) => {
     const start = new Date(currentWeekStart);
@@ -164,6 +201,7 @@ export function WeeklyTimetable({
         now={now}
         query={query}
         weekStart={weeks[0].start}
+        sessionTimes={sessionTimes}
       />
     );
   }
@@ -181,6 +219,7 @@ export function WeeklyTimetable({
             now={now}
             query={query}
             weekStart={start}
+            sessionTimes={sessionTimes}
           />
         </div>
       ))}
