@@ -95,6 +95,30 @@ function collectValidRows(rows: string[][]): ValidRow[] {
 }
 
 /**
+ * Some offline/whole-day activities (e.g. "Resume Building Session 1
+ * (BI) Offline") are written into MULTIPLE session columns for the same
+ * day, since the activity spans several time slots at once. Without
+ * this step, each session slot containing that identical text would
+ * become its own separate event — the same activity showing up 3-4+
+ * times in a row on the Events page. This collapses any events that
+ * share the same batch, date, section, category, and title down to a
+ * single entry, keeping the first one seen.
+ */
+function dedupeEvents(events: ScheduleEvent[]): ScheduleEvent[] {
+  const seen = new Set<string>();
+  const result: ScheduleEvent[] = [];
+
+  for (const event of events) {
+    const key = `${event.batch}|${event.date}|${event.section}|${event.category}|${event.title}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(event);
+  }
+
+  return result;
+}
+
+/**
  * Walks the raw sheet rows and produces both the class timetable and the
  * events list, for EVERY batch found in the sheet — subject parsing is
  * exactly as before (parseSessionCell, driven by
@@ -180,5 +204,5 @@ export function parseSchedule(rows: string[][]): ParsedSchedule {
     });
   }
 
-  return { classes, events };
+  return { classes, events: dedupeEvents(events) };
 }
