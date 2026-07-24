@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { SESSION_ORDER } from '@/lib/sheet/constants';
 import { sessionLabel, formatSessionTimeRange, toLocalISODate } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
+import { MAX_WEEKS_TO_SHOW } from '@/hooks/useWeeksToShow';
 
 interface WeeklyTimetableProps {
   days: DaySchedule[];
@@ -181,7 +182,7 @@ export function WeeklyTimetable({
   query = '',
   weeksToShow = 1,
 }: WeeklyTimetableProps) {
-  const clampedWeeks = Math.min(4, Math.max(1, weeksToShow));
+  const clampedWeeks = Math.min(MAX_WEEKS_TO_SHOW, Math.max(1, weeksToShow));
   const currentWeekStart = startOfWeek(now);
   const sessionTimes = deriveSessionTimeLookup(days);
 
