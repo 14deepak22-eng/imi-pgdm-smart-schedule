@@ -35,8 +35,8 @@ export function ClassProgress({ subjects, counts }: ClassProgressProps) {
           return (
             <Card key={code} className="flex flex-col gap-2 px-4 py-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm font-medium">{code}</span>
-                <span className="tabular text-accent-2 font-mono text-sm font-semibold">
+                <span className="min-w-0 truncate text-sm font-medium">{code}</span>
+                <span className="tabular text-accent-2 shrink-0 font-mono text-sm font-semibold">
                   {count} class{count === 1 ? '' : 'es'}
                 </span>
               </div>
