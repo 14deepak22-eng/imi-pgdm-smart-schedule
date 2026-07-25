@@ -1,35 +1,30 @@
 'use client';
 
-import { X, Sparkles, GraduationCap, Users, BookMarked, Bell, Link2 } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useHasSeenWelcomeTip } from '@/hooks/useHasSeenWelcomeTip';
 
-const TIPS = [
+const STEPS = [
   {
-    icon: GraduationCap,
-    title: 'Pick your year',
-    text: 'Switch between batches anytime from Settings if you picked the wrong one.',
+    title: 'Open the website',
+    text: 'Visit IMI PGDM Smart Schedule in your browser.',
   },
   {
-    icon: Users,
-    title: 'Choose your section',
-    text: 'View just your own section, or combine A/B/C into one merged view.',
+    title: 'Select your Year',
+    text: 'Choose your batch on the welcome screen.',
   },
   {
-    icon: BookMarked,
-    title: 'Select your subjects',
-    text: 'Go to Settings and choose your subjects. Your Dashboard will automatically display only the schedule for your selected subjects.',
-},
-  {
-    icon: Bell,
-    title: 'Check Notices',
-    text: 'Any change to the schedule shows up there automatically for a week.',
+    title: 'Go to Settings',
+    text: 'Tap Settings in the top menu.',
   },
   {
-    icon: Link2,
-    title: 'Change the sheet source',
-    text: 'Point the app at a different Google Sheet anytime, no redeploy needed.',
+    title: 'Select your Subjects and Section',
+    text: "Choose the subjects you're taking, and your section — or combine all sections into one view.",
+  },
+  {
+    title: 'Return to the Dashboard',
+    text: 'Head back to Board to see your personalized class schedule, timings, and next-class countdown.',
   },
 ];
 
@@ -54,34 +49,32 @@ export function WelcomeTipModal() {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-1 flex items-center gap-2">
           <Sparkles className="text-accent h-5 w-5" />
           <h2
             id="welcome-tip-title"
             className="font-display text-lg font-bold tracking-wide uppercase"
           >
-            How To Personalize
+            How to Personalise
           </h2>
         </div>
-
         <p className="text-muted mb-5 text-sm">
-          A few things you can personalize from Settings, so the board only shows what matters to
-          you:
+          A quick, one-time walkthrough — five steps to a schedule that&apos;s yours.
         </p>
 
-        <ul className="mb-6 flex flex-col gap-3.5">
-          {TIPS.map(({ icon: Icon, title, text }) => (
-            <li key={title} className="flex items-start gap-3">
-              <div className="bg-surface-2 mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
-                <Icon className="text-accent-2 h-4 w-4" />
-              </div>
+        <ol className="mb-6 flex flex-col gap-3.5">
+          {STEPS.map((step, i) => (
+            <li key={step.title} className="flex items-start gap-3">
+              <span className="bg-accent/15 text-accent tabular mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold">
+                {i + 1}
+              </span>
               <div>
-                <p className="text-sm font-medium">{title}</p>
-                <p className="text-muted text-xs">{text}</p>
+                <p className="text-sm font-medium">{step.title}</p>
+                <p className="text-muted text-xs">{step.text}</p>
               </div>
             </li>
           ))}
-        </ul>
+        </ol>
 
         <Button onClick={markSeen} className="w-full">
           Got it, thanks!
