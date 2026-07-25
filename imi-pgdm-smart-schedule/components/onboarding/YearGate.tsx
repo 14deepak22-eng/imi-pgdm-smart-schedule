@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { useSchedule } from '@/components/providers/ScheduleProvider';
 import { YearSelector } from './YearSelector';
+import { WelcomeTipModal } from './WelcomeTipModal';
 
 export function YearGate({ children }: { children: ReactNode }) {
   const { selectedBatch, availableBatches, initialLoading, error, refresh, selectBatch } =
@@ -20,5 +21,10 @@ export function YearGate({ children }: { children: ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <WelcomeTipModal />
+    </>
+  );
 }
