@@ -43,8 +43,8 @@ export function NextClassCard({ state }: NextClassCardProps) {
       className={cn(
         'overflow-hidden p-6 transition-shadow duration-500 sm:p-8',
         isLive
-          ? 'ring-accent/40 shadow-[0_0_0_2px_var(--color-accent),0_0_28px_-6px_rgba(139,92,246,0.55)]'
-          : 'shadow-[0_0_0_2px_rgba(198,255,61,0.5),0_0_24px_-8px_rgba(198,255,61,0.4)]',
+          ? 'ring-accent/40 shadow-[0_0_0_1px_var(--color-accent),0_0_28px_-8px_rgba(232,163,61,0.45)]'
+          : 'shadow-[0_0_0_1px_rgba(79,182,168,0.25),0_0_24px_-10px_rgba(79,182,168,0.3)]',
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
