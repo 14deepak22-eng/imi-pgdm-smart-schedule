@@ -5,6 +5,7 @@ import type { DaySchedule } from '@/types/timetable';
 import type { ScheduleEvent } from '@/types/events';
 import {
   diffSchedules,
+  noticeContentKey,
   type ChangeNotice,
   type ScheduleSnapshot,
 } from '@/lib/schedule/diffSchedule';
@@ -18,12 +19,31 @@ function pruneNotices(notices: ChangeNotice[]): ChangeNotice[] {
   return notices.filter((n) => new Date(n.detectedAt).getTime() >= cutoff);
 }
 
+/**
+ * Collapses notices describing the exact same real-world change (same
+ * category/batch/section/message) into a single entry, keeping the first
+ * one encountered. Notices are always stored newest-first, so this keeps
+ * the most recent detection of a repeated change and drops the older
+ * repeats — without ever dropping a genuinely different notice.
+ */
+function dedupeNotices(notices: ChangeNotice[]): ChangeNotice[] {
+  const seen = new Set<string>();
+  const result: ChangeNotice[] = [];
+  for (const notice of notices) {
+    const key = noticeContentKey(notice);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(notice);
+  }
+  return result;
+}
+
 function readNotices(): ChangeNotice[] {
   try {
     const raw = localStorage.getItem(NOTICES_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? pruneNotices(parsed) : [];
+    return Array.isArray(parsed) ? dedupeNotices(pruneNotices(parsed)) : [];
   } catch {
     return [];
   }
@@ -78,7 +98,7 @@ export function useChangeNotices(
       if (prevSnapshot) {
         const newNotices = diffSchedules(prevSnapshot, next, new Date().toISOString());
         if (newNotices.length > 0) {
-          updatedNotices = pruneNotices([...newNotices, ...updatedNotices]);
+          updatedNotices = dedupeNotices(pruneNotices([...newNotices, ...updatedNotices]));
         }
       }
 
