@@ -18,7 +18,7 @@ export function Badge({ tone = 'muted', className, ...props }: BadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium tracking-wide uppercase',
+        'inline-flex items-center gap-1 rounded-full border-2 px-2.5 py-0.5 text-xs font-bold tracking-wide uppercase',
         TONE_CLASSES[tone],
         className,
       )}
