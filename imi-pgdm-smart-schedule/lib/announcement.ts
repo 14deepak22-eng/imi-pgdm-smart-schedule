@@ -18,9 +18,9 @@
  */
 export const ANNOUNCEMENT = {
   enabled: true,
-  id: 'welcome-2026-07-26',
+  id: 'sheet-year-error-27-july',
   title: 'Announcement',
-  message: 'Welcome to the IMI PGDM Smart Schedule! Check the Settings page to personalize your view.',
+  message: 'Due to an incorrect year entry in the Google Sheet, classes for 27th July are not showing on the dashboard. Please refer to the Google Sheet directly for today's schedule. -Deepak kumar',
   // Example: live from right now until end of day tomorrow (IST).
   startAt: '2026-07-26T00:00:00+05:30' as string | null,
   endAt: '2026-07-27T23:59:59+05:30' as string | null,
