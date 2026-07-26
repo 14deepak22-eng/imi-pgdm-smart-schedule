@@ -5,6 +5,7 @@ import { ScheduleProvider } from '@/components/providers/ScheduleProvider';
 import { ServiceWorkerRegistration } from '@/components/providers/ServiceWorkerRegistration';
 import { YearGate } from '@/components/onboarding/YearGate';
 import { AnnouncementModal } from '@/components/shared/AnnouncementModal';
+import { InstallPrompt } from '@/components/shared/InstallPrompt';
 import './globals.css';
 
 const display = Big_Shoulders({
@@ -80,6 +81,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <YearGate>{children}</YearGate>
         </ScheduleProvider>
         <AnnouncementModal />
+        <InstallPrompt />
         <Analytics />
       </body>
     </html>
