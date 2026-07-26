@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { ScheduleProvider } from '@/components/providers/ScheduleProvider';
 import { ServiceWorkerRegistration } from '@/components/providers/ServiceWorkerRegistration';
 import { YearGate } from '@/components/onboarding/YearGate';
+import { AnnouncementModal } from '@/components/shared/AnnouncementModal';
 import './globals.css';
 
 const display = Big_Shoulders({
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ScheduleProvider>
           <YearGate>{children}</YearGate>
         </ScheduleProvider>
+        <AnnouncementModal />
         <Analytics />
       </body>
     </html>
