@@ -24,6 +24,16 @@ export interface ScheduleSnapshot {
   events: ScheduleEvent[];
 }
 
+/**
+ * A stable key identifying "what" a notice is about (category + batch +
+ * section + message), ignoring WHEN it was detected. Two notices with the
+ * same content key represent the same real-world change, even if they
+ * were detected in separate fetch cycles — used to dedupe repeats.
+ */
+export function noticeContentKey(notice: Pick<ChangeNotice, 'category' | 'batch' | 'section' | 'message'>): string {
+  return `${notice.category}::${notice.batch}::${notice.section}::${notice.message}`;
+}
+
 interface ClassSlotInfo {
   desc: string;
   dayLabel: string;
