@@ -8,6 +8,7 @@ import { CREATOR_CREDIT } from '@/lib/sheet/constants';
 import { Nav } from './Nav';
 import { SectionSwitcher } from './SectionSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { SettingsIconButton } from '@/components/shared/SettingsIconButton';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
 
@@ -29,7 +30,8 @@ export function Header() {
             </p>
             <p className="text-accent/80 mt-0.5 text-[11px] font-medium">{CREATOR_CREDIT}</p>
           </div>
-          <div className="sm:hidden">
+          <div className="flex items-center gap-1 sm:hidden">
+            <SettingsIconButton />
             <ThemeToggle />
           </div>
         </div>
@@ -56,7 +58,8 @@ export function Header() {
             <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
           </Button>
 
-          <div className="hidden sm:block">
+          <div className="hidden items-center gap-1 sm:flex">
+            <SettingsIconButton />
             <ThemeToggle />
           </div>
         </div>
