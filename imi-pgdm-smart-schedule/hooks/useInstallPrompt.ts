@@ -7,12 +7,14 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-const DISMISS_KEY = 'pgdm-install-dismissed';
+const DISMISS_KEY = 'pgdm-install-dismissed-at';
+const COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 function isStandalone(): boolean {
   if (typeof window === 'undefined') return false;
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
+    // iOS Safari-specific flag for installed home-screen apps.
     (window.navigator as Navigator & { standalone?: boolean }).standalone === true
   );
 }
@@ -22,9 +24,19 @@ function isIos(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
+function isWithinCooldown(): boolean {
+  try {
+    const dismissedAt = localStorage.getItem(DISMISS_KEY);
+    if (!dismissedAt) return false;
+    return Date.now() - Number(dismissedAt) < COOLDOWN_MS;
+  } catch {
+    return false;
+  }
+}
+
 export function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [dismissed, setDismissed] = useState(true);
+  const [dismissed, setDismissed] = useState(true); // default true avoids a flash
   const [alreadyInstalled, setAlreadyInstalled] = useState(false);
   const [ios, setIos] = useState(false);
 
@@ -32,11 +44,7 @@ export function useInstallPrompt() {
     queueMicrotask(() => {
       setAlreadyInstalled(isStandalone());
       setIos(isIos());
-      try {
-        setDismissed(sessionStorage.getItem(DISMISS_KEY) === '1');
-      } catch {
-        setDismissed(false);
-      }
+      setDismissed(isWithinCooldown());
     });
 
     const handler = (event: Event) => {
@@ -57,12 +65,15 @@ export function useInstallPrompt() {
   const dismiss = () => {
     setDismissed(true);
     try {
-      sessionStorage.setItem(DISMISS_KEY, '1');
+      localStorage.setItem(DISMISS_KEY, String(Date.now()));
     } catch {
-      // Storage unavailable; banner just won't stay dismissed for the visit.
+      // Storage unavailable; banner just won't stay dismissed across visits.
     }
   };
 
+  // Show the banner if: not already installed, not dismissed within the
+  // last 7 days, and either Chrome/Android/Desktop gave us a real install
+  // prompt, or it's iOS (which needs manual "Add to Home Screen" instructions).
   const canShow = !alreadyInstalled && !dismissed && (Boolean(deferredPrompt) || ios);
 
   return { canShow, ios, promptInstall, dismiss };
