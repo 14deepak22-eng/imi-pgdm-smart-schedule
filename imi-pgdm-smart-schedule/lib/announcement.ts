@@ -19,7 +19,7 @@
 export const ANNOUNCEMENT = {
   enabled: true,
   id: 'sheet-year-error-27-july',
-  title: 'Announcement',
+  title: 'Announcement- Schedule Issue 27th July',
   message: 'Due to an incorrect year entry in the Google Sheet, classes for 27th July are not showing on the dashboard. Please refer to the Google Sheet directly for schedule.,
   // Example: live from right now until end of day tomorrow (IST).
   startAt: '2026-07-26T00:00:00+05:30' as string | null,
