@@ -1,45 +1,46 @@
 @import 'tailwindcss';
 
 /*
-  Design system: "session board" — a split-flap departure-board aesthetic,
-  fitting for a session-by-session academic timetable. Ink-navy surface as
-  the primary (dark) theme, amber for "live now", teal for events/next.
+  Design system: "neon boarding pass" — a bold, high-contrast dark theme
+  with hard-edged, offset-shadow cards (a modern, chunkier take on the
+  original departure-board idea). Electric violet for live/primary,
+  acid lime for next-up/secondary, hot coral for alerts.
 */
 
 :root {
-  --color-ink: #12141c;
-  --color-panel: #1b1f2a;
-  --color-panel-2: #232837;
-  --color-amber: #e8a33d;
-  --color-amber-soft: #f0c179;
-  --color-teal: #4fb6a8;
-  --color-paper: #f3f1ea;
-  --color-ink-soft: #8a8f9c;
-  --color-danger: #e2604f;
+  --color-ink: #0a0a14;
+  --color-panel: #16141f;
+  --color-panel-2: #201d30;
+  --color-volt: #8b5cf6;
+  --color-volt-soft: #b197fc;
+  --color-acid: #c6ff3d;
+  --color-paper: #f5f3ff;
+  --color-mist: #9c97b8;
+  --color-coral: #ff4d6d;
 
   --background: var(--color-ink);
   --foreground: var(--color-paper);
   --surface: var(--color-panel);
   --surface-2: var(--color-panel-2);
-  --accent: var(--color-amber);
-  --accent-soft: var(--color-amber-soft);
-  --accent-2: var(--color-teal);
-  --muted: var(--color-ink-soft);
-  --danger: var(--color-danger);
-  --border: rgba(243, 241, 234, 0.12);
+  --accent: var(--color-volt);
+  --accent-soft: var(--color-volt-soft);
+  --accent-2: var(--color-acid);
+  --muted: var(--color-mist);
+  --danger: var(--color-coral);
+  --border: rgba(245, 243, 255, 0.16);
 }
 
 .light {
-  --background: #f3f1ea;
-  --foreground: #14161c;
+  --background: #f6f3ff;
+  --foreground: #15121f;
   --surface: #ffffff;
-  --surface-2: #eae7dd;
-  --accent: #c97a22;
-  --accent-soft: #e0a862;
-  --accent-2: #2f8f82;
-  --muted: #6b7280;
-  --danger: #c94a3a;
-  --border: rgba(20, 22, 28, 0.1);
+  --surface-2: #ede7fc;
+  --accent: #7c3aed;
+  --accent-soft: #a78bfa;
+  --accent-2: #3f8f1f;
+  --muted: #6b6580;
+  --danger: #e11d48;
+  --border: rgba(21, 18, 31, 0.14);
 }
 
 @theme inline {
@@ -65,8 +66,6 @@
 
 body {
   background-color: var(--background);
-  background-image: radial-gradient(var(--border) 1px, transparent 1px);
-  background-size: 22px 22px;
   color: var(--foreground);
 }
 
