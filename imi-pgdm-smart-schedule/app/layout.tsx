@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Big_Shoulders, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import { ScheduleProvider } from '@/components/providers/ScheduleProvider';
 import { ServiceWorkerRegistration } from '@/components/providers/ServiceWorkerRegistration';
 import { YearGate } from '@/components/onboarding/YearGate';
@@ -77,6 +78,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ScheduleProvider>
           <YearGate>{children}</YearGate>
         </ScheduleProvider>
+        <Analytics />
       </body>
     </html>
   );
