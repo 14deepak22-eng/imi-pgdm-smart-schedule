@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { FlapDigits } from './FlapDigits';
 import { formatCountdownDigits, sessionLabel } from '@/lib/utils/date';
 import { Skeleton } from '@/components/shared/Skeleton';
+import { cn } from '@/lib/utils/cn';
 
 interface NextClassCardProps {
   state: ClassCountdownState;
@@ -38,7 +39,14 @@ export function NextClassCard({ state }: NextClassCardProps) {
   const extraCount = session.entries.length - 1;
 
   return (
-    <Card className="overflow-hidden p-6 sm:p-8">
+    <Card
+      className={cn(
+        'overflow-hidden p-6 transition-shadow duration-500 sm:p-8',
+        isLive
+          ? 'ring-accent/40 shadow-[0_0_0_1px_var(--color-accent),0_0_28px_-8px_rgba(232,163,61,0.45)]'
+          : 'shadow-[0_0_0_1px_rgba(79,182,168,0.25),0_0_24px_-10px_rgba(79,182,168,0.3)]',
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {isLive ? (
