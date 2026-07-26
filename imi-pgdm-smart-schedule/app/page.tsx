@@ -13,6 +13,8 @@ import { ErrorState } from '@/components/shared/ErrorState';
 import { useSchedule } from '@/components/providers/ScheduleProvider';
 import { useCountdown } from '@/hooks/useCountdown';
 import { useWeeksToShow } from '@/hooks/useWeeksToShow';
+import { useDayComplete } from '@/hooks/useDayComplete';
+import { DayCompleteBanner } from '@/components/dashboard/DayCompleteBanner';
 import { computeDashboardStats } from '@/lib/schedule/deriveStats';
 import { filterClassesBySubjects } from '@/lib/schedule/filterSubjects';
 import { filterClassesByBatch, filterEventsByBatch } from '@/lib/schedule/filterBatch';
@@ -43,6 +45,7 @@ export default function DashboardPage() {
   const filteredClasses = filterClassesBySubjects(scopedClasses, selectedSubjects);
   const { now, current, nextEvent } = useCountdown(filteredClasses, scopedEvents, effectiveSection);
   const stats = computeDashboardStats(filteredClasses, effectiveSection, now);
+  const dayComplete = useDayComplete(current, stats.classesToday, now);
 
   return (
     <>
@@ -65,6 +68,8 @@ export default function DashboardPage() {
           <>
             <NextClassCard state={current} />
 
+            <DayCompleteBanner show={dayComplete.show} onDismiss={dayComplete.dismiss} />
+            
             <StatsCards stats={stats} nextEvent={nextEvent} />
 
             <section className="flex flex-col gap-3">
