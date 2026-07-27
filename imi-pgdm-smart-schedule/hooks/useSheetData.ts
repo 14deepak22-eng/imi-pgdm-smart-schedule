@@ -21,6 +21,14 @@ export interface UseSheetDataResult {
   initialLoading: boolean;
   error: string | null;
   lastUpdated: Date | null;
+  /**
+   * The server's own fetch timestamp (ISO string), shared by every visitor
+   * who hits the same cached API response. Use this (not each browser's own
+   * clock) anywhere a timestamp needs to look identical across users —
+   * e.g. change notices — since it doesn't depend on when any one person
+   * happened to refresh.
+   */
+  serverFetchedAt: string | null;
   refresh: () => void;
 }
 
@@ -37,6 +45,7 @@ export function useSheetData(sheetIdOverride?: string | null): UseSheetDataResul
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [serverFetchedAt, setServerFetchedAt] = useState<string | null>(null);
   const inFlight = useRef(false);
 
   const load = useCallback(async () => {
@@ -57,7 +66,8 @@ export function useSheetData(sheetIdOverride?: string | null): UseSheetDataResul
 
       setClasses(json.classes);
       setEvents(json.events);
-      setLastUpdated(new Date());
+      setLastUpdated(new Date(json.fetchedAt));
+      setServerFetchedAt(json.fetchedAt);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong loading the timetable');
@@ -77,5 +87,14 @@ export function useSheetData(sheetIdOverride?: string | null): UseSheetDataResul
     return () => clearInterval(id);
   }, [load]);
 
-  return { classes, events, loading, initialLoading, error, lastUpdated, refresh: load };
+  return {
+    classes,
+    events,
+    loading,
+    initialLoading,
+    error,
+    lastUpdated,
+    serverFetchedAt,
+    refresh: load,
+  };
 }
