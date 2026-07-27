@@ -8,6 +8,30 @@ import { Skeleton } from '@/components/shared/Skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { NoticeList } from '@/components/events/NoticeList';
 import { useSchedule } from '@/components/providers/ScheduleProvider';
+import { isSubjectSelected } from '@/hooks/useSubjectPreferences';
+import type { ChangeNotice } from '@/lib/schedule/diffSchedule';
+
+/**
+ * Collapses notices that read identically (same category/message) into
+ * one entry — used ONLY for display in "show all sections" merged view,
+ * so a change that legitimately hit every section (e.g. a room swap
+ * applied to A, B, and C) shows once instead of 3 times. Genuinely
+ * different per-section changes have different message text, so they're
+ * unaffected and still show separately. This never touches what's
+ * actually stored — single-section viewers always see their section's
+ * own accurate notices, untouched by this.
+ */
+function dedupeForMergedView(notices: ChangeNotice[]): ChangeNotice[] {
+  const seen = new Set<string>();
+  const result: ChangeNotice[] = [];
+  for (const notice of notices) {
+    const key = `${notice.category}::${notice.batch}::${notice.message}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(notice);
+  }
+  return result;
+}
 
 export default function NoticesPage() {
   const {
@@ -19,14 +43,26 @@ export default function NoticesPage() {
     section,
     showAllSections,
     selectedBatch,
+    selectedSubjects,
   } = useSchedule();
 
   const effectiveSection = showAllSections ? 'A' : section;
-  const scopedNotices = notices.filter((n) => {
+
+  const matchesSubject = (n: ChangeNotice) =>
+    // Event notices aren't tied to a subject, so they're never filtered out here.
+    n.subjectCodes.length === 0 ||
+    n.subjectCodes.some((code) => isSubjectSelected(selectedSubjects, code));
+
+  let scopedNotices = notices.filter((n) => {
     if (n.batch !== selectedBatch) return false;
     if (!showAllSections && n.section !== effectiveSection) return false;
+    if (!matchesSubject(n)) return false;
     return true;
   });
+
+  if (showAllSections) {
+    scopedNotices = dedupeForMergedView(scopedNotices);
+  }
 
   const classNotices = useMemo(
     () => scopedNotices.filter((n) => n.category.startsWith('class-')),
@@ -65,7 +101,8 @@ export default function NoticesPage() {
                   clearNotices(
                     (n) =>
                       n.batch === selectedBatch &&
-                      (showAllSections || n.section === effectiveSection),
+                      (showAllSections || n.section === effectiveSection) &&
+                      matchesSubject(n),
                   )
                 }
                 disabled={scopedNotices.length === 0}
