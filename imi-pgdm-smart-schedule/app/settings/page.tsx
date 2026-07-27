@@ -37,7 +37,7 @@ export default function SettingsPage() {
           onSelect={selectBatch}
         />
 
-        <Card className="p-5">
+        <Card className="p-4">
           <ToggleSwitch
             checked={showAllSections}
             onChange={setShowAllSections}
