@@ -74,16 +74,17 @@ export default function ProgressPage() {
               </p>
             </div>
 
-            <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div>
-                <p className="text-sm font-bold tracking-wide uppercase">Official Attendance</p>
-                <p className="text-muted mt-0.5 text-xs">
-                  This page tracks class completion, not attendance. Check your real attendance % on OLT.
-                </p>
-              </div>
-              <Button onClick={() => window.open(OLT_URL, '_blank', 'noopener,noreferrer')}>
-                <ExternalLink className="h-4 w-4" />
-                Check on OLT
+           <Card className="flex items-center justify-between gap-3 p-3">
+              <p className="text-muted flex items-center gap-2 text-xs">
+                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                This tracks class completion, not attendance — check your real % on OLT.
+              </p>
+              <Button
+                variant="outline"
+                className="shrink-0 px-2.5 py-1 text-xs shadow-none"
+                onClick={() => window.open(OLT_URL, '_blank', 'noopener,noreferrer')}
+              >
+                Open OLT
               </Button>
             </Card>
 
