@@ -17,6 +17,8 @@ export interface ChangeNotice {
   section: TargetSection;
   category: NoticeCategory;
   message: string;
+  /** Subject codes this notice concerns (empty for event notices). */
+  subjectCodes: string[];
 }
 
 export interface ScheduleSnapshot {
@@ -26,11 +28,16 @@ export interface ScheduleSnapshot {
 
 /**
  * A stable key identifying "what" a notice is about (category + batch +
- * section + message), ignoring WHEN it was detected. Two notices with the
- * same content key represent the same real-world change, even if they
- * were detected in separate fetch cycles — used to dedupe repeats.
+ * section + message), ignoring only WHEN it was detected. Section is
+ * intentionally INCLUDED here so storage stays fully accurate per
+ * section — a notice for Section A is never silently treated as
+ * covering Section B too. Collapsing identical text across sections for
+ * DISPLAY (e.g. in "show all sections" merged view) is handled
+ * separately, at the page level, without touching what's stored.
  */
-export function noticeContentKey(notice: Pick<ChangeNotice, 'category' | 'batch' | 'section' | 'message'>): string {
+export function noticeContentKey(
+  notice: Pick<ChangeNotice, 'category' | 'batch' | 'section' | 'message'>,
+): string {
   return `${notice.category}::${notice.batch}::${notice.section}::${notice.message}`;
 }
 
@@ -40,6 +47,7 @@ interface ClassSlotInfo {
   session: string;
   batch: string;
   section: TargetSection;
+  subjectCodes: string[];
 }
 
 function describeEntries(entries: { subjectCode: string; room?: string }[]): string {
@@ -60,6 +68,7 @@ function buildClassMap(days: DaySchedule[]): Map<string, ClassSlotInfo> {
         session: slot.session,
         batch: day.batch,
         section: day.section,
+        subjectCodes: slot.entries.map((e) => e.subjectCode),
       });
     }
   }
@@ -98,6 +107,7 @@ export function diffSchedules(
         section: after.section,
         category: 'class-added',
         message: `New class added: ${after.desc} on ${after.dayLabel} (Session ${after.session})`,
+        subjectCodes: after.subjectCodes,
       });
     } else if (before && !after) {
       notices.push({
@@ -107,6 +117,7 @@ export function diffSchedules(
         section: before.section,
         category: 'class-removed',
         message: `Class removed: ${before.desc} that was on ${before.dayLabel} (Session ${before.session})`,
+        subjectCodes: before.subjectCodes,
       });
     } else if (before && after && before.desc !== after.desc) {
       notices.push({
@@ -116,6 +127,7 @@ export function diffSchedules(
         section: after.section,
         category: 'class-changed',
         message: `Class updated on ${after.dayLabel} (Session ${after.session}): ${before.desc} → ${after.desc}`,
+        subjectCodes: [...new Set([...before.subjectCodes, ...after.subjectCodes])],
       });
     }
   }
@@ -136,6 +148,7 @@ export function diffSchedules(
         section: after.section,
         category: 'event-added',
         message: `New event: ${after.title} on ${after.dayLabel}`,
+        subjectCodes: [],
       });
     } else if (before && !after) {
       notices.push({
@@ -145,6 +158,7 @@ export function diffSchedules(
         section: before.section,
         category: 'event-removed',
         message: `Event removed: ${before.title} that was on ${before.dayLabel}`,
+        subjectCodes: [],
       });
     } else if (before && after && before.title !== after.title) {
       notices.push({
@@ -154,6 +168,7 @@ export function diffSchedules(
         section: after.section,
         category: 'event-changed',
         message: `Event updated on ${after.dayLabel}: ${before.title} → ${after.title}`,
+        subjectCodes: [],
       });
     }
   }
