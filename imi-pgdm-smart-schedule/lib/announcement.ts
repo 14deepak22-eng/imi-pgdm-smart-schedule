@@ -17,7 +17,7 @@
  * tomorrow, IST".
  */
 export const ANNOUNCEMENT = {
-  enabled: true,
+  enabled: false,
   id: 'sheet-year-error-26july',
   title: 'Announcement- Schedule Issue 27th July',
   message: 'Due to an incorrect year entry in the Google Sheet, classes for 27th July are not showing on the dashboard. Please refer to the Google Sheet directly for 27th July schedule -Deepak Kumar.',
