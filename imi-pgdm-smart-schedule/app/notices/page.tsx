@@ -48,10 +48,11 @@ export default function NoticesPage() {
 
   const effectiveSection = showAllSections ? 'A' : section;
 
-  const matchesSubject = (n: ChangeNotice) =>
+  const matchesSubject = (n: ChangeNotice) => {
+    const codes = n.subjectCodes ?? [];
     // Event notices aren't tied to a subject, so they're never filtered out here.
-    n.subjectCodes.length === 0 ||
-    n.subjectCodes.some((code) => isSubjectSelected(selectedSubjects, code));
+    return codes.length === 0 || codes.some((code) => isSubjectSelected(selectedSubjects, code));
+  };
 
   let scopedNotices = notices.filter((n) => {
     if (n.batch !== selectedBatch) return false;
