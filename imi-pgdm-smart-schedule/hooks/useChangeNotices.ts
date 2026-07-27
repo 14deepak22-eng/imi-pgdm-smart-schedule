@@ -38,12 +38,21 @@ function dedupeNotices(notices: ChangeNotice[]): ChangeNotice[] {
   return result;
 }
 
+/**
+ * Old notices saved before the `subjectCodes` field existed won't have
+ * it in localStorage — this backfills it to an empty array so pages
+ * that read `notice.subjectCodes` never crash on stale stored data.
+ */
+function migrateNotice(notice: ChangeNotice): ChangeNotice {
+  return { ...notice, subjectCodes: notice.subjectCodes ?? [] };
+}
+
 function readNotices(): ChangeNotice[] {
   try {
     const raw = localStorage.getItem(NOTICES_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? dedupeNotices(pruneNotices(parsed)) : [];
+    return Array.isArray(parsed) ? dedupeNotices(pruneNotices(parsed.map(migrateNotice))) : [];
   } catch {
     return [];
   }
@@ -81,6 +90,7 @@ export interface UseChangeNoticesResult {
 export function useChangeNotices(
   classes: DaySchedule[],
   events: ScheduleEvent[],
+  serverFetchedAt: string | null,
 ): UseChangeNoticesResult {
   const [notices, setNotices] = useState<ChangeNotice[]>([]);
   const hasData = classes.length > 0 || events.length > 0;
@@ -92,11 +102,16 @@ export function useChangeNotices(
       const prevSnapshot = readSnapshot();
       const existingNotices = readNotices();
       const next: ScheduleSnapshot = { classes, events };
+      // Prefer the server's own fetch time — identical for every visitor
+      // who hit the same 5-minute cached response — over this browser's
+      // local clock, so notices show the same time to everyone instead
+      // of "whenever I personally happened to refresh."
+      const detectedAt = serverFetchedAt ?? new Date().toISOString();
 
       let updatedNotices = pruneNotices(existingNotices);
 
       if (prevSnapshot) {
-        const newNotices = diffSchedules(prevSnapshot, next, new Date().toISOString());
+        const newNotices = diffSchedules(prevSnapshot, next, detectedAt);
         if (newNotices.length > 0) {
           updatedNotices = dedupeNotices(pruneNotices([...newNotices, ...updatedNotices]));
         }
