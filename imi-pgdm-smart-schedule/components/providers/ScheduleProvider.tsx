@@ -58,7 +58,7 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   const [showAllSections, setShowAllSections] = useShowAllSections();
   const [selectedBatch, setSelectedBatch] = useSelectedBatch();
   const [selectedSubjects, setSelectedSubjects] = useSubjectPreferences(selectedBatch);
-  const { notices, clearNotices } = useChangeNotices(sheet.classes, sheet.events);
+  const { notices, clearNotices } = useChangeNotices(sheet.classes, sheet.events, sheet.serverFetchedAt);
 
   const availableBatches = useMemo(
     () => deriveAvailableBatches(sheet.classes, sheet.events),
