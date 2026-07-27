@@ -4,6 +4,9 @@ import { Header } from '@/components/layout/Header';
 import { ClassProgress } from '@/components/settings/ClassProgress';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { ExternalLink } from 'lucide-react';
 import { useSchedule } from '@/components/providers/ScheduleProvider';
 import { useLiveClock } from '@/hooks/useLiveClock';
 import { deriveAvailableSubjects } from '@/lib/schedule/deriveAvailableSubjects';
@@ -11,6 +14,9 @@ import { deriveSubjectCompletionCounts } from '@/lib/schedule/deriveSubjectCompl
 import { filterClassesByBatch } from '@/lib/schedule/filterBatch';
 import { mergeAllDaySections } from '@/lib/schedule/mergeSections';
 import { isSubjectSelected } from '@/hooks/useSubjectPreferences';
+
+const OLT_URL =
+  'https://online.imibh.edu.in/academic/default.aspx?ReturnUrl=%2facademic%2fstudent%2ffrmStuddet.aspx';
 
 export default function ProgressPage() {
   const {
@@ -67,6 +73,19 @@ export default function ProgressPage() {
                 How many classes of each of your selected subjects have already happened.
               </p>
             </div>
+
+            <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <div>
+                <p className="text-sm font-bold tracking-wide uppercase">Official Attendance</p>
+                <p className="text-muted mt-0.5 text-xs">
+                  This page tracks class completion, not attendance. Check your real attendance % on OLT.
+                </p>
+              </div>
+              <Button onClick={() => window.open(OLT_URL, '_blank', 'noopener,noreferrer')}>
+                <ExternalLink className="h-4 w-4" />
+                Check on OLT
+              </Button>
+            </Card>
 
             <ClassProgress subjects={subjectsToShow} counts={counts} />
           </>
