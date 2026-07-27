@@ -74,14 +74,13 @@ export default function ProgressPage() {
               </p>
             </div>
 
-           <Card className="flex items-center justify-between gap-3 p-3">
+            <Card className="flex items-center justify-between gap-3 p-3">
               <p className="text-muted flex items-center gap-2 text-xs">
                 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                This tracks class completion, not attendance — check your real % on OLT.
+                This isn&apos;t your real attendance — check that on OLT.
               </p>
               <Button
-                variant="outline"
-                className="shrink-0 px-2.5 py-1 text-xs shadow-none"
+                className="shrink-0 border-yellow-600 bg-yellow-400 px-2.5 py-1 text-xs text-black shadow-[2px_2px_0_0_#a16207] hover:bg-yellow-300"
                 onClick={() => window.open(OLT_URL, '_blank', 'noopener,noreferrer')}
               >
                 Open OLT
