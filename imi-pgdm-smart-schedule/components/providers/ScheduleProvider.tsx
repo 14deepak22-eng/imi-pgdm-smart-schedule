@@ -1,25 +1,27 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import type { DaySchedule, TargetSection } from '@/types/timetable';
-import type { ScheduleEvent } from '@/types/events';
-import type { ChangeNotice } from '@/lib/schedule/diffSchedule';
-import type { BatchOption } from '@/lib/schedule/deriveAvailableBatches';
+import { createContext, useContext, useMemo, type ReactNode } from "react";
+import type { DaySchedule, TargetSection } from "@/types/timetable";
+import type { ScheduleEvent } from "@/types/events";
+import type { ChangeNotice } from "@/lib/schedule/diffSchedule";
+import type { BatchOption } from "@/lib/schedule/deriveAvailableBatches";
 import {
   deriveAvailableBatches,
   defaultShowAllSectionsForRank,
-} from '@/lib/schedule/deriveAvailableBatches';
-import { useSheetData } from '@/hooks/useSheetData';
-import { useSelectedSection } from '@/hooks/useSelectedSection';
-import { useSheetSource } from '@/hooks/useSheetSource';
-import { useSelectedBatch } from '@/hooks/useSelectedBatch';
-import { useSubjectPreferences } from '@/hooks/useSubjectPreferences';
-import { useShowAllSections } from '@/hooks/useShowAllSections';
-import { useChangeNotices } from '@/hooks/useChangeNotices';
+} from "@/lib/schedule/deriveAvailableBatches";
+import { useSheetData } from "@/hooks/useSheetData";
+import { useSelectedSection } from "@/hooks/useSelectedSection";
+import { useSheetSource } from "@/hooks/useSheetSource";
+import { useSelectedBatch } from "@/hooks/useSelectedBatch";
+import { useSubjectPreferences } from "@/hooks/useSubjectPreferences";
+import { useShowAllSections } from "@/hooks/useShowAllSections";
+import { useChangeNotices } from "@/hooks/useChangeNotices";
 
 interface ScheduleContextValue {
   classes: DaySchedule[];
   events: ScheduleEvent[];
+  /** Subject code → full name, auto-fetched from the sheet's legend tab. Empty if unavailable. */
+  subjectNames: Record<string, string>;
   loading: boolean;
   initialLoading: boolean;
   error: string | null;
@@ -57,8 +59,13 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   const [section, setSection] = useSelectedSection();
   const [showAllSections, setShowAllSections] = useShowAllSections();
   const [selectedBatch, setSelectedBatch] = useSelectedBatch();
-  const [selectedSubjects, setSelectedSubjects] = useSubjectPreferences(selectedBatch);
-  const { notices, clearNotices } = useChangeNotices(sheet.classes, sheet.events, sheet.serverFetchedAt);
+  const [selectedSubjects, setSelectedSubjects] =
+    useSubjectPreferences(selectedBatch);
+  const { notices, clearNotices } = useChangeNotices(
+    sheet.classes,
+    sheet.events,
+    sheet.serverFetchedAt,
+  );
 
   const availableBatches = useMemo(
     () => deriveAvailableBatches(sheet.classes, sheet.events),
@@ -97,6 +104,7 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
 
 export function useSchedule(): ScheduleContextValue {
   const ctx = useContext(ScheduleContext);
-  if (!ctx) throw new Error('useSchedule must be used within a ScheduleProvider');
+  if (!ctx)
+    throw new Error("useSchedule must be used within a ScheduleProvider");
   return ctx;
 }
