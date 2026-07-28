@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SearchBox } from "@/components/shared/SearchBox";
+import { resolveSubjectName } from "@/lib/sheet/subjectNames";
 import { cn } from "@/lib/utils/cn";
 
 interface SubjectPickerProps {
@@ -52,7 +53,7 @@ export function SubjectPicker({
     const q = query.trim().toLowerCase();
     if (!q) return availableSubjects;
     return availableSubjects.filter((code) => {
-      const name = subjectNames[code] ?? "";
+      const name = resolveSubjectName(subjectNames, code);
       return code.toLowerCase().includes(q) || name.toLowerCase().includes(q);
     });
   }, [availableSubjects, query, subjectNames]);
@@ -103,7 +104,7 @@ export function SubjectPicker({
           <div className="divide-border divide-y">
             {filtered.map((code) => {
               const active = draft.includes(code);
-              const name = subjectNames[code];
+              const name = resolveSubjectName(subjectNames, code);
               return (
                 <button
                   key={code}
