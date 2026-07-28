@@ -1,12 +1,14 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { DaySchedule } from '@/types/timetable';
-import type { ScheduleEvent } from '@/types/events';
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { DaySchedule } from "@/types/timetable";
+import type { ScheduleEvent } from "@/types/events";
 
 interface SheetApiSuccess {
   classes: DaySchedule[];
   events: ScheduleEvent[];
+  /** Subject code → full name, auto-fetched from the sheet's legend tab. Empty if unavailable. */
+  subjectNames: Record<string, string>;
   fetchedAt: string;
 }
 interface SheetApiError {
@@ -16,6 +18,8 @@ interface SheetApiError {
 export interface UseSheetDataResult {
   classes: DaySchedule[];
   events: ScheduleEvent[];
+  /** Subject code → full name (e.g. "MK629(A)" → "Marketing Research"). Empty until loaded, or if the sheet has no legend tab. */
+  subjectNames: Record<string, string>;
   loading: boolean;
   /** True only on the very first load, before any data has ever arrived. */
   initialLoading: boolean;
@@ -32,15 +36,20 @@ export interface UseSheetDataResult {
   refresh: () => void;
 }
 
-const REFRESH_INTERVAL_MS = Number(process.env.NEXT_PUBLIC_REFRESH_INTERVAL_MS ?? 300_000);
+const REFRESH_INTERVAL_MS = Number(
+  process.env.NEXT_PUBLIC_REFRESH_INTERVAL_MS ?? 300_000,
+);
 
 /**
  * @param sheetIdOverride When set, fetches from this Sheet ID instead of the
  * server's default env-configured sheet (see Settings > Sheet source).
  */
-export function useSheetData(sheetIdOverride?: string | null): UseSheetDataResult {
+export function useSheetData(
+  sheetIdOverride?: string | null,
+): UseSheetDataResult {
   const [classes, setClasses] = useState<DaySchedule[]>([]);
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
+  const [subjectNames, setSubjectNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,21 +65,28 @@ export function useSheetData(sheetIdOverride?: string | null): UseSheetDataResul
     try {
       const url = sheetIdOverride
         ? `/api/sheet?sheetId=${encodeURIComponent(sheetIdOverride)}`
-        : '/api/sheet';
-      const res = await fetch(url, { cache: 'no-store' });
+        : "/api/sheet";
+      const res = await fetch(url, { cache: "no-store" });
       const json = (await res.json()) as SheetApiSuccess | SheetApiError;
 
-      if (!res.ok || 'error' in json) {
-        throw new Error('error' in json ? json.error : 'Failed to load timetable data');
+      if (!res.ok || "error" in json) {
+        throw new Error(
+          "error" in json ? json.error : "Failed to load timetable data",
+        );
       }
 
       setClasses(json.classes);
       setEvents(json.events);
+      setSubjectNames(json.subjectNames ?? {});
       setLastUpdated(new Date(json.fetchedAt));
       setServerFetchedAt(json.fetchedAt);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong loading the timetable');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong loading the timetable",
+      );
     } finally {
       setLoading(false);
       setInitialLoading(false);
@@ -90,6 +106,7 @@ export function useSheetData(sheetIdOverride?: string | null): UseSheetDataResul
   return {
     classes,
     events,
+    subjectNames,
     loading,
     initialLoading,
     error,
