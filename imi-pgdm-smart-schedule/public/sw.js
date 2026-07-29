@@ -1,4 +1,6 @@
-const CACHE_NAME = 'pgdm-session-board-v1';
+// Bumped to v2: forces every existing visitor's browser to drop the old
+// (stale-serving) cache the moment this new service worker activates.
+const CACHE_NAME = 'pgdm-session-board-v2';
 const APP_SHELL = ['/', '/events', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -41,17 +43,37 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // App shell / static assets: cache-first, refreshing in the background.
+  // Next.js build output under /_next/static/ is content-hashed and
+  // immutable per deploy (the filename itself changes when the content
+  // changes) — safe to serve straight from cache forever, no re-check needed.
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) =>
+          cached ??
+          fetch(request).then((response) => {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            return response;
+          }),
+      ),
+    );
+    return;
+  }
+
+  // Everything else — pages ("/", "/events", "/settings", ...), the
+  // manifest, icons: network-first. This is the important part — it means
+  // the moment you deploy an update, the very next time anyone opens or
+  // reloads the app they get the new version immediately, with no need to
+  // refresh twice. Only falls back to the cached copy if they're actually
+  // offline.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const network = fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => cached);
-      return cached ?? network;
-    }),
+    fetch(request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        return response;
+      })
+      .catch(() => caches.match(request)),
   );
 });
