@@ -20,7 +20,7 @@ export const ANNOUNCEMENT = {
   enabled: true,
   id: 'sheet-year-error-26jul',
   title: 'Update',
-  message: 'Major bugs have been fixed! Please hard refresh the website and reselect your subjects in Settings to use the latest version. 🚀',
+  message: 'Major bugs have been fixed! Please hard refresh the website (Ctrl + Shift + R). Seniors: Go to Settings and reselect your subjects. Juniors: Just select your respective section. 🚀',
   // Example: live from right now until end of day tomorrow (IST).
   startAt: '2026-07-29T00:00:00+05:30' as string | null,
   endAt: '2026-07-29T17:59:59+05:30' as string | null,
