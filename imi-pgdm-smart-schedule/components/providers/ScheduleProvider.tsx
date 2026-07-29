@@ -5,6 +5,7 @@ import type { DaySchedule, TargetSection } from "@/types/timetable";
 import type { ScheduleEvent } from "@/types/events";
 import type { ChangeNotice } from "@/lib/schedule/diffSchedule";
 import type { BatchOption } from "@/lib/schedule/deriveAvailableBatches";
+import type { SubjectLegendEntry } from "@/lib/sheet/parseSubjectNames";
 import {
   deriveAvailableBatches,
   defaultShowAllSectionsForRank,
@@ -20,8 +21,8 @@ import { useChangeNotices } from "@/hooks/useChangeNotices";
 interface ScheduleContextValue {
   classes: DaySchedule[];
   events: ScheduleEvent[];
-  /** Subject code → full name, auto-fetched from the sheet's legend tab. Empty if unavailable. */
-  subjectNames: Record<string, string>;
+  /** Subject code → {name, faculty}, auto-fetched from the sheet's legend tab. Empty if unavailable. */
+  subjectLegend: Record<string, SubjectLegendEntry>;
   loading: boolean;
   initialLoading: boolean;
   error: string | null;

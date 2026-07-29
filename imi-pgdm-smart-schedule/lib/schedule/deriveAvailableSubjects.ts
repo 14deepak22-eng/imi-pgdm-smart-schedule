@@ -1,35 +1,83 @@
-import type { DaySchedule } from '@/types/timetable';
-import { CANONICAL_SUBJECT_CODES_BY_BATCH } from '@/lib/sheet/constants';
+import type { DaySchedule } from "@/types/timetable";
+import type { SubjectLegendEntry } from "@/lib/sheet/parseSubjectNames";
+import {
+  resolveSubjectIdentity,
+  type ResolvedSubject,
+} from "@/lib/sheet/resolveSubjectIdentity";
 
 /**
  * Returns the full list of subjects to offer in the Settings picker for
- * ONE specific batch: that batch's complete, authoritative canonical
- * list (always shown in full, so nothing is missing even before the
- * sheet has loaded), plus any extra codes actually found in the parsed
- * schedule for that batch that aren't already in the canonical list —
- * a safety net for batches with no canonical list configured yet, or in
- * case a new subject gets added to the sheet later.
+ * ONE specific batch. The list itself comes straight from the sheet 2
+ * legend, filtered to whichever subjects are tagged with this batch —
+ * so every subject for that year shows up immediately, even ones that
+ * haven't had a class appear in the schedule yet.
+ *
+ * Sheet 1 (the actual schedule) is only cross-checked to find out
+ * whether a given subject is genuinely split into parallel sections
+ * (A/B/C) — if so, it's offered as separate section rows; otherwise
+ * it's one single row.
  *
  * Returns an empty list if no batch is selected yet.
  */
-export function deriveAvailableSubjects(days: DaySchedule[], batchPrefix: string | null): string[] {
+export function deriveAvailableSubjectIdentities(
+  days: DaySchedule[],
+  batchPrefix: string | null,
+  legend: Record<string, SubjectLegendEntry>,
+): ResolvedSubject[] {
   if (!batchPrefix) return [];
 
-  const canonical = CANONICAL_SUBJECT_CODES_BY_BATCH[batchPrefix] ?? [];
-  const known = new Set<string>(canonical);
-  const extras = new Set<string>();
+  const baseCodesForBatch = Object.entries(legend)
+    .filter(([, entry]) => entry.batch === batchPrefix)
+    .map(([code]) => code);
 
+  if (baseCodesForBatch.length === 0) return [];
+
+  // Cross-check sheet 1 purely to find which sections (if any) each
+  // subject is actually split into for this batch.
+  const sectionsByBaseCode = new Map<string, Set<string>>();
   for (const day of days) {
     if (day.batch !== batchPrefix) continue;
     if (day.isHoliday) continue;
     for (const slot of day.sessions) {
       for (const entry of slot.entries) {
-        if (entry.subjectCode && !known.has(entry.subjectCode)) {
-          extras.add(entry.subjectCode);
+        if (!entry.subjectCode) continue;
+        const resolved = resolveSubjectIdentity(entry.subjectCode, legend);
+        if (!resolved.section) continue;
+        if (!sectionsByBaseCode.has(resolved.baseCode)) {
+          sectionsByBaseCode.set(resolved.baseCode, new Set());
         }
+        sectionsByBaseCode.get(resolved.baseCode)!.add(resolved.section);
       }
     }
   }
 
-  return [...canonical, ...Array.from(extras).sort((a, b) => a.localeCompare(b))];
+  const result: ResolvedSubject[] = [];
+  for (const baseCode of baseCodesForBatch) {
+    const entry = legend[baseCode];
+    const sections = sectionsByBaseCode.get(baseCode);
+    if (sections && sections.size > 0) {
+      for (const section of Array.from(sections).sort()) {
+        result.push({
+          code: `${baseCode}(${section})`,
+          baseCode,
+          section,
+          name: entry.name,
+          faculty: entry.faculty,
+        });
+      }
+    } else {
+      result.push({
+        code: baseCode,
+        baseCode,
+        name: entry.name,
+        faculty: entry.faculty,
+      });
+    }
+  }
+
+  return result.sort(
+    (a, b) =>
+      a.baseCode.localeCompare(b.baseCode) ||
+      (a.section ?? "").localeCompare(b.section ?? ""),
+  );
 }

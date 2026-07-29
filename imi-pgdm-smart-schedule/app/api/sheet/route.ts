@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchSheetRows } from "@/lib/sheet/fetchSheet";
-import { fetchSubjectNameMap } from "@/lib/sheet/fetchSubjectNames";
+import { fetchSubjectLegend } from "@/lib/sheet/fetchSubjectNames";
+import { correctMislabeledBatches } from "@/lib/schedule/correctMislabeledBatches";
 import { parseSchedule } from "@/lib/sheet/parseSchedule";
 import { SheetFetchError } from "@/lib/sheet/errors";
 import { extractSheetId } from "@/lib/utils/sheetId";
@@ -62,12 +63,23 @@ export async function GET(request: NextRequest) {
     const { classes, events } = parseSchedule(rows);
 
     // Best-effort: if the legend tab is missing/renamed/unreadable, this
-    // resolves to {} rather than failing the whole request — the
-    // Settings page just falls back to showing subject codes alone.
-    const subjectNames = await fetchSubjectNameMap(sheetId).catch(() => ({}));
+    // resolves to {} rather than failing the whole request — the rest of
+    // the app just falls back to showing subject codes alone.
+    const subjectLegend = await fetchSubjectLegend(sheetId).catch(() => ({}));
+
+    // Fix obvious copy-paste typos in a day's batch label (e.g. a day
+    // meant for "PGDM 2025-27" mistyped as "PGDM 2024-26"), using the
+    // sheet 2 legend as evidence. See correctMislabeledBatches for the
+    // (deliberately conservative) rules this follows.
+    const correctedClasses = correctMislabeledBatches(classes, subjectLegend);
 
     return NextResponse.json(
-      { classes, events, subjectNames, fetchedAt: new Date().toISOString() },
+      {
+        classes: correctedClasses,
+        events,
+        subjectLegend,
+        fetchedAt: new Date().toISOString(),
+      },
       {
         headers: overrideId
           ? { "Cache-Control": "no-store" }

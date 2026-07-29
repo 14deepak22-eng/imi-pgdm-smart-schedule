@@ -1,5 +1,10 @@
 import { fetchSheetRows } from "./fetchSheet";
-import { parseSubjectNames } from "./parseSubjectNames";
+import {
+  parseSubjectLegend,
+  type SubjectLegendEntry,
+} from "./parseSubjectNames";
+
+export type { SubjectLegendEntry };
 
 // Tried in order against the same spreadsheet. Your second tab is called
 // "Course Name & Faculty" — the others are just reasonable fallbacks in
@@ -12,19 +17,19 @@ const CANDIDATE_TAB_NAMES = [
 ];
 
 /**
- * Best-effort fetch of the subject code → full name legend from a second
- * tab in the same spreadsheet. Never throws — if the tab is missing,
- * renamed, or laid out unexpectedly, this just returns {} so the picker
- * falls back to showing subject codes only.
+ * Best-effort fetch of the subject legend (code → full name + faculty)
+ * from a second tab in the same spreadsheet. Never throws — if the tab
+ * is missing, renamed, or laid out unexpectedly, this just returns {}
+ * so the rest of the app falls back to showing subject codes alone.
  */
-export async function fetchSubjectNameMap(
+export async function fetchSubjectLegend(
   sheetId: string,
-): Promise<Record<string, string>> {
+): Promise<Record<string, SubjectLegendEntry>> {
   for (const tabName of CANDIDATE_TAB_NAMES) {
     try {
       const rows = await fetchSheetRows(sheetId, tabName);
-      const names = parseSubjectNames(rows);
-      if (Object.keys(names).length > 0) return names;
+      const legend = parseSubjectLegend(rows);
+      if (Object.keys(legend).length > 0) return legend;
     } catch {
       // Tab doesn't exist under this name, or isn't readable — try the next.
     }

@@ -9,13 +9,13 @@ import { YearSwitcher } from "@/components/settings/YearSwitcher";
 import { Card } from "@/components/ui/Card";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { useSchedule } from "@/components/providers/ScheduleProvider";
-import { deriveAvailableSubjects } from "@/lib/schedule/deriveAvailableSubjects";
+import { deriveAvailableSubjectIdentities } from "@/lib/schedule/deriveAvailableSubjects";
 import { cn } from "@/lib/utils/cn";
 
 export default function SettingsPage() {
   const {
     classes,
-    subjectNames,
+    subjectLegend,
     sheetId,
     setSheetId,
     selectedSubjects,
@@ -26,7 +26,11 @@ export default function SettingsPage() {
     selectedBatch,
     selectBatch,
   } = useSchedule();
-  const availableSubjects = deriveAvailableSubjects(classes, selectedBatch);
+  const availableSubjects = deriveAvailableSubjectIdentities(
+    classes,
+    selectedBatch,
+    subjectLegend,
+  );
 
   // Sheet Source is rarely touched, so it stays tucked away by default —
   // keeps the page short without turning every section into an accordion.
@@ -61,7 +65,6 @@ export default function SettingsPage() {
           key={selectedBatch ?? "none"}
           availableSubjects={availableSubjects}
           selected={selectedSubjects}
-          subjectNames={subjectNames}
           onSave={setSelectedSubjects}
         />
 

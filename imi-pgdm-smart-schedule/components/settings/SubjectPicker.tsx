@@ -5,27 +5,29 @@ import { Check } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SearchBox } from "@/components/shared/SearchBox";
-import { resolveSubjectName } from "@/lib/sheet/subjectNames";
+import type { ResolvedSubject } from "@/lib/sheet/resolveSubjectIdentity";
 import { cn } from "@/lib/utils/cn";
 
 interface SubjectPickerProps {
-  /** Every subject code actually found in the schedule, across all sections. */
-  availableSubjects: string[];
+  /** Every subject actually found in the schedule, across all sections, resolved against the sheet's legend. */
+  availableSubjects: ResolvedSubject[];
   selected: string[] | null;
-  /** Subject code → full name, auto-fetched from the sheet's legend tab. Codes with no match just show the code alone. */
-  subjectNames: Record<string, string>;
   onSave: (subjects: string[]) => void;
 }
 
 export function SubjectPicker({
   availableSubjects,
   selected,
-  subjectNames,
   onSave,
 }: SubjectPickerProps) {
+  const allCodes = useMemo(
+    () => availableSubjects.map((s) => s.code),
+    [availableSubjects],
+  );
+
   // null/empty stored preference = "all selected" by default in the UI.
   const [draft, setDraft] = useState<string[]>(
-    selected && selected.length > 0 ? selected : [...availableSubjects],
+    selected && selected.length > 0 ? selected : [...allCodes],
   );
   const [saved, setSaved] = useState(false);
   const [query, setQuery] = useState("");
@@ -52,11 +54,13 @@ export function SubjectPicker({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return availableSubjects;
-    return availableSubjects.filter((code) => {
-      const name = resolveSubjectName(subjectNames, code);
-      return code.toLowerCase().includes(q) || name.toLowerCase().includes(q);
+    return availableSubjects.filter((s) => {
+      return (
+        s.code.toLowerCase().includes(q) ||
+        (s.name ?? "").toLowerCase().includes(q)
+      );
     });
-  }, [availableSubjects, query, subjectNames]);
+  }, [availableSubjects, query]);
 
   if (availableSubjects.length === 0) {
     return (
@@ -91,7 +95,7 @@ export function SubjectPicker({
           placeholder="Search subject…"
         />
         <span className="text-muted shrink-0 text-xs whitespace-nowrap">
-          {draft.length}/{availableSubjects.length} selected
+          {draft.length}/{allCodes.length} selected
         </span>
       </div>
 
@@ -102,14 +106,13 @@ export function SubjectPicker({
           </p>
         ) : (
           <div className="divide-border divide-y">
-            {filtered.map((code) => {
-              const active = draft.includes(code);
-              const name = resolveSubjectName(subjectNames, code);
+            {filtered.map((subject) => {
+              const active = draft.includes(subject.code);
               return (
                 <button
-                  key={code}
+                  key={subject.code}
                   type="button"
-                  onClick={() => toggle(code)}
+                  onClick={() => toggle(subject.code)}
                   aria-pressed={active}
                   className={cn(
                     "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors",
@@ -127,17 +130,24 @@ export function SubjectPicker({
                     {active && <Check className="h-3.5 w-3.5" />}
                   </span>
                   <span className="flex min-w-0 flex-col">
-                    <span
-                      className={cn(
-                        "text-sm font-semibold",
-                        active && "text-accent",
+                    <span className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "text-sm font-semibold",
+                          active && "text-accent",
+                        )}
+                      >
+                        {subject.baseCode}
+                      </span>
+                      {subject.section && (
+                        <span className="border-border text-muted rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
+                          Section {subject.section}
+                        </span>
                       )}
-                    >
-                      {code}
                     </span>
-                    {name && (
+                    {subject.name && (
                       <span className="text-muted mt-0.5 truncate text-xs">
-                        {name}
+                        {subject.name}
                       </span>
                     )}
                   </span>
@@ -150,10 +160,7 @@ export function SubjectPicker({
 
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={save}>Save</Button>
-        <Button
-          variant="ghost"
-          onClick={() => setDraft([...availableSubjects])}
-        >
+        <Button variant="ghost" onClick={() => setDraft([...allCodes])}>
           Select all
         </Button>
         <Button variant="ghost" onClick={() => setDraft([])}>
