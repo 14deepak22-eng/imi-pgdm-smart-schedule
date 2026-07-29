@@ -1,11 +1,17 @@
-import type { DaySchedule, TargetSection } from '@/types/timetable';
-import { toLocalISODate } from '@/lib/utils/date';
+import type { DaySchedule, TargetSection } from "@/types/timetable";
+import type { SubjectLegendEntry } from "@/lib/sheet/parseSubjectNames";
+import { resolveSubjectIdentity } from "@/lib/sheet/resolveSubjectIdentity";
+import { toLocalISODate } from "@/lib/utils/date";
 
 /**
  * Counts, for each subject code, how many class sessions have already
  * happened as of `now` — for one specific batch + section. A session
  * counts as "completed" if its date is strictly before today, or if
  * it's today and the session's end time has already passed.
+ *
+ * Each raw entry is resolved against the legend first, so e.g. two
+ * faculty-initial variants of the same course (dropped by the
+ * resolver) still add up under one combined count.
  *
  * Purely derived from the parsed schedule already in memory — no
  * separate attendance tracking, no extra sheet columns needed. If a
@@ -17,6 +23,7 @@ export function deriveSubjectCompletionCounts(
   batchPrefix: string | null,
   section: TargetSection,
   now: Date,
+  legend: Record<string, SubjectLegendEntry>,
 ): Record<string, number> {
   const counts: Record<string, number> = {};
   if (!batchPrefix) return counts;
@@ -38,7 +45,8 @@ export function deriveSubjectCompletionCounts(
       }
 
       for (const entry of slot.entries) {
-        counts[entry.subjectCode] = (counts[entry.subjectCode] ?? 0) + 1;
+        const code = resolveSubjectIdentity(entry.subjectCode, legend).code;
+        counts[code] = (counts[code] ?? 0) + 1;
       }
     }
   }
