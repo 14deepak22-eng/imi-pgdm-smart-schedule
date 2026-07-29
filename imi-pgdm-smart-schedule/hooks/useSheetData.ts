@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DaySchedule } from "@/types/timetable";
 import type { ScheduleEvent } from "@/types/events";
+import type { SubjectLegendEntry } from "@/lib/sheet/parseSubjectNames";
 
 interface SheetApiSuccess {
   classes: DaySchedule[];
   events: ScheduleEvent[];
-  /** Subject code → full name, auto-fetched from the sheet's legend tab. Empty if unavailable. */
-  subjectNames: Record<string, string>;
+  /** Subject code → {name, faculty}, auto-fetched from the sheet's legend tab. Empty if unavailable. */
+  subjectLegend: Record<string, SubjectLegendEntry>;
   fetchedAt: string;
 }
 interface SheetApiError {
@@ -18,8 +19,8 @@ interface SheetApiError {
 export interface UseSheetDataResult {
   classes: DaySchedule[];
   events: ScheduleEvent[];
-  /** Subject code → full name (e.g. "MK629(A)" → "Marketing Research"). Empty until loaded, or if the sheet has no legend tab. */
-  subjectNames: Record<string, string>;
+  /** Subject code → {name, faculty}, auto-fetched from the sheet's legend tab. Empty until loaded, or if the sheet has no legend tab. */
+  subjectLegend: Record<string, SubjectLegendEntry>;
   loading: boolean;
   /** True only on the very first load, before any data has ever arrived. */
   initialLoading: boolean;
@@ -49,7 +50,9 @@ export function useSheetData(
 ): UseSheetDataResult {
   const [classes, setClasses] = useState<DaySchedule[]>([]);
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
-  const [subjectNames, setSubjectNames] = useState<Record<string, string>>({});
+  const [subjectLegend, setSubjectLegend] = useState<
+    Record<string, SubjectLegendEntry>
+  >({});
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +80,7 @@ export function useSheetData(
 
       setClasses(json.classes);
       setEvents(json.events);
-      setSubjectNames(json.subjectNames ?? {});
+      setSubjectLegend(json.subjectLegend ?? {});
       setLastUpdated(new Date(json.fetchedAt));
       setServerFetchedAt(json.fetchedAt);
       setError(null);
@@ -106,7 +109,7 @@ export function useSheetData(
   return {
     classes,
     events,
-    subjectNames,
+    subjectLegend,
     loading,
     initialLoading,
     error,
