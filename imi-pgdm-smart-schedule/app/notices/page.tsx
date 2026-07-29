@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { Trash2 } from 'lucide-react';
-import { Header } from '@/components/layout/Header';
-import { Button } from '@/components/ui/Button';
-import { Skeleton } from '@/components/shared/Skeleton';
-import { ErrorState } from '@/components/shared/ErrorState';
-import { NoticeList } from '@/components/events/NoticeList';
-import { useSchedule } from '@/components/providers/ScheduleProvider';
-import { isSubjectSelected } from '@/hooks/useSubjectPreferences';
-import type { ChangeNotice } from '@/lib/schedule/diffSchedule';
+import { useMemo } from "react";
+import { Trash2 } from "lucide-react";
+import { Header } from "@/components/layout/Header";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/shared/Skeleton";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { NoticeList } from "@/components/events/NoticeList";
+import { useSchedule } from "@/components/providers/ScheduleProvider";
+import { isSubjectSelected } from "@/hooks/useSubjectPreferences";
+import type { ChangeNotice } from "@/lib/schedule/diffSchedule";
 
 /**
  * Collapses notices that read identically (same category/message) into
@@ -44,14 +44,20 @@ export default function NoticesPage() {
     showAllSections,
     selectedBatch,
     selectedSubjects,
+    subjectLegend,
   } = useSchedule();
 
-  const effectiveSection = showAllSections ? 'A' : section;
+  const effectiveSection = showAllSections ? "A" : section;
 
   const matchesSubject = (n: ChangeNotice) => {
     const codes = n.subjectCodes ?? [];
     // Event notices aren't tied to a subject, so they're never filtered out here.
-    return codes.length === 0 || codes.some((code) => isSubjectSelected(selectedSubjects, code));
+    return (
+      codes.length === 0 ||
+      codes.some((code) =>
+        isSubjectSelected(selectedSubjects, code, subjectLegend),
+      )
+    );
   };
 
   let scopedNotices = notices.filter((n) => {
@@ -66,11 +72,11 @@ export default function NoticesPage() {
   }
 
   const classNotices = useMemo(
-    () => scopedNotices.filter((n) => n.category.startsWith('class-')),
+    () => scopedNotices.filter((n) => n.category.startsWith("class-")),
     [scopedNotices],
   );
   const eventNotices = useMemo(
-    () => scopedNotices.filter((n) => n.category.startsWith('event-')),
+    () => scopedNotices.filter((n) => n.category.startsWith("event-")),
     [scopedNotices],
   );
 
@@ -79,7 +85,9 @@ export default function NoticesPage() {
       <Header />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6">
-        {error && !initialLoading && <ErrorState message={error} onRetry={refresh} />}
+        {error && !initialLoading && (
+          <ErrorState message={error} onRetry={refresh} />
+        )}
 
         {initialLoading ? (
           <div className="flex flex-col gap-6">
@@ -91,7 +99,9 @@ export default function NoticesPage() {
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h1 className="font-display text-2xl font-bold tracking-wide uppercase">Notice</h1>
+                <h1 className="font-display text-2xl font-bold tracking-wide uppercase">
+                  Notice
+                </h1>
                 <p className="text-muted text-sm">
                   Auto-detected changes to the sheet, kept visible for 1 week.
                 </p>
