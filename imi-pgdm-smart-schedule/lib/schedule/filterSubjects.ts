@@ -1,5 +1,6 @@
-import type { DaySchedule } from '@/types/timetable';
-import { isSubjectSelected } from '@/hooks/useSubjectPreferences';
+import type { DaySchedule } from "@/types/timetable";
+import type { SubjectLegendEntry } from "@/lib/sheet/parseSubjectNames";
+import { isSubjectSelected } from "@/hooks/useSubjectPreferences";
 
 /**
  * Returns a copy of `days` where each session's entries are filtered to
@@ -10,6 +11,7 @@ import { isSubjectSelected } from '@/hooks/useSubjectPreferences';
 export function filterClassesBySubjects(
   days: DaySchedule[],
   selected: string[] | null,
+  legend: Record<string, SubjectLegendEntry>,
 ): DaySchedule[] {
   if (!selected || selected.length === 0) return days;
 
@@ -19,7 +21,9 @@ export function filterClassesBySubjects(
       ...day,
       sessions: day.sessions.map((slot) => ({
         ...slot,
-        entries: slot.entries.filter((entry) => isSubjectSelected(selected, entry.subjectCode)),
+        entries: slot.entries.filter((entry) =>
+          isSubjectSelected(selected, entry.subjectCode, legend),
+        ),
       })),
     };
   });
