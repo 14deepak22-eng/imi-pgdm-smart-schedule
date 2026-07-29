@@ -19,9 +19,10 @@
 export const ANNOUNCEMENT = {
   enabled: true,
   id: 'sheet-year-error-26jul',
-  title: 'Update',
-  message: 'Major bugs have been fixed! Please hard refresh the website. Seniors: Go to Settings and reselect your subjects. Juniors: Just select your respective section. 🚀',
+  title: 'Hail SPA 🔥',
+  message: '🏆 Sports ka Josh | 🎯 PRAYAS ki Soch | 🤝 Admissions ka Vishwas
+One Team. One Vision. One Identity. – SPA',
   // Example: live from right now until end of day tomorrow (IST).
   startAt: '2026-07-29T00:00:00+05:30' as string | null,
-  endAt: '2026-07-29T17:59:59+05:30' as string | null,
+  endAt: '2026-07-30T17:59:59+05:30' as string | null,
 };
