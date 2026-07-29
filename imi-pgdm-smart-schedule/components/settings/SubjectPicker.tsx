@@ -26,21 +26,6 @@ export function SubjectPicker({
 }: SubjectPickerProps) {
   const allKeys = useMemo(() => availableSubjects.map((s) => s.key), [availableSubjects]);
 
-  // Selected subjects are shown first. Deliberately sorted off `selected`
-  // (the last SAVED preference), not `draft` (the in-progress edit) — so
-  // toggling a checkbox never makes it jump around mid-edit. The list
-  // only reorders the next time this picker loads/reloads with a freshly
-  // saved preference.
-  const orderedSubjects = useMemo(() => {
-    const selectedSet = new Set(selected ?? []);
-    return [...availableSubjects].sort((a, b) => {
-      const aSelected = selectedSet.has(a.key);
-      const bSelected = selectedSet.has(b.key);
-      if (aSelected !== bSelected) return aSelected ? -1 : 1;
-      return a.key.localeCompare(b.key);
-    });
-  }, [availableSubjects, selected]);
-
   // null/empty stored preference = "all selected" by default in the UI.
   const [draft, setDraft] = useState<string[]>(
     selected && selected.length > 0 ? selected : [...allKeys],
@@ -94,8 +79,8 @@ export function SubjectPicker({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return orderedSubjects;
-    return orderedSubjects.filter((subject) => {
+    if (!q) return availableSubjects;
+    return availableSubjects.filter((subject) => {
       const info = resolveSubjectInfo(subjectNames, subject.code);
       return (
         subject.key.toLowerCase().includes(q) ||
@@ -103,7 +88,7 @@ export function SubjectPicker({
         info.faculty.toLowerCase().includes(q)
       );
     });
-  }, [orderedSubjects, query, subjectNames]);
+  }, [availableSubjects, query, subjectNames]);
 
   if (availableSubjects.length === 0) {
     return (
