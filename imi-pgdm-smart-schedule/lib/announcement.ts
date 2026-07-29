@@ -17,11 +17,11 @@
  * tomorrow, IST".
  */
 export const ANNOUNCEMENT = {
-  enabled: false,
-  id: 'sheet-year-error-26july',
-  title: 'Announcement- Schedule Issue 27th July',
-  message: 'Due to an incorrect year entry in the Google Sheet, classes for 27th July are not showing on the dashboard. Please refer to the Google Sheet directly for 27th July schedule -Deepak Kumar.',
+  enabled: true,
+  id: 'sheet-year-error-26jul',
+  title: 'Update',
+  message: 'Major bugs have been fixed! Please hard refresh the website and reselect your subjects in Settings to use the latest version. 🚀',
   // Example: live from right now until end of day tomorrow (IST).
-  startAt: '2026-07-26T00:00:00+05:30' as string | null,
-  endAt: '2026-07-27T17:59:59+05:30' as string | null,
+  startAt: '2026-07-29T00:00:00+05:30' as string | null,
+  endAt: '2026-07-29T17:59:59+05:30' as string | null,
 };
