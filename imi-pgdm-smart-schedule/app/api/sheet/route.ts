@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchSheetRows } from "@/lib/sheet/fetchSheet";
-import { fetchSubjectNameMap } from "@/lib/sheet/fetchSubjectNames";
+import { fetchSubjectLegend } from "@/lib/sheet/fetchSubjectNames";
 import { parseSchedule } from "@/lib/sheet/parseSchedule";
 import { SheetFetchError } from "@/lib/sheet/errors";
 import { extractSheetId } from "@/lib/utils/sheetId";
@@ -62,12 +62,12 @@ export async function GET(request: NextRequest) {
     const { classes, events } = parseSchedule(rows);
 
     // Best-effort: if the legend tab is missing/renamed/unreadable, this
-    // resolves to {} rather than failing the whole request — the
-    // Settings page just falls back to showing subject codes alone.
-    const subjectNames = await fetchSubjectNameMap(sheetId).catch(() => ({}));
+    // resolves to {} rather than failing the whole request — the rest of
+    // the app just falls back to showing subject codes alone.
+    const subjectLegend = await fetchSubjectLegend(sheetId).catch(() => ({}));
 
     return NextResponse.json(
-      { classes, events, subjectNames, fetchedAt: new Date().toISOString() },
+      { classes, events, subjectLegend, fetchedAt: new Date().toISOString() },
       {
         headers: overrideId
           ? { "Cache-Control": "no-store" }
