@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSchedule } from '@/components/providers/ScheduleProvider';
@@ -15,10 +16,29 @@ const LINKS = [
   { href: '/settings', label: 'Settings' },
 ];
 
+// Whether this browser has ever opened Settings — shown as a green dot
+// on the Settings tab for brand-new visitors, cleared for good the first
+// time they open it (see app/settings/page.tsx). Shared here rather than
+// as a separate hook file since Nav is the only place that reads it.
+const SETTINGS_VISITED_KEY = 'pgdm-settings-visited';
+
 export function Nav() {
   const pathname = usePathname();
   const { notices, selectedBatch, showAllSections, section, selectedSubjects, subjectLegend, seenNoticeIds } =
     useSchedule();
+
+  // Defaults to "visited" (no dot) so a returning visitor never sees a
+  // false flash of the dot before the real value loads from storage.
+  const [settingsVisited, setSettingsVisited] = useState(true);
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        setSettingsVisited(localStorage.getItem(SETTINGS_VISITED_KEY) === '1');
+      } catch {
+        setSettingsVisited(true); // storage unavailable — fail closed, no dot
+      }
+    });
+  }, []);
 
   // Same scoping the Notices page uses to decide what it actually shows
   // you — so a dot here means there's genuinely something new to see,
@@ -48,9 +68,13 @@ export function Nav() {
     <nav className="scrollbar-hide flex flex-nowrap items-center gap-0.5 overflow-x-auto sm:flex-wrap sm:gap-1 sm:overflow-visible">
       {LINKS.map((link) => {
         const active = pathname === link.href;
-        const showDot =
+        const showUpdateDot =
           (link.href === '/notices' && hasNoticeUpdate) ||
           (link.href === '/events' && hasEventUpdate);
+        // First-visit hint: green, independent of the notice/event
+        // "update" dots above — it's about a brand-new visitor never
+        // having opened Settings yet, not about anything changing.
+        const showFirstVisitDot = link.href === '/settings' && !settingsVisited;
         return (
           <Link
             key={link.href}
@@ -61,10 +85,16 @@ export function Nav() {
             )}
           >
             {link.label}
-            {showDot && (
+            {showUpdateDot && (
               <span
                 className="bg-accent-2 border-background absolute top-0 right-0 h-1.5 w-1.5 rounded-full border sm:-top-0.5 sm:-right-0.5"
                 aria-label="New update"
+              />
+            )}
+            {showFirstVisitDot && (
+              <span
+                className="border-background absolute top-0 right-0 h-1.5 w-1.5 rounded-full border bg-green-500 sm:-top-0.5 sm:-right-0.5"
+                aria-label="New here — check Settings"
               />
             )}
             <span
