@@ -17,7 +17,7 @@
  * tomorrow, IST".
  */
 export const ANNOUNCEMENT = {
-  enabled: true,
+  enabled: false,
   id: 'sheet-year-error-26jul',
   title: 'Hail SPA 🔥',
   message: '🏆 Sports ka Josh | 🎯 PRAYAS ki Soch |   🤝 Admissions ka Vishwas One Team. One Vision. One Identity. – SPA',
