@@ -1,30 +1,24 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Header } from "@/components/layout/Header";
-import { NextClassCard } from "@/components/dashboard/NextClassCard";
-import { StatsCards } from "@/components/dashboard/StatsCards";
-import { TodayClasses } from "@/components/dashboard/TodayClasses";
-import { WeeklyTimetable } from "@/components/dashboard/WeeklyTimetable";
-import { WeeksSelector } from "@/components/dashboard/WeeksSelector";
-import { SearchBox } from "@/components/shared/SearchBox";
-import { Skeleton } from "@/components/shared/Skeleton";
-import { ErrorState } from "@/components/shared/ErrorState";
-import { useSchedule } from "@/components/providers/ScheduleProvider";
-import { useCountdown } from "@/hooks/useCountdown";
-import { useWeeksToShow } from "@/hooks/useWeeksToShow";
-import { useDayComplete } from "@/hooks/useDayComplete";
-import { DayCompleteBanner } from "@/components/dashboard/DayCompleteBanner";
-import { computeDashboardStats } from "@/lib/schedule/deriveStats";
-import { filterClassesBySubjects } from "@/lib/schedule/filterSubjects";
-import {
-  filterClassesByBatch,
-  filterEventsByBatch,
-} from "@/lib/schedule/filterBatch";
-import {
-  mergeAllDaySections,
-  mergeAllSectionEvents,
-} from "@/lib/schedule/mergeSections";
+import { useState } from 'react';
+import { Header } from '@/components/layout/Header';
+import { NextClassCard } from '@/components/dashboard/NextClassCard';
+import { StatsCards } from '@/components/dashboard/StatsCards';
+import { TodayClasses } from '@/components/dashboard/TodayClasses';
+import { WeeklyTimetable } from '@/components/dashboard/WeeklyTimetable';
+import { WeeksSelector } from '@/components/dashboard/WeeksSelector';
+import { SearchBox } from '@/components/shared/SearchBox';
+import { Skeleton } from '@/components/shared/Skeleton';
+import { ErrorState } from '@/components/shared/ErrorState';
+import { useSchedule } from '@/components/providers/ScheduleProvider';
+import { useCountdown } from '@/hooks/useCountdown';
+import { useWeeksToShow } from '@/hooks/useWeeksToShow';
+import { useDayComplete } from '@/hooks/useDayComplete';
+import { DayCompleteBanner } from '@/components/dashboard/DayCompleteBanner';
+import { computeDashboardStats } from '@/lib/schedule/deriveStats';
+import { filterClassesBySubjects } from '@/lib/schedule/filterSubjects';
+import { filterClassesByBatch, filterEventsByBatch } from '@/lib/schedule/filterBatch';
+import { mergeAllDaySections, mergeAllSectionEvents } from '@/lib/schedule/mergeSections';
 
 export default function DashboardPage() {
   const {
@@ -35,34 +29,22 @@ export default function DashboardPage() {
     refresh,
     section,
     selectedSubjects,
-    subjectLegend,
     showAllSections,
     selectedBatch,
+    subjectNames,
   } = useSchedule();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [weeksToShow, setWeeksToShow] = useWeeksToShow();
 
   const batchClasses = filterClassesByBatch(classes, selectedBatch);
   const batchEvents = filterEventsByBatch(events, selectedBatch);
 
-  const scopedClasses = showAllSections
-    ? mergeAllDaySections(batchClasses)
-    : batchClasses;
-  const scopedEvents = showAllSections
-    ? mergeAllSectionEvents(batchEvents)
-    : batchEvents;
-  const effectiveSection = showAllSections ? "A" : section;
+  const scopedClasses = showAllSections ? mergeAllDaySections(batchClasses) : batchClasses;
+  const scopedEvents = showAllSections ? mergeAllSectionEvents(batchEvents) : batchEvents;
+  const effectiveSection = showAllSections ? 'A' : section;
 
-  const filteredClasses = filterClassesBySubjects(
-    scopedClasses,
-    selectedSubjects,
-    subjectLegend,
-  );
-  const { now, current, nextEvent } = useCountdown(
-    filteredClasses,
-    scopedEvents,
-    effectiveSection,
-  );
+  const filteredClasses = filterClassesBySubjects(scopedClasses, selectedSubjects);
+  const { now, current, nextEvent } = useCountdown(filteredClasses, scopedEvents, effectiveSection);
   const stats = computeDashboardStats(filteredClasses, effectiveSection, now);
   const dayComplete = useDayComplete(current, stats.classesToday, now);
 
@@ -71,9 +53,7 @@ export default function DashboardPage() {
       <Header />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6">
-        {error && !initialLoading && (
-          <ErrorState message={error} onRetry={refresh} />
-        )}
+        {error && !initialLoading && <ErrorState message={error} onRetry={refresh} />}
 
         {initialLoading ? (
           <div className="flex flex-col gap-6">
@@ -87,13 +67,10 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            <NextClassCard state={current} subjectLegend={subjectLegend} />
+            <NextClassCard state={current} subjectNames={subjectNames} />
 
-            <DayCompleteBanner
-              show={dayComplete.show}
-              onDismiss={dayComplete.dismiss}
-            />
-
+            <DayCompleteBanner show={dayComplete.show} onDismiss={dayComplete.dismiss} />
+            
             <StatsCards stats={stats} nextEvent={nextEvent} />
 
             <section className="flex flex-col gap-3">
