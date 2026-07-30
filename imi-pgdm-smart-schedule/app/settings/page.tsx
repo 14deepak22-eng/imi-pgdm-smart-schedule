@@ -42,9 +42,6 @@ export default function SettingsPage() {
       <Header />
 
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-6">
-        <h1 className="font-display text-2xl font-bold tracking-wide uppercase">
-          Settings
-        </h1>
 
         {/* Keyed by batch so the picker's draft state resets cleanly when switching years. */}
         <SubjectPicker
