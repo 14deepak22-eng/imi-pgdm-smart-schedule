@@ -1,6 +1,6 @@
 import type { ClassEntry } from '@/types/timetable';
 import type { EventCategory } from '@/types/events';
-import { EVENT_KEYWORDS, CANONICAL_SUBJECT_CODES_BY_BATCH } from './constants';
+import { EVENT_KEYWORDS, TARGET_SECTIONS, type TargetSection } from './constants';
 
 const EVENT_CATEGORY_MAP: Record<string, EventCategory> = {
   holiday: 'holiday',
@@ -41,84 +41,87 @@ function isRoomLike(group: string): boolean {
   return /CR|CL|Tutorial/i.test(group);
 }
 
-function normalize(text: string): string {
-  return text.replace(/\s+/g, '').toUpperCase();
-}
-
-interface NormalizedCode {
-  original: string;
-  normalized: string;
-}
-
-// Cache of precomputed, longest-first normalized code lists, one per
-// batch — so prefix matching always prefers the most specific known
-// subject code (e.g. "ST509(B)(A)" over a shorter partial), without
-// recomputing this on every single cell.
-const normalizedCanonicalByBatch = new Map<string, NormalizedCode[]>();
-
-function getNormalizedCanonical(batchPrefix: string): NormalizedCode[] {
-  const cached = normalizedCanonicalByBatch.get(batchPrefix);
-  if (cached) return cached;
-
-  const codes = CANONICAL_SUBJECT_CODES_BY_BATCH[batchPrefix] ?? [];
-  const list = codes
-    .map((code) => ({ original: code, normalized: normalize(code) }))
-    .sort((a, b) => b.normalized.length - a.normalized.length);
-
-  normalizedCanonicalByBatch.set(batchPrefix, list);
-  return list;
+function isSectionLetter(group: string): boolean {
+  const trimmed = group.trim();
+  return trimmed.length === 1 && (TARGET_SECTIONS as readonly string[]).includes(trimmed.toUpperCase());
 }
 
 /**
- * Matches a cell's course code + bracketed qualifiers against that
- * batch's authoritative subject list (CANONICAL_SUBJECT_CODES_BY_BATCH),
- * returning the longest canonical code that is a prefix of it.
- *
- * This is how we correctly resolve subjects like "MK629(A)" vs "MK629(B)"
- * as two distinct offerings, and "MK630(B)(B)" (the real code "MK630(B)"
- * with an extra trailing qualifier) — by matching against the known list
- * for THIS batch instead of guessing from context. If nothing in that
- * batch's list matches (including batches with no list configured at
- * all), the raw identity text is kept as-is, so no subject is ever
- * silently dropped.
+ * Normalizes a subject code for comparison purposes (no whitespace, all
+ * uppercase) — used both when checking a candidate against the legend
+ * sheet's known codes, and when the caller (parseSchedule.ts) builds
+ * that known-codes set from the legend data in the first place, so both
+ * sides compare on equal footing.
  */
-function matchCanonicalCode(identityCandidate: string, batchPrefix: string): string | null {
-  const normalizedCandidate = normalize(identityCandidate);
-  for (const { original, normalized } of getNormalizedCanonical(batchPrefix)) {
-    if (normalizedCandidate.startsWith(normalized)) return original;
-  }
-  return null;
+export function normalizeSubjectCode(code: string): string {
+  return code.replace(/\s+/g, '').toUpperCase();
 }
 
 function extractCodeAndRoom(
   part: string,
-  batchPrefix: string,
-): { subjectCode: string; room?: string } {
+  knownCodes: ReadonlySet<string>,
+): { subjectCode: string; subjectSection?: TargetSection; room?: string } {
   const baseMatch = part.match(BASE_CODE_PATTERN);
   if (!baseMatch) return { subjectCode: part };
 
-  const identityGroups: string[] = [];
-  let room: string | undefined;
   let rest = part.slice(baseMatch[0].length);
-
-  // Walk through every "(...)" group right after the code, classifying
-  // each as either the room or a qualifier that's part of the subject's identity.
+  const allGroups: string[] = [];
   let match = rest.match(NEXT_GROUP_PATTERN);
   while (match) {
-    const value = match[1].trim();
-    if (isRoomLike(value)) {
-      room = room ?? value;
-    } else {
-      identityGroups.push(value);
-    }
+    allGroups.push(match[1].trim());
     rest = rest.slice(match[0].length);
     match = rest.match(NEXT_GROUP_PATTERN);
   }
 
-  const identityCandidate = baseMatch[0] + identityGroups.map((g) => `(${g})`).join('');
-  const subjectCode = matchCanonicalCode(identityCandidate, batchPrefix) ?? identityCandidate;
+  // Separate out room-like groups (CR-5, CL-2, Tutorial...) up front —
+  // they're never part of a subject's identity or section.
+  let room: string | undefined;
+  const identityGroups: string[] = [];
+  for (const group of allGroups) {
+    if (isRoomLike(group)) {
+      room = room ?? group;
+    } else {
+      identityGroups.push(group);
+    }
+  }
 
-  return { subjectCode, room };
+  // Find the longest prefix of identityGroups that, appended to the base
+  // code, matches a code actually listed in the legend sheet ("Course
+  // Name & Faculty" tab) — e.g. "ST506" + "(B)" = "ST506(B)" is the
+  // subject's real identity there. This is what lets us tell a genuine
+  // identity qualifier apart from a trailing section group added only
+  // in the schedule sheet, without any hardcoded per-batch list.
+  let bestLength = 0;
+  for (let k = 1; k <= identityGroups.length; k++) {
+    const candidate = baseMatch[0] + identityGroups.slice(0, k).map((g) => `(${g})`).join('');
+    if (knownCodes.has(normalizeSubjectCode(candidate))) bestLength = k;
+  }
+
+  // Legend didn't confirm anything (not loaded yet, or a genuinely new
+  // subject) — fall back to the same rule the sheet follows visually:
+  // only a final standalone A/B/C group counts as a section.
+  if (bestLength === 0 && identityGroups.length > 1) {
+    const last = identityGroups[identityGroups.length - 1];
+    if (isSectionLetter(last)) bestLength = identityGroups.length - 1;
+  }
+
+  const identityPart = identityGroups.slice(0, bestLength);
+  const remainder = identityGroups.slice(bestLength);
+  let subjectCode = baseMatch[0] + identityPart.map((g) => `(${g})`).join('');
+
+  let subjectSection: TargetSection | undefined;
+  for (const group of remainder) {
+    if (!subjectSection && isSectionLetter(group)) {
+      subjectSection = group.toUpperCase() as TargetSection;
+    } else {
+      // Anything left over that isn't a recognized section letter is
+      // kept appended to the identity, so nothing from the sheet is
+      // ever silently dropped even if it doesn't match the legend.
+      subjectCode += `(${group})`;
+    }
+  }
+
+  return { subjectCode, subjectSection, room };
 }
 
 /**
@@ -126,11 +129,13 @@ function extractCodeAndRoom(
  * A slot can hold multiple parallel/alternate offerings separated by "/",
  * e.g. "MK629 (A) (CR-5)/MK630 (A) (CR-2)".
  *
- * `batchPrefix` (e.g. "PGDM 2025-27") selects which batch's canonical
- * subject list to match against, since the same-looking bracketed code
- * can mean different things in different batches.
+ * `knownCodes` is the set of normalized subject codes found in the
+ * spreadsheet's legend tab ("Course Name & Faculty") — used to tell a
+ * subject's real identity apart from a trailing section group. Pass an
+ * empty set if the legend hasn't loaded; parsing still works via the
+ * fallback rule, just without legend confirmation.
  */
-export function parseSessionCell(cellText: string, batchPrefix: string): ClassEntry[] {
+export function parseSessionCell(cellText: string, knownCodes: ReadonlySet<string>): ClassEntry[] {
   const trimmed = cellText.trim();
   if (!trimmed) return [];
 
@@ -139,8 +144,8 @@ export function parseSessionCell(cellText: string, batchPrefix: string): ClassEn
     .map((part) => part.trim())
     .filter(Boolean)
     .map((part) => {
-      const { subjectCode, room } = extractCodeAndRoom(part, batchPrefix);
-      return { raw: part, subjectCode, room };
+      const { subjectCode, subjectSection, room } = extractCodeAndRoom(part, knownCodes);
+      return { raw: part, subjectCode, subjectSection, room };
     });
 }
 
