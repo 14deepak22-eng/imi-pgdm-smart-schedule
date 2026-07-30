@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Trash2 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
@@ -37,6 +37,7 @@ export default function NoticesPage() {
   const {
     notices,
     clearNotices,
+    markNoticesSeen,
     initialLoading,
     error,
     refresh,
@@ -79,6 +80,17 @@ export default function NoticesPage() {
     () => scopedNotices.filter((n) => n.category.startsWith("event-")),
     [scopedNotices],
   );
+
+  // Visiting this page counts as "having seen" whatever it's currently
+  // showing — clears the nav badge dot for both class and event notices
+  // without deleting anything (Clear All still does that separately).
+  const scopedNoticeIds = scopedNotices.map((n) => n.id).join(",");
+  useEffect(() => {
+    if (!scopedNoticeIds) return;
+    markNoticesSeen(scopedNoticeIds.split(","));
+    // Only re-run when the actual set of visible notice IDs changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scopedNoticeIds]);
 
   return (
     <>
