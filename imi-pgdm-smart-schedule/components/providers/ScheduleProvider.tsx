@@ -3,9 +3,9 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import type { DaySchedule, TargetSection } from "@/types/timetable";
 import type { ScheduleEvent } from "@/types/events";
+import type { SubjectInfo } from "@/lib/sheet/subjectNames";
 import type { ChangeNotice } from "@/lib/schedule/diffSchedule";
 import type { BatchOption } from "@/lib/schedule/deriveAvailableBatches";
-import type { SubjectLegendEntry } from "@/lib/sheet/parseSubjectNames";
 import {
   deriveAvailableBatches,
   defaultShowAllSectionsForRank,
@@ -22,7 +22,7 @@ interface ScheduleContextValue {
   classes: DaySchedule[];
   events: ScheduleEvent[];
   /** Subject code → {name, faculty}, auto-fetched from the sheet's legend tab. Empty if unavailable. */
-  subjectLegend: Record<string, SubjectLegendEntry>;
+  subjectNames: Record<string, SubjectInfo>;
   loading: boolean;
   initialLoading: boolean;
   error: string | null;
