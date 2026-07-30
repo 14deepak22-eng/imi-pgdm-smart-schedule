@@ -12,39 +12,6 @@ export type TargetSection = (typeof TARGET_SECTIONS)[number];
 // or name updated.
 export const CREATOR_CREDIT = 'Made by Deepak Kumar · 25PGDM-BHU081';
 
-/**
- * The complete, authoritative list of subject codes offered per batch.
- * This is the single source of truth used by lib/sheet/parseCell.ts to
- * correctly identify each class, and by the Settings page subject
- * picker (every one of these is always offered as a choice, regardless
- * of what's been seen in the sheet yet, so nothing is ever missing
- * while data is still loading).
- */
-export const CANONICAL_SUBJECT_CODES_BY_BATCH: Record<string, readonly string[]> = {
-  'PGDM 2025-27': [
-    'MK629(A)',
-    'MK629(B)',
-    'MK630(A)',
-    'MK630(B)',
-    'MK602',
-    'MK618',
-    'FN642',
-    'MK608',
-    'IS621',
-    'OM606',
-    'FN643',
-    'OM625',
-    'HR604',
-    'IS618',
-    'FN604',
-    'MK615',
-    'OB618',
-    'ST509(B)(A)',
-    'ST509(B)(B)',
-    'ST509(B)(C)',
-  ],
-};
-
 // Ordered session columns as laid out left-to-right in the sheet.
 export const SESSION_ORDER = ['I', 'II', 'III', 'LUNCH', 'IV', 'V', 'VI'] as const;
 
