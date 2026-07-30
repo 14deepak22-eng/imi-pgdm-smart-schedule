@@ -27,7 +27,7 @@ export function YearSelector({
       <div className="flex w-full max-w-md flex-col items-center gap-6">
         <div className="flex flex-col items-center gap-2 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/icon-192.png" alt="" className="mb-1 h-14 w-14" />
+          <img src="/icons/icon-192-v2.png" alt="" className="mb-1 h-14 w-14" />
           <p className="font-display text-2xl font-bold tracking-wide uppercase">
             IMI PGDM Smart Schedule
           </p>
