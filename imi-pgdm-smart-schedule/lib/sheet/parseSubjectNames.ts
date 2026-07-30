@@ -1,17 +1,35 @@
-// The base course code, e.g. "MK629", "ST509" — same shape used in parseCell.ts.
+export interface SubjectLegendEntry {
+  name: string;
+  faculty?: string;
+  /**
+   * Which batch this subject belongs to (e.g. "PGDM 2025-27"), read
+   * from the year label that appears once per block in the sheet
+   * (often as a merged cell) and carried forward to every row in
+   * that block. Undefined if no such label was ever found above it.
+   */
+  batch?: string;
+}
+
+// The base course code, e.g. "MK629", "ST506" — same shape used in parseCell.ts.
 const BASE_CODE_PATTERN = /^[A-Z]{2,4}\d{3,4}$/;
 const QUALIFIER_GROUP = /^\s*\(([^)]+)\)/;
 
-/** A subject's full name and faculty, as read from the legend sheet. */
-export interface SubjectInfo {
-  name: string;
-  faculty: string;
+// Matches a year label like "PGDM 2025-2027" or "PGDM 2025-27" and
+// normalizes it to the app's internal "PGDM 2025-27" (2-digit end year) shape.
+const BATCH_LABEL_PATTERN = /PGDM\s*(\d{4})\s*-\s*(\d{2,4})/i;
+
+function extractBatchLabel(cell: string): string | null {
+  const match = cell.match(BATCH_LABEL_PATTERN);
+  if (!match) return null;
+  const startYear = match[1];
+  const endYear = match[2].slice(-2);
+  return `PGDM ${startYear}-${endYear}`;
 }
 
 /**
- * Normalizes a cell like "MK629 (A)" or "ST509(B)(A)" into the same
- * "MK629(A)" / "ST509(B)(A)" shape produced by parseCell.ts, so it can be
- * used as a lookup key against the parsed schedule's subject codes.
+ * Normalizes a cell like "ST506 (B)" or "GM613(B)" into a consistent
+ * "ST506(B)" / "GM613(B)" shape — this becomes the legend's lookup key,
+ * exactly as authored in the sheet, whatever bracket groups it has.
  * Returns null if the cell doesn't look like a subject code at all.
  */
 function normalizeCode(raw: string): string | null {
@@ -36,37 +54,50 @@ function normalizeCode(raw: string): string | null {
 }
 
 /**
- * Parses a "legend" style sheet tab (e.g. "Course Name & Faculty") into a
- * code → {name, faculty} lookup. Doesn't assume fixed column positions:
- * for every cell that looks like a subject code, it takes the next two
- * non-empty cells in that same row as the full name and faculty name.
- * Works whether the tab is laid out as [Code, Name, Faculty], or has
- * extra blank spacer columns in between. If only one non-empty cell
- * follows the code, faculty is left as an empty string rather than
- * dropping the name.
+ * Parses the "Course Name & Faculty" legend tab into a code → {name,
+ * faculty, batch} lookup. Doesn't assume fixed column positions: for
+ * every cell that looks like a subject code, it takes the next
+ * non-empty cell in that row as the full name, and the one after that
+ * (if any) as the faculty name.
+ *
+ * The sheet is organized in blocks per term/batch, with the year label
+ * (e.g. "Fourth / PGDM 2025-2027") written once — often as a merged
+ * cell — spanning every row in that block. Since a merged cell only
+ * reports its value on the first row it covers, this walks rows
+ * top-to-bottom and carries the most recently seen label forward until
+ * a new one appears, so every subject in a block gets tagged with the
+ * right batch even though most of its rows have a blank label cell.
  */
-export function parseSubjectNames(rows: string[][]): Record<string, SubjectInfo> {
-  const info: Record<string, SubjectInfo> = {};
+export function parseSubjectLegend(
+  rows: string[][],
+): Record<string, SubjectLegendEntry> {
+  const legend: Record<string, SubjectLegendEntry> = {};
+  let currentBatch: string | null = null;
 
   for (const row of rows) {
+    for (const cell of row) {
+      const label = extractBatchLabel(cell ?? "");
+      if (label) {
+        currentBatch = label;
+        break;
+      }
+    }
+
     for (let i = 0; i < row.length; i++) {
       const code = normalizeCode(row[i] ?? "");
-      if (!code) continue;
+      if (!code || legend[code]) continue; // first match wins
 
-      const following: string[] = [];
-      for (let j = i + 1; j < row.length && following.length < 2; j++) {
-        const candidate = (row[j] ?? "").trim();
-        if (candidate) following.push(candidate);
-      }
-      if (following.length === 0) continue;
-
-      // First match wins — don't let a later duplicate row overwrite
-      // an already-found entry with something blank or partial.
-      if (!info[code]) {
-        info[code] = { name: following[0], faculty: following[1] ?? "" };
+      const name = (row[i + 1] ?? "").trim();
+      const faculty = (row[i + 2] ?? "").trim();
+      if (name) {
+        legend[code] = {
+          name,
+          faculty: faculty || undefined,
+          batch: currentBatch ?? undefined,
+        };
       }
     }
   }
 
-  return info;
+  return legend;
 }
