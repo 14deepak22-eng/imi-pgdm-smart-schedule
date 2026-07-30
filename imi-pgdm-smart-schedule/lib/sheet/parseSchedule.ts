@@ -8,7 +8,12 @@ import {
 } from './constants';
 import { parseBatchCell } from './matchBatch';
 import { parseDateLabel } from './parseDate';
-import { detectEventCategory, looksLikeSubjectCell, parseSessionCell } from './parseCell';
+import {
+  detectEventCategory,
+  looksLikeSubjectCell,
+  parseSessionCell,
+  normalizeSubjectCode,
+} from './parseCell';
 
 // Column layout (0-indexed): A=0 (seq no.), B=1 (Date & Day), C=2 (Batch and Section),
 // D..J=3..9 (the 7 session slots, in SESSION_ORDER).
@@ -39,8 +44,7 @@ function parseStartYear(batchPrefix: string): number {
  * recently started batch is rank 0 ("1st Year" / junior), the one
  * before it rank 1 ("2nd Year"), and so on. Used purely to pick the
  * correct year-specific session timing (FALLBACK_SESSION_TIMES_JUNIOR /
- * _SENIOR in constants.ts) — has nothing to do with subject parsing,
- * which is untouched and still driven by CANONICAL_SUBJECT_CODES_BY_BATCH.
+ * _SENIOR in constants.ts) — has nothing to do with subject parsing.
  */
 function rankBatches(batchPrefixes: Iterable<string>): Map<string, number> {
   const sorted = Array.from(new Set(batchPrefixes)).sort(
@@ -120,14 +124,16 @@ function dedupeEvents(events: ScheduleEvent[]): ScheduleEvent[] {
 
 /**
  * Walks the raw sheet rows and produces both the class timetable and the
- * events list, for EVERY batch found in the sheet — subject parsing is
- * exactly as before (parseSessionCell, driven by
- * CANONICAL_SUBJECT_CODES_BY_BATCH in constants.ts — completely
- * untouched). The only change here is session TIMING: each batch is
- * ranked by how recently it started, and the correct year-specific
- * fallback grid (junior vs senior) is applied per batch.
+ * events list, for EVERY batch found in the sheet. `legendCodes` is the
+ * set of subject codes read from the spreadsheet's legend tab ("Course
+ * Name & Faculty") — used by parseSessionCell to tell each subject's real
+ * identity apart from a trailing section group (e.g. "ST506(B)(A)" →
+ * code "ST506(B)", section "A"), with no hardcoded per-batch list needed.
+ * Each batch is also ranked by how recently it started, and the correct
+ * year-specific fallback timing grid (junior vs senior) is applied per batch.
  */
-export function parseSchedule(rows: string[][]): ParsedSchedule {
+export function parseSchedule(rows: string[][], legendCodes: Iterable<string> = []): ParsedSchedule {
+  const knownCodes = new Set(Array.from(legendCodes, normalizeSubjectCode));
   const validRows = collectValidRows(rows);
   const batchRanks = rankBatches(validRows.map((r) => r.batchPrefix));
 
@@ -190,7 +196,7 @@ export function parseSchedule(rows: string[][]): ParsedSchedule {
         session: key,
         startTime: start,
         endTime: end,
-        entries: parseSessionCell(cellText, batchPrefix),
+        entries: parseSessionCell(cellText, knownCodes),
       };
     });
 
