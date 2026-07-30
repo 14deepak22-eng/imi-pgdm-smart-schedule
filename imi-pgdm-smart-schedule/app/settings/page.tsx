@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { SubjectPicker } from "@/components/settings/SubjectPicker";
@@ -11,6 +11,10 @@ import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { useSchedule } from "@/components/providers/ScheduleProvider";
 import { deriveAvailableSubjectIdentities } from "@/lib/schedule/deriveAvailableSubjects";
 import { cn } from "@/lib/utils/cn";
+
+// Must match the same key Nav.tsx reads to decide whether to show the
+// first-visit green dot on the Settings tab.
+const SETTINGS_VISITED_KEY = "pgdm-settings-visited";
 
 export default function SettingsPage() {
   const {
@@ -33,6 +37,16 @@ export default function SettingsPage() {
     subjectLegend,
   );
 
+  // Opening this page clears the first-visit green dot on the Settings
+  // nav tab, permanently — it never reappears after this.
+  useEffect(() => {
+    try {
+      localStorage.setItem(SETTINGS_VISITED_KEY, "1");
+    } catch {
+      // Storage unavailable — the dot just won't stay cleared across visits.
+    }
+  }, []);
+
   // Sheet Source is rarely touched, so it stays tucked away by default —
   // keeps the page short without turning every section into an accordion.
   const [showSheetSource, setShowSheetSource] = useState(false);
@@ -42,7 +56,6 @@ export default function SettingsPage() {
       <Header />
 
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-6">
-
         {/* Keyed by batch so the picker's draft state resets cleanly when switching years. */}
         <SubjectPicker
           key={selectedBatch ?? "none"}
