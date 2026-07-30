@@ -1,15 +1,16 @@
 import { CalendarCheck2 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/shared/EmptyState';
+import type { AvailableSubject } from '@/lib/schedule/deriveAvailableSubjects';
 
 interface ClassProgressProps {
-  subjects: string[];
+  subjects: AvailableSubject[];
   counts: Record<string, number>;
 }
 
 export function ClassProgress({ subjects, counts }: ClassProgressProps) {
-  const totalCompleted = subjects.reduce((sum, code) => sum + (counts[code] ?? 0), 0);
-  const maxCount = Math.max(1, ...subjects.map((code) => counts[code] ?? 0));
+  const totalCompleted = subjects.reduce((sum, s) => sum + (counts[s.key] ?? 0), 0);
+  const maxCount = Math.max(1, ...subjects.map((s) => counts[s.key] ?? 0));
 
   if (subjects.length === 0) {
     return (
@@ -29,13 +30,13 @@ export function ClassProgress({ subjects, counts }: ClassProgressProps) {
       </p>
 
       <div className="flex flex-col gap-2">
-        {subjects.map((code) => {
-          const count = counts[code] ?? 0;
+        {subjects.map((subject) => {
+          const count = counts[subject.key] ?? 0;
           const widthPct = Math.round((count / maxCount) * 100);
           return (
-            <Card key={code} className="flex flex-col gap-2 px-4 py-3">
+            <Card key={subject.key} className="flex flex-col gap-2 px-4 py-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="min-w-0 truncate text-sm font-medium">{code}</span>
+                <span className="min-w-0 truncate text-sm font-medium">{subject.key}</span>
                 <span className="tabular text-accent-2 shrink-0 font-mono text-sm font-semibold">
                   {count} class{count === 1 ? '' : 'es'}
                 </span>
