@@ -47,29 +47,50 @@ function readAll(): Record<string, string[]> {
  * everything". An explicitly-saved empty array is treated the same way,
  * so the dashboard never goes silently blank.
  */
+interface LoadedFor {
+  /** Which batch this loaded snapshot is for, so a stale read from a
+   * previous batch can never be mistaken for the current one.
+   * `undefined` means "nothing loaded yet" — distinct from a real
+   * batchPrefix (string) or the no-batch-chosen state (null). */
+  batchPrefix: string | null | undefined;
+  selected: string[] | null;
+}
+
 export function useSubjectPreferences(
   batchPrefix: string | null,
-): [string[] | null, (subjects: string[]) => void] {
-  const [selected, setSelectedState] = useState<string[] | null>(null);
+): [string[] | null, (subjects: string[]) => void, boolean] {
+  // `loadedFor` only ever gets its `batchPrefix` field set inside the
+  // microtask below — never synchronously in the effect — so switching
+  // batches naturally reads as "not loaded yet" (loadedFor.batchPrefix
+  // !== batchPrefix) without a separate setState call at the top of the
+  // effect, which would trigger cascading renders.
+  const [loadedFor, setLoadedFor] = useState<LoadedFor>({
+    batchPrefix: undefined,
+    selected: null,
+  });
 
   useEffect(() => {
     queueMicrotask(() => {
       migrateIfNeeded();
       if (!batchPrefix) {
-        setSelectedState(null);
+        setLoadedFor({ batchPrefix: null, selected: null });
         return;
       }
       const forBatch = readAll()[batchPrefix];
-      setSelectedState(
-        Array.isArray(forBatch)
+      setLoadedFor({
+        batchPrefix,
+        selected: Array.isArray(forBatch)
           ? forBatch.filter((s) => typeof s === "string")
           : null,
-      );
+      });
     });
   }, [batchPrefix]);
 
+  const loaded = loadedFor.batchPrefix === batchPrefix;
+  const selected = loaded ? loadedFor.selected : null;
+
   const setSelected = (subjects: string[]) => {
-    setSelectedState(subjects);
+    setLoadedFor({ batchPrefix, selected: subjects });
     if (!batchPrefix) return;
     try {
       const all = readAll();
@@ -80,7 +101,7 @@ export function useSubjectPreferences(
     }
   };
 
-  return [selected, setSelected];
+  return [selected, setSelected, loaded];
 }
 
 /**
