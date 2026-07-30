@@ -34,6 +34,8 @@ interface ScheduleContextValue {
   setSheetId: (id: string | null) => void;
   selectedSubjects: string[] | null;
   setSelectedSubjects: (subjects: string[]) => void;
+  /** True once the saved subject selection has actually finished loading from storage (see useSubjectPreferences). */
+  selectedSubjectsLoaded: boolean;
   showAllSections: boolean;
   setShowAllSections: (value: boolean) => void;
   notices: ChangeNotice[];
@@ -60,7 +62,7 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   const [section, setSection] = useSelectedSection();
   const [showAllSections, setShowAllSections] = useShowAllSections();
   const [selectedBatch, setSelectedBatch] = useSelectedBatch();
-  const [selectedSubjects, setSelectedSubjects] =
+  const [selectedSubjects, setSelectedSubjects, selectedSubjectsLoaded] =
     useSubjectPreferences(selectedBatch);
   const { notices, clearNotices } = useChangeNotices(
     sheet.classes,
@@ -89,6 +91,7 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
         setSheetId,
         selectedSubjects,
         setSelectedSubjects,
+        selectedSubjectsLoaded,
         showAllSections,
         setShowAllSections,
         notices,
