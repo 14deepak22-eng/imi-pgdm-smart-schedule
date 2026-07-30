@@ -61,36 +61,42 @@ export default function NoticesPage() {
     );
   };
 
-  let scopedNotices = notices.filter((n) => {
+  // Every notice that matches the current batch/section/subject scope —
+  // this is the FULL set (including cross-section duplicates collapsed
+  // below for display), because the nav badge dot counts these raw
+  // notices, not the deduped display list. Marking-seen has to use this
+  // full set too, or the dot never clears in merged "All Sections" view.
+  const allScopedNotices = notices.filter((n) => {
     if (n.batch !== selectedBatch) return false;
     if (!showAllSections && n.section !== effectiveSection) return false;
     if (!matchesSubject(n)) return false;
     return true;
   });
 
-  if (showAllSections) {
-    scopedNotices = dedupeForMergedView(scopedNotices);
-  }
+  const displayNotices = showAllSections
+    ? dedupeForMergedView(allScopedNotices)
+    : allScopedNotices;
 
   const classNotices = useMemo(
-    () => scopedNotices.filter((n) => n.category.startsWith("class-")),
-    [scopedNotices],
+    () => displayNotices.filter((n) => n.category.startsWith("class-")),
+    [displayNotices],
   );
   const eventNotices = useMemo(
-    () => scopedNotices.filter((n) => n.category.startsWith("event-")),
-    [scopedNotices],
+    () => displayNotices.filter((n) => n.category.startsWith("event-")),
+    [displayNotices],
   );
 
-  // Visiting this page counts as "having seen" whatever it's currently
-  // showing — clears the nav badge dot for both class and event notices
-  // without deleting anything (Clear All still does that separately).
-  const scopedNoticeIds = scopedNotices.map((n) => n.id).join(",");
+  // Visiting this page counts as "having seen" everything in scope —
+  // using the full (pre-dedupe) set so the nav badge dot, which counts
+  // raw notices, actually clears. Doesn't delete anything (Clear All
+  // still does that separately).
+  const allScopedNoticeIds = allScopedNotices.map((n) => n.id).join(",");
   useEffect(() => {
-    if (!scopedNoticeIds) return;
-    markNoticesSeen(scopedNoticeIds.split(","));
-    // Only re-run when the actual set of visible notice IDs changes.
+    if (!allScopedNoticeIds) return;
+    markNoticesSeen(allScopedNoticeIds.split(","));
+    // Only re-run when the actual set of matching notice IDs changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scopedNoticeIds]);
+  }, [allScopedNoticeIds]);
 
   return (
     <>
@@ -128,7 +134,7 @@ export default function NoticesPage() {
                       matchesSubject(n),
                   )
                 }
-                disabled={scopedNotices.length === 0}
+                disabled={displayNotices.length === 0}
                 className="gap-1.5"
               >
                 <Trash2 className="h-4 w-4" />
