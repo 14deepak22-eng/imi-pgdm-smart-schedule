@@ -46,21 +46,6 @@ export default function SettingsPage() {
           Settings
         </h1>
 
-        <YearSwitcher
-          availableBatches={availableBatches}
-          selectedBatch={selectedBatch}
-          onSelect={selectBatch}
-        />
-
-        <Card className="p-4">
-          <ToggleSwitch
-            checked={showAllSections}
-            onChange={setShowAllSections}
-            label="Show all sections"
-            description="Combine Sections A, B, and C into one merged view instead of switching between them."
-          />
-        </Card>
-
         {/* Keyed by batch so the picker's draft state resets cleanly when switching years. */}
         <SubjectPicker
           key={selectedBatch ?? "none"}
@@ -68,6 +53,21 @@ export default function SettingsPage() {
           selected={selectedSubjects}
           loaded={selectedSubjectsLoaded}
           onSave={setSelectedSubjects}
+        />
+
+        <Card className="p-3">
+          <ToggleSwitch
+            checked={showAllSections}
+            onChange={setShowAllSections}
+            label="Show all sections"
+            description="Combine A, B, C into one view."
+          />
+        </Card>
+
+        <YearSwitcher
+          availableBatches={availableBatches}
+          selectedBatch={selectedBatch}
+          onSelect={selectBatch}
         />
 
         <Card className="overflow-hidden p-0">

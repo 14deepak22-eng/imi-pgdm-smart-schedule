@@ -17,17 +17,10 @@ export function YearSwitcher({ availableBatches, selectedBatch, onSelect }: Year
   }
 
   return (
-    <Card className="flex flex-col gap-4 p-5">
-      <div>
-        <h2 className="font-display text-lg font-bold tracking-wide uppercase">Your Year</h2>
-        <p className="text-muted mt-1 text-sm">
-          Switch batches if you picked the wrong one, or if you&apos;ve moved on to a new year.
-          Switching resets the &quot;Show all sections&quot; default for that year (you can still
-          change it below).
-        </p>
-      </div>
+    <Card className="flex flex-col gap-3 p-4">
+      <h2 className="font-display text-lg font-bold tracking-wide uppercase">Your Year</h2>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         {availableBatches.map((option) => {
           const active = option.batchPrefix === selectedBatch;
           return (
@@ -35,13 +28,13 @@ export function YearSwitcher({ availableBatches, selectedBatch, onSelect }: Year
               key={option.batchPrefix}
               onClick={() => onSelect(option.batchPrefix)}
               className={cn(
-                'flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-left transition-colors',
+                'flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors',
                 active
                   ? 'border-accent bg-accent/10'
                   : 'border-border bg-surface-2 hover:border-accent/50',
               )}
             >
-              <span className="font-medium">{option.batchPrefix}</span>
+              <span className="text-sm font-medium">{option.batchPrefix}</span>
               <div className="flex items-center gap-2">
                 <Badge tone={active ? 'amber' : 'muted'}>{option.yearLabel}</Badge>
                 {active && <Badge tone="teal">Current</Badge>}
