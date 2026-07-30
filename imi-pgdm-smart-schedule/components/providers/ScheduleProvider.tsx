@@ -40,6 +40,10 @@ interface ScheduleContextValue {
   setShowAllSections: (value: boolean) => void;
   notices: ChangeNotice[];
   clearNotices: (predicate?: (notice: ChangeNotice) => boolean) => void;
+  /** IDs of notices the person has already looked at — used to hide the nav badge dot for those. */
+  seenNoticeIds: Set<string>;
+  /** Marks the given notice IDs as seen, e.g. after visiting the Notices or Events page. */
+  markNoticesSeen: (ids: string[]) => void;
   /** Every batch found in the sheet, ranked by how recently each started. */
   availableBatches: BatchOption[];
   /** The batch (e.g. "PGDM 2025-27") the student picked, or null before onboarding. */
@@ -64,7 +68,7 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   const [selectedBatch, setSelectedBatch] = useSelectedBatch();
   const [selectedSubjects, setSelectedSubjects, selectedSubjectsLoaded] =
     useSubjectPreferences(selectedBatch);
-  const { notices, clearNotices } = useChangeNotices(
+  const { notices, clearNotices, seenNoticeIds, markSeen } = useChangeNotices(
     sheet.classes,
     sheet.events,
     sheet.serverFetchedAt,
@@ -96,6 +100,8 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
         setShowAllSections,
         notices,
         clearNotices,
+        seenNoticeIds,
+        markNoticesSeen: markSeen,
         availableBatches,
         selectedBatch,
         selectBatch,

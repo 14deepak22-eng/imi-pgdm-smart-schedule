@@ -2,6 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSchedule } from '@/components/providers/ScheduleProvider';
+import { isSubjectSelected } from '@/hooks/useSubjectPreferences';
+import type { ChangeNotice } from '@/lib/schedule/diffSchedule';
 import { cn } from '@/lib/utils/cn';
 
 const LINKS = [
@@ -14,6 +17,30 @@ const LINKS = [
 
 export function Nav() {
   const pathname = usePathname();
+  const { notices, selectedBatch, showAllSections, section, selectedSubjects, subjectLegend, seenNoticeIds } =
+    useSchedule();
+
+  // Same scoping the Notices page uses to decide what it actually shows
+  // you — so a dot here means there's genuinely something new to see,
+  // not just noise from an unrelated batch/section/subject.
+  const effectiveSection = showAllSections ? 'A' : section;
+  const matchesSubject = (n: ChangeNotice) => {
+    const codes = n.subjectCodes ?? [];
+    return (
+      codes.length === 0 ||
+      codes.some((code) => isSubjectSelected(selectedSubjects, code, subjectLegend))
+    );
+  };
+  const unseenScopedNotices = notices.filter((n) => {
+    if (seenNoticeIds.has(n.id)) return false;
+    if (n.batch !== selectedBatch) return false;
+    if (!showAllSections && n.section !== effectiveSection) return false;
+    if (!matchesSubject(n)) return false;
+    return true;
+  });
+
+  const hasNoticeUpdate = unseenScopedNotices.length > 0;
+  const hasEventUpdate = unseenScopedNotices.some((n) => n.category.startsWith('event-'));
 
   return (
     // Tighter gap/padding/font on mobile so all 5 tabs fit on one line
@@ -21,6 +48,9 @@ export function Nav() {
     <nav className="scrollbar-hide flex flex-nowrap items-center gap-0.5 overflow-x-auto sm:flex-wrap sm:gap-1 sm:overflow-visible">
       {LINKS.map((link) => {
         const active = pathname === link.href;
+        const showDot =
+          (link.href === '/notices' && hasNoticeUpdate) ||
+          (link.href === '/events' && hasEventUpdate);
         return (
           <Link
             key={link.href}
@@ -31,6 +61,12 @@ export function Nav() {
             )}
           >
             {link.label}
+            {showDot && (
+              <span
+                className="bg-accent-2 border-background absolute top-0 right-0 h-1.5 w-1.5 rounded-full border sm:-top-0.5 sm:-right-0.5"
+                aria-label="New update"
+              />
+            )}
             <span
               className={cn(
                 'bg-accent absolute right-2 -bottom-px left-2 h-0.5 rounded-full transition-transform duration-200 sm:right-3 sm:left-3',
