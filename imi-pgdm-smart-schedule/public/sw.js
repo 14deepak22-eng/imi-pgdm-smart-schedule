@@ -1,6 +1,6 @@
 // Bumped to v2: forces every existing visitor's browser to drop the old
 // (stale-serving) cache the moment this new service worker activates.
-const CACHE_NAME = 'pgdm-session-board-v3';
+const CACHE_NAME = 'pgdm-session-board-v10';
 const APP_SHELL = ['/', '/events', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
