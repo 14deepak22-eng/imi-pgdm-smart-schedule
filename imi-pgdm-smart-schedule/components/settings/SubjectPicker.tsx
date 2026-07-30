@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -12,12 +12,22 @@ interface SubjectPickerProps {
   /** Every subject actually found in the schedule, across all sections, resolved against the sheet's legend. */
   availableSubjects: ResolvedSubject[];
   selected: string[] | null;
+  /**
+   * True once `selected` reflects the actual saved preference (rather than
+   * just "hasn't finished reading storage yet"). Both states look like
+   * `selected === null`/unset, so the draft checklist below must not seed
+   * itself until this flips true — otherwise a refresh briefly shows
+   * "everything checked" before quietly reverting to the real saved
+   * subset, which looks like the picker forgot the selection.
+   */
+  loaded: boolean;
   onSave: (subjects: string[]) => void;
 }
 
 export function SubjectPicker({
   availableSubjects,
   selected,
+  loaded,
   onSave,
 }: SubjectPickerProps) {
   const allCodes = useMemo(
@@ -29,6 +39,23 @@ export function SubjectPicker({
   const [draft, setDraft] = useState<string[]>(
     selected && selected.length > 0 ? selected : [...allCodes],
   );
+
+  // The initial useState above only ever runs once, using whatever
+  // `selected` happens to be on first render — which, on a fresh page
+  // load, is `null` because the real value hasn't finished loading from
+  // storage yet. Without this, the checklist gets permanently stuck
+  // showing "everything selected" instead of the actual saved subset.
+  // Sync draft exactly once, the moment loading genuinely completes.
+  const hasSyncedRef = useRef(false);
+  useEffect(() => {
+    if (!loaded || hasSyncedRef.current) return;
+    hasSyncedRef.current = true;
+    setDraft(selected && selected.length > 0 ? selected : [...allCodes]);
+    // Only re-run when `loaded` flips — not on every `selected`/`allCodes`
+    // change, or in-progress edits would keep getting clobbered.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
+
   const [saved, setSaved] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -51,16 +78,34 @@ export function SubjectPicker({
     setSaved(true);
   };
 
+  // Sort your selected subjects to the top of the list, so the ones you
+  // actually take are easy to find/re-check without scrolling. This is
+  // keyed off the *saved* selection (not the live in-progress draft) so
+  // the list doesn't jump around under your cursor as you tick boxes —
+  // it re-sorts once, right after you hit Save (or on next load).
+  const savedSet = useMemo(
+    () => new Set(selected && selected.length > 0 ? selected : []),
+    [selected],
+  );
+  const orderedSubjects = useMemo(() => {
+    if (savedSet.size === 0) return availableSubjects;
+    return [...availableSubjects].sort((a, b) => {
+      const aTop = savedSet.has(a.code) ? 0 : 1;
+      const bTop = savedSet.has(b.code) ? 0 : 1;
+      return aTop - bTop; // stable sort — ties keep original relative order
+    });
+  }, [availableSubjects, savedSet]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return availableSubjects;
-    return availableSubjects.filter((s) => {
+    if (!q) return orderedSubjects;
+    return orderedSubjects.filter((s) => {
       return (
         s.code.toLowerCase().includes(q) ||
         (s.name ?? "").toLowerCase().includes(q)
       );
     });
-  }, [availableSubjects, query]);
+  }, [orderedSubjects, query]);
 
   if (availableSubjects.length === 0) {
     return (

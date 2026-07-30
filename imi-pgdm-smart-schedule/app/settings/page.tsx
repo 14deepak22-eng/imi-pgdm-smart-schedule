@@ -20,6 +20,7 @@ export default function SettingsPage() {
     setSheetId,
     selectedSubjects,
     setSelectedSubjects,
+    selectedSubjectsLoaded,
     showAllSections,
     setShowAllSections,
     availableBatches,
@@ -65,6 +66,7 @@ export default function SettingsPage() {
           key={selectedBatch ?? "none"}
           availableSubjects={availableSubjects}
           selected={selectedSubjects}
+          loaded={selectedSubjectsLoaded}
           onSave={setSelectedSubjects}
         />
 
