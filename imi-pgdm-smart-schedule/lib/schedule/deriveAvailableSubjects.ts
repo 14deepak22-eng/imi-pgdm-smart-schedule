@@ -1,83 +1,48 @@
-import type { DaySchedule } from "@/types/timetable";
-import type { SubjectLegendEntry } from "@/lib/sheet/parseSubjectNames";
-import {
-  resolveSubjectIdentity,
-  type ResolvedSubject,
-} from "@/lib/sheet/resolveSubjectIdentity";
+import type { DaySchedule, TargetSection } from '@/types/timetable';
+import { subjectSelectionKey } from './subjectKey';
+
+/** One selectable entry in the Settings subject picker. */
+export interface AvailableSubject {
+  /** Unique key used for selection/filtering, e.g. "ST506(B)(A)" or "MK602". */
+  key: string;
+  /** Subject identity exactly as it appears in the legend sheet, e.g. "ST506(B)". */
+  code: string;
+  /** Sub-group letter, if the schedule sheet splits this subject into parallel sections. */
+  section?: TargetSection;
+}
 
 /**
- * Returns the full list of subjects to offer in the Settings picker for
- * ONE specific batch. The list itself comes straight from the sheet 2
- * legend, filtered to whichever subjects are tagged with this batch —
- * so every subject for that year shows up immediately, even ones that
- * haven't had a class appear in the schedule yet.
+ * Returns every distinct subject offering found in the parsed schedule
+ * for ONE specific batch — fully data-driven from the sheet itself
+ * (both the schedule tab and the legend tab feed into how each entry's
+ * subjectCode/subjectSection was determined upstream). No hardcoded
+ * per-batch list: whatever is actually in the sheet is what's offered
+ * here, for 1st year, 2nd year, or any future batch alike.
  *
- * Sheet 1 (the actual schedule) is only cross-checked to find out
- * whether a given subject is genuinely split into parallel sections
- * (A/B/C) — if so, it's offered as separate section rows; otherwise
- * it's one single row.
- *
- * Returns an empty list if no batch is selected yet.
+ * Returns an empty list if no batch is selected yet, or before the
+ * schedule has loaded.
  */
-export function deriveAvailableSubjectIdentities(
+export function deriveAvailableSubjects(
   days: DaySchedule[],
   batchPrefix: string | null,
-  legend: Record<string, SubjectLegendEntry>,
-): ResolvedSubject[] {
+): AvailableSubject[] {
   if (!batchPrefix) return [];
 
-  const baseCodesForBatch = Object.entries(legend)
-    .filter(([, entry]) => entry.batch === batchPrefix)
-    .map(([code]) => code);
+  const seen = new Map<string, AvailableSubject>();
 
-  if (baseCodesForBatch.length === 0) return [];
-
-  // Cross-check sheet 1 purely to find which sections (if any) each
-  // subject is actually split into for this batch.
-  const sectionsByBaseCode = new Map<string, Set<string>>();
   for (const day of days) {
     if (day.batch !== batchPrefix) continue;
     if (day.isHoliday) continue;
     for (const slot of day.sessions) {
       for (const entry of slot.entries) {
         if (!entry.subjectCode) continue;
-        const resolved = resolveSubjectIdentity(entry.subjectCode, legend);
-        if (!resolved.section) continue;
-        if (!sectionsByBaseCode.has(resolved.baseCode)) {
-          sectionsByBaseCode.set(resolved.baseCode, new Set());
+        const key = subjectSelectionKey(entry);
+        if (!seen.has(key)) {
+          seen.set(key, { key, code: entry.subjectCode, section: entry.subjectSection });
         }
-        sectionsByBaseCode.get(resolved.baseCode)!.add(resolved.section);
       }
     }
   }
 
-  const result: ResolvedSubject[] = [];
-  for (const baseCode of baseCodesForBatch) {
-    const entry = legend[baseCode];
-    const sections = sectionsByBaseCode.get(baseCode);
-    if (sections && sections.size > 0) {
-      for (const section of Array.from(sections).sort()) {
-        result.push({
-          code: `${baseCode}(${section})`,
-          baseCode,
-          section,
-          name: entry.name,
-          faculty: entry.faculty,
-        });
-      }
-    } else {
-      result.push({
-        code: baseCode,
-        baseCode,
-        name: entry.name,
-        faculty: entry.faculty,
-      });
-    }
-  }
-
-  return result.sort(
-    (a, b) =>
-      a.baseCode.localeCompare(b.baseCode) ||
-      (a.section ?? "").localeCompare(b.section ?? ""),
-  );
+  return Array.from(seen.values()).sort((a, b) => a.key.localeCompare(b.key));
 }
