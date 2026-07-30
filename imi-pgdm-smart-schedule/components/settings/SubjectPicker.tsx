@@ -1,34 +1,74 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SearchBox } from "@/components/shared/SearchBox";
-import type { ResolvedSubject } from "@/lib/sheet/resolveSubjectIdentity";
+import { resolveSubjectInfo, type SubjectInfo } from "@/lib/sheet/subjectNames";
+import type { AvailableSubject } from "@/lib/schedule/deriveAvailableSubjects";
 import { cn } from "@/lib/utils/cn";
 
 interface SubjectPickerProps {
-  /** Every subject actually found in the schedule, across all sections, resolved against the sheet's legend. */
-  availableSubjects: ResolvedSubject[];
+  /** Every subject offering actually found in the schedule, across all sections. */
+  availableSubjects: AvailableSubject[];
   selected: string[] | null;
+  /** Subject code → {name, faculty}, auto-fetched from the sheet's legend tab. Codes with no match just show the code alone. */
+  subjectNames: Record<string, SubjectInfo>;
   onSave: (subjects: string[]) => void;
 }
 
 export function SubjectPicker({
   availableSubjects,
   selected,
+  subjectNames,
   onSave,
 }: SubjectPickerProps) {
-  const allCodes = useMemo(
-    () => availableSubjects.map((s) => s.code),
-    [availableSubjects],
-  );
+  const allKeys = useMemo(() => availableSubjects.map((s) => s.key), [availableSubjects]);
+
+  // Selected subjects are shown first. Deliberately sorted off `selected`
+  // (the last SAVED preference), not `draft` (the in-progress edit) — so
+  // toggling a checkbox never makes it jump around mid-edit. The list
+  // only reorders the next time this picker loads/reloads with a freshly
+  // saved preference.
+  const orderedSubjects = useMemo(() => {
+    const selectedSet = new Set(selected ?? []);
+    return [...availableSubjects].sort((a, b) => {
+      const aSelected = selectedSet.has(a.key);
+      const bSelected = selectedSet.has(b.key);
+      if (aSelected !== bSelected) return aSelected ? -1 : 1;
+      return a.key.localeCompare(b.key);
+    });
+  }, [availableSubjects, selected]);
 
   // null/empty stored preference = "all selected" by default in the UI.
   const [draft, setDraft] = useState<string[]>(
-    selected && selected.length > 0 ? selected : [...allCodes],
+    selected && selected.length > 0 ? selected : [...allKeys],
   );
+
+  // `selected` (from localStorage) and `availableSubjects` (from the sheet
+  // fetch) both load asynchronously, and on the very first render either —
+  // or both — can still be empty/unresolved. Without this, `draft`'s
+  // initial useState value gets permanently locked to whatever was known
+  // at that first instant (often "nothing yet"), and never updates once
+  // the real data actually arrives a moment later — which is exactly what
+  // made a saved selection appear to reset to "unselected" after a
+  // refresh, even though the dashboard (which reads live values, not a
+  // frozen snapshot) kept filtering correctly the whole time.
+  //
+  // This re-syncs draft once real subjects are known, but stops the
+  // moment the user actually starts editing, so it never overwrites an
+  // in-progress selection.
+  const hasUserEdited = useRef(false);
+  useEffect(() => {
+    if (hasUserEdited.current) return;
+    if (availableSubjects.length === 0) return; // still loading — nothing real to sync to yet
+    setDraft(selected && selected.length > 0 ? selected : [...allKeys]);
+    // Only re-sync when the real preference or the real subject list
+    // actually changes — not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, availableSubjects.length]);
+
   const [saved, setSaved] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -40,9 +80,10 @@ export function SubjectPicker({
     return () => clearTimeout(id);
   }, [saved]);
 
-  const toggle = (code: string) => {
+  const toggle = (key: string) => {
+    hasUserEdited.current = true;
     setDraft((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
     );
   };
 
@@ -53,14 +94,16 @@ export function SubjectPicker({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return availableSubjects;
-    return availableSubjects.filter((s) => {
+    if (!q) return orderedSubjects;
+    return orderedSubjects.filter((subject) => {
+      const info = resolveSubjectInfo(subjectNames, subject.code);
       return (
-        s.code.toLowerCase().includes(q) ||
-        (s.name ?? "").toLowerCase().includes(q)
+        subject.key.toLowerCase().includes(q) ||
+        info.name.toLowerCase().includes(q) ||
+        info.faculty.toLowerCase().includes(q)
       );
     });
-  }, [availableSubjects, query]);
+  }, [orderedSubjects, query, subjectNames]);
 
   if (availableSubjects.length === 0) {
     return (
@@ -95,7 +138,7 @@ export function SubjectPicker({
           placeholder="Search subject…"
         />
         <span className="text-muted shrink-0 text-xs whitespace-nowrap">
-          {draft.length}/{allCodes.length} selected
+          {draft.length}/{availableSubjects.length} selected
         </span>
       </div>
 
@@ -107,12 +150,13 @@ export function SubjectPicker({
         ) : (
           <div className="divide-border divide-y">
             {filtered.map((subject) => {
-              const active = draft.includes(subject.code);
+              const active = draft.includes(subject.key);
+              const info = resolveSubjectInfo(subjectNames, subject.code);
               return (
                 <button
-                  key={subject.code}
+                  key={subject.key}
                   type="button"
-                  onClick={() => toggle(subject.code)}
+                  onClick={() => toggle(subject.key)}
                   aria-pressed={active}
                   className={cn(
                     "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors",
@@ -137,17 +181,22 @@ export function SubjectPicker({
                           active && "text-accent",
                         )}
                       >
-                        {subject.baseCode}
+                        {subject.key}
                       </span>
                       {subject.section && (
-                        <span className="border-border text-muted rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
+                        <span className="text-muted bg-surface-2 rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
                           Section {subject.section}
                         </span>
                       )}
                     </span>
-                    {subject.name && (
+                    {info.name && (
                       <span className="text-muted mt-0.5 truncate text-xs">
-                        {subject.name}
+                        {info.name}
+                      </span>
+                    )}
+                    {info.faculty && (
+                      <span className="text-muted mt-0.5 truncate text-xs italic">
+                        {info.faculty}
                       </span>
                     )}
                   </span>
@@ -160,10 +209,22 @@ export function SubjectPicker({
 
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={save}>Save</Button>
-        <Button variant="ghost" onClick={() => setDraft([...allCodes])}>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            hasUserEdited.current = true;
+            setDraft([...allKeys]);
+          }}
+        >
           Select all
         </Button>
-        <Button variant="ghost" onClick={() => setDraft([])}>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            hasUserEdited.current = true;
+            setDraft([]);
+          }}
+        >
           Clear
         </Button>
         <span
