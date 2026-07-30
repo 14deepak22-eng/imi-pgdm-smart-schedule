@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchSheetRows } from "@/lib/sheet/fetchSheet";
-import { fetchSubjectLegend } from "@/lib/sheet/fetchSubjectNames";
-import { correctMislabeledBatches } from "@/lib/schedule/correctMislabeledBatches";
+import { fetchSubjectNameMap } from "@/lib/sheet/fetchSubjectNames";
 import { parseSchedule } from "@/lib/sheet/parseSchedule";
 import { SheetFetchError } from "@/lib/sheet/errors";
 import { extractSheetId } from "@/lib/utils/sheetId";
@@ -56,30 +55,20 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const rows = await fetchWithRetry(
-      () => fetchSheetRows(sheetId, sheetTab),
-      2,
-    );
-    const { classes, events } = parseSchedule(rows);
+    // Fetched in parallel — the legend tab ("Course Name & Faculty") is
+    // best-effort and never throws, so it resolves to {} if missing,
+    // renamed, or unreadable, rather than failing the whole request.
+    // Its codes are needed BEFORE parsing the schedule though, since
+    // that's how each class's subject identity vs. section is told apart.
+    const [rows, subjectNames] = await Promise.all([
+      fetchWithRetry(() => fetchSheetRows(sheetId, sheetTab), 2),
+      fetchSubjectNameMap(sheetId).catch(() => ({})),
+    ]);
 
-    // Best-effort: if the legend tab is missing/renamed/unreadable, this
-    // resolves to {} rather than failing the whole request — the rest of
-    // the app just falls back to showing subject codes alone.
-    const subjectLegend = await fetchSubjectLegend(sheetId).catch(() => ({}));
-
-    // Fix obvious copy-paste typos in a day's batch label (e.g. a day
-    // meant for "PGDM 2025-27" mistyped as "PGDM 2024-26"), using the
-    // sheet 2 legend as evidence. See correctMislabeledBatches for the
-    // (deliberately conservative) rules this follows.
-    const correctedClasses = correctMislabeledBatches(classes, subjectLegend);
+    const { classes, events } = parseSchedule(rows, Object.keys(subjectNames));
 
     return NextResponse.json(
-      {
-        classes: correctedClasses,
-        events,
-        subjectLegend,
-        fetchedAt: new Date().toISOString(),
-      },
+      { classes, events, subjectNames, fetchedAt: new Date().toISOString() },
       {
         headers: overrideId
           ? { "Cache-Control": "no-store" }
