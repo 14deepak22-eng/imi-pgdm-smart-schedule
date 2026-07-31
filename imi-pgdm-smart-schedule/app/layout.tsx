@@ -110,14 +110,14 @@ export const metadata: Metadata = {
 
     type: 'website',
 
-    images: [
-      {
-        url: '/icons/icon-512-v2.png',
-        width: 512,
-        height: 512,
-        alt: 'IMI PGDM Smart Schedule',
-      },
-    ],
+images: [
+  {
+    url: '/og-image.png',
+    width: 1200,
+    height: 630,
+    alt: 'IMI PGDM Smart Schedule',
+  },
+],
   },
 
   twitter: {
@@ -126,7 +126,7 @@ export const metadata: Metadata = {
     description:
       'Live timetable, countdowns, events, and personalized schedules for IMI Bhubaneswar PGDM students.',
 
-    images: ['/icons/icon-512-v2.png'],
+    images: ['/og-image.png'],
   },
 
   icons: {
