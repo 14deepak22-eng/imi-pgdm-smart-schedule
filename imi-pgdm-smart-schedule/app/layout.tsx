@@ -30,6 +30,9 @@ export const metadata: Metadata = {
   title: 'IMI PGDM Smart Schedule',
   description: 'Live class schedule, countdowns, and events for IMI PGDM batches.',
   manifest: '/manifest.json',
+   verification: {
+    google: 'SB3vIIW0Wdbawt4FR69oDOvIeXzwRdvQvBRq5ceDbrA',
+  },
   icons: {
     icon: [
       { url: '/favicon.ico' },
