@@ -78,6 +78,23 @@ export function formatDayCountdown(ms: number): string {
   return `in ${days} days`;
 }
 
+/**
+ * Formats a millisecond duration as "1 day 3 hours" (or just "2 days" if
+ * the hour remainder is 0). Meant for countdowns of 24h or longer, where
+ * showing raw hours (e.g. "25h") is harder to read than day+hour terms.
+ */
+export function formatDaysHoursCountdown(ms: number): string {
+  const totalMinutes = Math.max(0, Math.floor(ms / 60000));
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+
+  const dayLabel = `${days} day${days === 1 ? '' : 's'}`;
+  if (hours === 0) return dayLabel;
+
+  const hourLabel = `${hours} hour${hours === 1 ? '' : 's'}`;
+  return `${dayLabel} ${hourLabel}`;
+}
+
 export function formatClockTime(date: Date): string {
   return date.toLocaleTimeString('en-IN', {
     hour: '2-digit',
