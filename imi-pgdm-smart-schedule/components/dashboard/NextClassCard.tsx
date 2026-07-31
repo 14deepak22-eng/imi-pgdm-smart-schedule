@@ -5,7 +5,7 @@ import { resolveSubjectIdentity } from "@/lib/sheet/resolveSubjectIdentity";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { FlapDigits } from "./FlapDigits";
-import { formatCountdownDigits, sessionLabel } from "@/lib/utils/date";
+import { formatCountdownDigits, formatDaysHoursCountdown, sessionLabel } from "@/lib/utils/date";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { cn } from "@/lib/utils/cn";
 
@@ -42,9 +42,13 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
 
   const isLive = state.kind === "live-now";
   const session = state.session;
-  const digits = formatCountdownDigits(
-    isLive ? state.msRemaining : state.msUntilStart,
-  );
+  const msValue = isLive ? state.msRemaining : state.msUntilStart;
+  // Past 24 hours, "25h 03m 12s" is harder to read than "1 day 1 hour" —
+  // switch to day+hour wording instead of letting the flap clock's hour
+  // count climb past 24.
+  const isDayScale = msValue >= 24 * 60 * 60 * 1000;
+  const digits = formatCountdownDigits(msValue);
+  const dayCountdownText = formatDaysHoursCountdown(msValue);
   const primaryEntry = session.entries[0];
   const extraCount = session.entries.length - 1;
   const faculty = primaryEntry
@@ -107,7 +111,18 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
           <span className="text-muted text-xs tracking-wide uppercase">
             {isLive ? "Time remaining" : "Starts in"}
           </span>
-          <FlapDigits value={digits} tone={isLive ? "amber" : "teal"} />
+          {isDayScale ? (
+            <span
+              className={cn(
+                "font-display text-2xl font-bold tracking-wide sm:text-3xl",
+                isLive ? "text-accent" : "text-accent-2",
+              )}
+            >
+              {dayCountdownText}
+            </span>
+          ) : (
+            <FlapDigits value={digits} tone={isLive ? "amber" : "teal"} />
+          )}
         </div>
       </div>
     </Card>
