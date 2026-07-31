@@ -174,6 +174,28 @@ const themeInitScript = `(function () {
     document.documentElement.classList.add('dark');
   }
 })();`;
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "IMI PGDM Smart Schedule",
+  applicationCategory: "EducationalApplication",
+  operatingSystem: "Any",
+  url: siteUrl,
+  description:
+    "Live timetable, class countdowns, events and personalized schedules for IMI Bhubaneswar PGDM students.",
+  image: `${siteUrl}/icons/icon-512-v2.png`,
+  inLanguage: "en",
+
+  creator: {
+    "@type": "Person",
+    name: "Deepak Kumar",
+  },
+
+  publisher: {
+    "@type": "Organization",
+    name: "IMI PGDM Smart Schedule",
+  },
+};
 
 export default function RootLayout({
   children,
@@ -181,20 +203,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${display.variable} ${sans.variable} ${mono.variable} dark h-full antialiased`}
-      suppressHydrationWarning
-    >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: themeInitScript,
-          }}
-        />
-      </head>
+<html
+  lang="en"
+  className={`${display.variable} ${sans.variable} ${mono.variable} dark h-full antialiased`}
+  suppressHydrationWarning
+>
+  <head>
+    <script
+      dangerouslySetInnerHTML={{
+        __html: themeInitScript,
+      }}
+    />
 
-      <body className="h-full">
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(jsonLd),
+      }}
+    />
+  </head>
+
+  <body className="h-full">
         <ScheduleProvider>
           <YearGate>
             {children}
