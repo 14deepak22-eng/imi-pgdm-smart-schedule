@@ -1,11 +1,17 @@
 import type { Metadata, Viewport } from 'next';
-import { Big_Shoulders, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
+import {
+  Big_Shoulders,
+  IBM_Plex_Sans,
+  IBM_Plex_Mono,
+} from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
+
 import { ScheduleProvider } from '@/components/providers/ScheduleProvider';
 import { ServiceWorkerRegistration } from '@/components/providers/ServiceWorkerRegistration';
 import { YearGate } from '@/components/onboarding/YearGate';
 import { AnnouncementModal } from '@/components/shared/AnnouncementModal';
 import { InstallPrompt } from '@/components/shared/InstallPrompt';
+
 import './globals.css';
 
 const display = Big_Shoulders({
@@ -26,26 +32,130 @@ const mono = IBM_Plex_Mono({
   weight: ['400', '500', '600'],
 });
 
+const siteUrl = 'https://imi-pgdm-smart-schedule-iota.vercel.app';
+
 export const metadata: Metadata = {
-  title: 'IMI PGDM Smart Schedule',
-  description: 'Live class schedule, countdowns, and events for IMI PGDM batches.',
+  metadataBase: new URL(siteUrl),
+
+  title: {
+    default: 'IMI PGDM Smart Schedule',
+    template: '%s | IMI PGDM Smart Schedule',
+  },
+
+  description:
+    'IMI PGDM Smart Schedule helps IMI Bhubaneswar PGDM students access live class schedules, next class countdowns, events, and personalized subject timetables synced automatically.',
+
+  keywords: [
+    'IMI PGDM Smart Schedule',
+    'IMI Bhubaneswar',
+    'IMI timetable',
+    'IMI class schedule',
+    'IMI routine',
+    'IMI PGDM timetable',
+    'IMI schedule',
+    'PGDM timetable',
+    'College timetable',
+    'Class countdown',
+    'Student timetable',
+    'IMI smart schedule',
+  ],
+
+  authors: [
+    {
+      name: 'Deepak Kumar',
+    },
+  ],
+
+  creator: 'Deepak Kumar',
+
+  publisher: 'IMI PGDM Smart Schedule',
+
+  category: 'Education',
+
+  applicationName: 'IMI PGDM Smart Schedule',
+
+  alternates: {
+    canonical: '/',
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+
   manifest: '/manifest.json',
-   verification: {
+
+  verification: {
     google: 'SB3vIIW0Wdbawt4FR69oDOvIeXzwRdvQvBRq5ceDbrA',
   },
+
+  openGraph: {
+    title: 'IMI PGDM Smart Schedule',
+    description:
+      'Live timetable, class countdowns, events, and personalized schedules for IMI PGDM students.',
+
+    url: siteUrl,
+
+    siteName: 'IMI PGDM Smart Schedule',
+
+    locale: 'en_US',
+
+    type: 'website',
+
+    images: [
+      {
+        url: '/icons/icon-512-v2.png',
+        width: 512,
+        height: 512,
+        alt: 'IMI PGDM Smart Schedule',
+      },
+    ],
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'IMI PGDM Smart Schedule',
+    description:
+      'Live timetable, countdowns, events, and personalized schedules for IMI Bhubaneswar PGDM students.',
+
+    images: ['/icons/icon-512-v2.png'],
+  },
+
   icons: {
     icon: [
-      { url: '/favicon.ico' },
-      { url: '/icons/icon-192-v2.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512-v2.png', sizes: '512x512', type: 'image/png' },
+      {
+        url: '/favicon.ico',
+      },
+      {
+        url: '/icons/icon-192-v2.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        url: '/icons/icon-512-v2.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
     ],
+
     apple: '/icons/apple-touch-icon-v2.png',
   },
+
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
     title: 'Smart Schedule',
+    statusBarStyle: 'black-translucent',
   },
+
+  referrer: 'origin-when-cross-origin',
 };
 
 export const viewport: Viewport = {
@@ -54,9 +164,7 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-// Runs before paint to apply the saved theme and avoid a light/dark flash.
-const themeInitScript = `
-(function () {
+const themeInitScript = `(function () {
   try {
     var stored = localStorage.getItem('theme');
     var theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
@@ -65,10 +173,13 @@ const themeInitScript = `
   } catch (e) {
     document.documentElement.classList.add('dark');
   }
-})();
-`;
+})();`;
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="en"
@@ -76,15 +187,23 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: themeInitScript,
+          }}
+        />
       </head>
-      <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
-        <ServiceWorkerRegistration />
+
+      <body className="h-full">
         <ScheduleProvider>
-          <YearGate>{children}</YearGate>
+          <YearGate>
+            {children}
+            <AnnouncementModal />
+            <InstallPrompt />
+          </YearGate>
         </ScheduleProvider>
-        <AnnouncementModal />
-        <InstallPrompt />
+
+        <ServiceWorkerRegistration />
         <Analytics />
       </body>
     </html>
