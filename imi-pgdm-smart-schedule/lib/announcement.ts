@@ -17,7 +17,7 @@
  * tomorrow, IST".
  */
 export const ANNOUNCEMENT = {
-  enabled: true,
+  enabled: false,
   id: 'sheet-year-error-26ju',
   title: 'DEAR USER🧑‍💻',
   message: 'Please share your valuable feedback in the WhatsApp group🤗. Your suggestions and ideas will help improve the website and make it more useful for everyone.',
