@@ -21,7 +21,7 @@
  * tomorrow, IST".
  */
 export const ANNOUNCEMENT = {
-  enabled: true,
+  enabled: false,
   id: "sheet-year-error-26ju",
   title: "DEAR USER🧑‍💻",
   message:
