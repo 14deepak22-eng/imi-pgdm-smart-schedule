@@ -35,7 +35,12 @@ const BASE_CODE_PATTERN = /^[A-Z]{2,4}\d{3}/;
 const NEXT_GROUP_PATTERN = /^\s*\(([^)]+)\)/;
 
 function isRoomLike(group: string): boolean {
-  return /^(CR|CL|LAB|ROOM|TUTORIAL)/i.test(group);
+  return /CR|CL|Tutorial/i.test(group);
+}
+
+// ADD THIS NEW FUNCTION
+function isTimeLike(group: string): boolean {
+  return /^([01]?\d|2[0-3]):[0-5]\d(\s?(AM|PM))?$/i.test(group);
 }
 
 function normalize(text: string): string {
@@ -91,7 +96,8 @@ function extractCodeAndRoom(
   }
 
   const identityGroups: string[] = [];
-  let room: string | undefined;
+ let room: string | undefined;
+let time: string | undefined;
 
   let rest = part.slice(baseMatch[0].length);
 
@@ -100,11 +106,13 @@ function extractCodeAndRoom(
   while (match) {
     const value = match[1].trim();
 
-    if (isRoomLike(value)) {
-      room = room ? `${room}/${value}` : value;
-    } else {
-      identityGroups.push(value);
-    }
+if (isRoomLike(value)) {
+  room = room ?? value;
+} else if (isTimeLike(value)) {
+  time = value;
+} else {
+  identityGroups.push(value);
+}
 
     rest = rest.slice(match[0].length);
     match = rest.match(NEXT_GROUP_PATTERN);
@@ -117,10 +125,11 @@ function extractCodeAndRoom(
     matchCanonicalCode(identityCandidate, batchPrefix) ??
     identityCandidate;
 
-  return {
-    subjectCode,
-    room,
-  };
+return {
+  subjectCode,
+  room,
+  time,
+};
 }
 
 /**
@@ -157,13 +166,17 @@ export function parseSessionCell(
   }
 
   return splitSessionParts(trimmed).map(part => {
-    const { subjectCode, room } = extractCodeAndRoom(part, batchPrefix);
+const { subjectCode, room, time } = extractCodeAndRoom(
+  part,
+  batchPrefix,
+);
 
-    return {
-      raw: part,
-      subjectCode,
-      room,
-    };
+return {
+  raw: part,
+  subjectCode,
+  room,
+  time,
+};
   });
 }
 
