@@ -69,7 +69,7 @@ export function WelcomeTipModal() {
           </h2>
         </div>
         <p className="text-muted mb-5 text-sm">
-          A quick, one-time walkthrough — five steps to a schedule that&apos;s
+          A quick, one-time walkthrough — four steps to a schedule that&apos;s
           yours.
         </p>
 
