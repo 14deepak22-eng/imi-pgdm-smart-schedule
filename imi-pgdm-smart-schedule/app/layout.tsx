@@ -33,6 +33,10 @@ const mono = IBM_Plex_Mono({
 });
 
 const siteUrl = 'https://imi-pgdm-smart-schedule-iota.vercel.app';
+// Google's logo structured data spec wants this served at at least
+// 112x112px and look correct on a WHITE background (not transparent) —
+// worth double-checking icon-512-v2.png against that before relying on it.
+const logoUrl = `${siteUrl}/icons/icon-512-v2.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -110,14 +114,14 @@ export const metadata: Metadata = {
 
     type: 'website',
 
-images: [
-  {
-    url: '/og-image.png',
-    width: 1200,
-    height: 630,
-    alt: 'IMI PGDM Smart Schedule',
-  },
-],
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'IMI PGDM Smart Schedule',
+      },
+    ],
   },
 
   twitter: {
@@ -174,6 +178,7 @@ const themeInitScript = `(function () {
     document.documentElement.classList.add('dark');
   }
 })();`;
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
@@ -183,7 +188,7 @@ const jsonLd = {
   url: siteUrl,
   description:
     "Live timetable, class countdowns, events and personalized schedules for IMI Bhubaneswar PGDM students.",
-  image: `${siteUrl}/icons/icon-512-v2.png`,
+  image: logoUrl,
   inLanguage: "en",
 
   creator: {
@@ -191,9 +196,15 @@ const jsonLd = {
     name: "Deepak Kumar",
   },
 
+  // This is the specific block Google's "Logo" structured data feature
+  // reads from — it requires BOTH `logo` and `url` on the Organization
+  // object (a `name` alone, which is what this had before, isn't enough
+  // for Google to source an actual image from).
   publisher: {
     "@type": "Organization",
     name: "IMI PGDM Smart Schedule",
+    url: siteUrl,
+    logo: logoUrl,
   },
 };
 
@@ -203,27 +214,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-<html
-  lang="en"
-  className={`${display.variable} ${sans.variable} ${mono.variable} dark h-full antialiased`}
-  suppressHydrationWarning
->
-  <head>
-    <script
-      dangerouslySetInnerHTML={{
-        __html: themeInitScript,
-      }}
-    />
+    <html
+      lang="en"
+      className={`${display.variable} ${sans.variable} ${mono.variable} dark h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: themeInitScript,
+          }}
+        />
 
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(jsonLd),
-      }}
-    />
-  </head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd),
+          }}
+        />
+      </head>
 
-  <body className="h-full">
+      <body className="h-full">
         <ScheduleProvider>
           <YearGate>
             {children}
