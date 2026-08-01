@@ -54,11 +54,6 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
   const faculty = primaryEntry
     ? resolveSubjectIdentity(primaryEntry.subjectCode, subjectLegend).faculty
     : undefined;
-  // Reconstructs the full code exactly as it'd appear in the sheet,
-  // including the trailing section letter if this subject is split
-  // (e.g. "ST509(B)" + section "A" → "ST509(B)(A)") — without that, the
-  // heading would silently drop the section on split subjects.
- const primaryLabel = primaryEntry?.subjectCode ?? "Class";
 
   return (
     <Card
@@ -98,7 +93,7 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
       <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="font-display text-3xl leading-none font-extrabold tracking-wide uppercase sm:text-4xl">
-            {primaryLabel}
+            {primaryEntry?.subjectCode ?? "Class"}
           </p>
           {primaryEntry?.room && (
             <p className="text-muted mt-2 text-sm">Room {primaryEntry.room}</p>
