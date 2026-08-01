@@ -103,7 +103,7 @@ export function parseSessionCell(cellText: string, batchPrefix: string): ClassEn
 export function looksLikeSubjectCell(cellText: string): boolean {
   const trimmed = cellText.trim();
   if (!trimmed) return false;
-
+ 
   return trimmed
     .split('/')
     .map((part) => part.trim())
