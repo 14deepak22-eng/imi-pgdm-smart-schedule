@@ -88,7 +88,11 @@ function matchCanonicalCode(
 function extractCodeAndRoom(
   part: string,
   batchPrefix: string,
-): { subjectCode: string; room?: string } {
+): {
+  subjectCode: string;
+  room?: string;
+  time?: string;
+} {
   const baseMatch = part.match(BASE_CODE_PATTERN);
 
   if (!baseMatch) {
