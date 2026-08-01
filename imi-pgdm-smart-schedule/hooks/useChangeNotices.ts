@@ -22,6 +22,7 @@ const NOTICES_VERSION = 1;
 
 const SNAPSHOT_KEY = `pgdm-schedule-snapshot-v${NOTICES_VERSION}`;
 const NOTICES_KEY = `pgdm-change-notices-v${NOTICES_VERSION}`;
+const SEEN_KEY = `pgdm-seen-notice-ids-v${NOTICES_VERSION}`;
 const NOTICE_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
 
 function pruneNotices(notices: ChangeNotice[]): ChangeNotice[] {
@@ -77,6 +78,17 @@ function readSnapshot(): ScheduleSnapshot | null {
   }
 }
 
+function readSeenIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(SEEN_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? new Set(parsed) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
 export interface UseChangeNoticesResult {
   notices: ChangeNotice[];
   /**
@@ -85,6 +97,10 @@ export interface UseChangeNoticesResult {
    * everything.
    */
   clearNotices: (predicate?: (notice: ChangeNotice) => boolean) => void;
+  /** IDs of notices the person has already looked at. */
+  seenNoticeIds: Set<string>;
+  /** Marks the given notice IDs as seen (persisted across visits). */
+  markSeen: (ids: string[]) => void;
 }
 
 /**
@@ -103,6 +119,7 @@ export function useChangeNotices(
   serverFetchedAt: string | null,
 ): UseChangeNoticesResult {
   const [notices, setNotices] = useState<ChangeNotice[]>([]);
+  const [seenNoticeIds, setSeenNoticeIds] = useState<Set<string>>(new Set());
   const hasData = classes.length > 0 || events.length > 0;
 
   useEffect(() => {
@@ -135,6 +152,18 @@ export function useChangeNotices(
       }
 
       setNotices(updatedNotices);
+
+      // Keep seenNoticeIds trimmed to only IDs that still exist, so it
+      // doesn't grow forever as old (pruned/cleared) notices drop off.
+      const validIds = new Set(updatedNotices.map((n) => n.id));
+      const storedSeen = readSeenIds();
+      const trimmedSeen = new Set([...storedSeen].filter((id) => validIds.has(id)));
+      setSeenNoticeIds(trimmedSeen);
+      try {
+        localStorage.setItem(SEEN_KEY, JSON.stringify([...trimmedSeen]));
+      } catch {
+        // Storage unavailable — seen state just won't persist across visits.
+      }
     });
     // Re-run whenever the underlying data actually changes (a new fetch
     // resolved) — comparing serialized content, not just array identity.
@@ -151,5 +180,19 @@ export function useChangeNotices(
     }
   };
 
-  return { notices, clearNotices };
+  const markSeen = (ids: string[]) => {
+    if (ids.length === 0) return;
+    setSeenNoticeIds((prev) => {
+      const updated = new Set(prev);
+      for (const id of ids) updated.add(id);
+      try {
+        localStorage.setItem(SEEN_KEY, JSON.stringify([...updated]));
+      } catch {
+        // Storage unavailable — seen state just won't persist across visits.
+      }
+      return updated;
+    });
+  };
+
+  return { notices, clearNotices, seenNoticeIds, markSeen };
 }
