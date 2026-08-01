@@ -21,13 +21,13 @@
  * tomorrow, IST".
  */
 export const ANNOUNCEMENT = {
-  enabled: false,
+  enabled: true,
   id: "sheet-year-error-26ju",
   title: "DEAR USER🧑‍💻",
   message:
-    "Please share your valuable feedback in the WhatsApp group🤗. Your suggestions and ideas will help improve the website and make it more useful for everyone.",
-  videoUrl: null as string | null,
+    "Here's a quick demo showing how the new settings page works.",
+  videoUrl: "https://youtu.be/IrDKclsyO8s?si=lTPDOzRMiJyDzyPA" null as string | null,
   // Example: live from right now until end of day tomorrow (IST).
-  startAt: "2026-07-30T00:00:00+05:30" as string | null,
-  endAt: "2026-07-31T17:59:59+05:30" as string | null,
+  startAt: "2026-08-01T00:00:00+05:30" as string | null,
+  endAt: "2026-08-02T17:59:59+05:30" as string | null,
 };
