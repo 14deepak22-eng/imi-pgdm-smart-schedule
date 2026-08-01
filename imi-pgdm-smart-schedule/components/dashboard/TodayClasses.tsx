@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { sessionLabel, toLocalISODate } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
+import { subjectSelectionKey } from '@/lib/schedule/subjectKey';
 import { CalendarCheck2 } from 'lucide-react';
 
 interface TodayClassesProps {
@@ -48,7 +49,7 @@ export function TodayClasses({ days, section, now, query = '' }: TodayClassesPro
   const sessions = today.sessions.filter((s) => s.entries.length > 0);
   const q = query.trim().toLowerCase();
   const filtered = q
-    ? sessions.filter((s) => s.entries.some((e) => e.subjectCode.toLowerCase().includes(q)))
+    ? sessions.filter((s) => s.entries.some((e) => subjectSelectionKey(e).toLowerCase().includes(q)))
     : sessions;
 
   if (sessions.length === 0) {
@@ -92,7 +93,9 @@ export function TodayClasses({ days, section, now, query = '' }: TodayClassesPro
                 {slot.startTime}–{slot.endTime}
               </span>
               <div>
-                <p className="font-medium">{slot.entries.map((e) => e.subjectCode).join(' / ')}</p>
+                <p className="font-medium">
+                  {slot.entries.map((e) => subjectSelectionKey(e)).join(' / ')}
+                </p>
                 <p className="text-muted text-xs">
                   {sessionLabel(slot.session)}
                   {slot.entries.some((e) => e.room) &&
