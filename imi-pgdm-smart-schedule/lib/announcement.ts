@@ -21,12 +21,12 @@
  * tomorrow, IST".
  */
 export const ANNOUNCEMENT = {
-  enabled: false,
+  enabled: true,
   id: "sheet-year-error-26ju",
-  title: "DEAR USER🧑‍💻",
+  title: "Important Update",
   message:
-    "Here's a quick demo showing how the new settings page works.",
-  videoUrl: "https://youtu.be/IrDKclsyO8s?si=lTPDOzRMiJyDzyPA" as string | null,
+    "Your selected subjects have been reset due to a recent update.👉 Please go to Settings and select your subjects again to continue viewing your schedule. Sorry for the inconvenience, and thank you for your support! ❤️",
+  videoUrl: null as string | null,
   // Example: live from right now until end of day tomorrow (IST).
   startAt: "2026-08-01T00:00:00+05:30" as string | null,
   endAt: "2026-08-02T17:59:59+05:30" as string | null,
