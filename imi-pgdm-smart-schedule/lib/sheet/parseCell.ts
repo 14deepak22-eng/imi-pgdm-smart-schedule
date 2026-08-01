@@ -125,10 +125,11 @@ if (isRoomLike(value)) {
   const identityCandidate =
     baseMatch[0] + identityGroups.map(g => `(${g})`).join('');
 
-  const subjectCode =
-    matchCanonicalCode(identityCandidate, batchPrefix) ??
-    identityCandidate;
+const canonical =
+  matchCanonicalCode(identityCandidate, batchPrefix) ??
+  identityCandidate;
 
+const subjectCode = time ? `${canonical}(${time})` : canonical;
 return {
   subjectCode,
   room,
