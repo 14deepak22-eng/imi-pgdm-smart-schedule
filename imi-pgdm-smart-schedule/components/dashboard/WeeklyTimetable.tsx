@@ -15,6 +15,15 @@ interface WeeklyTimetableProps {
 }
 
 /**
+ * Reconstructs the full subject label exactly as it'd appear in the
+ * sheet, including the trailing section letter if this subject is
+ * split (e.g. "ST509(B)" + section "A" → "ST509(B)(A)") — without
+ * this, split subjects would silently lose their section suffix.
+ */
+function entryLabel(e: { subjectCode: string }): string {
+  return e.subjectCode;
+}
+/**
  * Reads the actual session time labels straight from the parsed data
  * (which already carries each batch's correct junior/senior times on
  * every slot, from lib/sheet/parseSchedule.ts) rather than any single
@@ -144,13 +153,13 @@ function SingleWeekTable({
                     ) : slot && slot.entries.length > 0 ? (
                       <div
                         className={
-                          q && !slot.entries.some((e) => e.subjectCode.toLowerCase().includes(q))
+                          q && !slot.entries.some((e) => entryLabel(e).toLowerCase().includes(q))
                             ? 'opacity-30'
                             : undefined
                         }
                       >
                         <p className="leading-tight font-medium">
-                          {slot.entries.map((e) => e.subjectCode).join(' / ')}
+                          {slot.entries.map(entryLabel).join(' / ')}
                         </p>
                         {slot.entries.some((e) => e.room) && (
                           <p className="text-muted text-xs">
