@@ -1,15 +1,19 @@
-'use client';
+"use client";
 
-import { X, Megaphone } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { useAnnouncement } from '@/hooks/useAnnouncement';
-import { ANNOUNCEMENT } from '@/lib/announcement';
+import { X, Megaphone } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { useAnnouncement } from "@/hooks/useAnnouncement";
+import { ANNOUNCEMENT } from "@/lib/announcement";
+import { getYouTubeEmbedUrl } from "@/lib/utils/youtube";
+import { cn } from "@/lib/utils/cn";
 
 function isWithinWindow(): boolean {
   const now = Date.now();
-  if (ANNOUNCEMENT.startAt && now < new Date(ANNOUNCEMENT.startAt).getTime()) return false;
-  if (ANNOUNCEMENT.endAt && now > new Date(ANNOUNCEMENT.endAt).getTime()) return false;
+  if (ANNOUNCEMENT.startAt && now < new Date(ANNOUNCEMENT.startAt).getTime())
+    return false;
+  if (ANNOUNCEMENT.endAt && now > new Date(ANNOUNCEMENT.endAt).getTime())
+    return false;
   return true;
 }
 
@@ -18,6 +22,10 @@ export function AnnouncementModal() {
 
   if (!ANNOUNCEMENT.enabled || hasSeen || !isWithinWindow()) return null;
 
+  const embedUrl = ANNOUNCEMENT.videoUrl
+    ? getYouTubeEmbedUrl(ANNOUNCEMENT.videoUrl)
+    : null;
+
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
@@ -25,7 +33,12 @@ export function AnnouncementModal() {
       aria-modal="true"
       aria-labelledby="announcement-title"
     >
-      <Card className="relative w-full max-w-md p-6">
+      <Card
+        className={cn(
+          "relative w-full p-6",
+          embedUrl ? "max-w-xl" : "max-w-md",
+        )}
+      >
         <button
           onClick={markSeen}
           aria-label="Close"
@@ -44,7 +57,19 @@ export function AnnouncementModal() {
           </h2>
         </div>
 
-        <p className="text-muted mb-6 text-sm">{ANNOUNCEMENT.message}</p>
+        <p className="text-muted mb-4 text-sm">{ANNOUNCEMENT.message}</p>
+
+        {embedUrl && (
+          <div className="border-border mb-6 aspect-video overflow-hidden rounded-lg border">
+            <iframe
+              src={embedUrl}
+              title="Announcement video"
+              className="h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        )}
 
         <Button onClick={markSeen} className="w-full">
           Got it
