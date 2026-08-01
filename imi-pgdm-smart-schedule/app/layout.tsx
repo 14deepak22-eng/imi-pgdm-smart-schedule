@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     'IMI Delhi',
     'IMI kolkata ',
     'imi Smart Schedule',
-    'imi Schedule,
+    'imi Schedule',
     'Imi Student timetable',
     'imi Student',
     'IMI pgdm Smart Schedule',
