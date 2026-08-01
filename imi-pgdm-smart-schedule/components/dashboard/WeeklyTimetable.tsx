@@ -3,7 +3,6 @@ import { Card } from '@/components/ui/Card';
 import { SESSION_ORDER } from '@/lib/sheet/constants';
 import { sessionLabel, formatSessionTimeRange, toLocalISODate } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
-import { subjectSelectionKey } from '@/lib/schedule/subjectKey';
 import { MAX_WEEKS_TO_SHOW } from '@/hooks/useWeeksToShow';
 
 interface WeeklyTimetableProps {
@@ -13,6 +12,16 @@ interface WeeklyTimetableProps {
   query?: string;
   /** How many consecutive weeks to render, starting from the current week (1-4). */
   weeksToShow?: number;
+}
+
+/**
+ * Reconstructs the full subject label exactly as it'd appear in the
+ * sheet, including the trailing section letter if this subject is
+ * split (e.g. "ST509(B)" + section "A" → "ST509(B)(A)") — without
+ * this, split subjects would silently lose their section suffix.
+ */
+function entryLabel(e: { subjectCode: string; subjectSection?: string }): string {
+  return e.subjectCode + (e.subjectSection ? `(${e.subjectSection})` : '');
 }
 
 /**
@@ -145,13 +154,13 @@ function SingleWeekTable({
                     ) : slot && slot.entries.length > 0 ? (
                       <div
                         className={
-                          q && !slot.entries.some((e) => subjectSelectionKey(e).toLowerCase().includes(q))
+                          q && !slot.entries.some((e) => entryLabel(e).toLowerCase().includes(q))
                             ? 'opacity-30'
                             : undefined
                         }
                       >
                         <p className="leading-tight font-medium">
-                          {slot.entries.map((e) => subjectSelectionKey(e)).join(' / ')}
+                          {slot.entries.map(entryLabel).join(' / ')}
                         </p>
                         {slot.entries.some((e) => e.room) && (
                           <p className="text-muted text-xs">
