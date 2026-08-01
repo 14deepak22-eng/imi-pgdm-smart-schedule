@@ -41,12 +41,24 @@ function isRoomLike(group: string): boolean {
   return /CR|CL|Tutorial/i.test(group);
 }
 
+// A qualifier like "10:00" or "2:30 PM" — a scheduling note that
+// sometimes gets typed alongside the code in a cell, not a genuine part
+// of the subject's identity (unlike a section letter or faculty note).
+// Dropped entirely so it can never make the same subject look like a
+// different one to the selection/filtering logic.
+function isTimeLike(group: string): boolean {
+  return /^\d{1,2}:\d{2}\s*(AM|PM)?$/i.test(group.trim());
+}
+
 /**
  * Splits a cell's text into the room (if any "(...)" group looks like
- * CR-x / CL-x / Tutorial) and the rest of the subject label — but keeps
- * EVERY other bracketed qualifier exactly as written, whatever it says
- * (a section letter, a faculty note like "(Prof. SM)", anything).
- * Nothing beyond the room is ever dropped or rewritten, for any batch.
+ * CR-x / CL-x / Tutorial) and the rest of the subject label — keeps
+ * every other bracketed qualifier exactly as written (a section letter,
+ * a faculty note like "(Prof. SM)", anything), EXCEPT a time-looking
+ * note like "(10:00)", which is dropped outright — it's a scheduling
+ * detail, not part of what makes this subject this subject, and
+ * keeping it would make the same class look like a different subject
+ * depending on which cell happened to include a time.
  */
 function extractCodeAndRoom(part: string): { subjectCode: string; room?: string } {
   const baseMatch = part.match(BASE_CODE_PATTERN);
@@ -61,7 +73,7 @@ function extractCodeAndRoom(part: string): { subjectCode: string; room?: string 
     const value = match[1].trim();
     if (isRoomLike(value)) {
       room = room ?? value;
-    } else {
+    } else if (!isTimeLike(value)) {
       identityGroups.push(value);
     }
     rest = rest.slice(match[0].length);
