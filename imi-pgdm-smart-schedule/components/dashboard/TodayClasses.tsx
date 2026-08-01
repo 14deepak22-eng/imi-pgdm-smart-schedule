@@ -35,6 +35,7 @@ const STATUS_EDGE: Record<RowStatus, string> = {
  */
 function entryLabel(e: { subjectCode: string }): string {
   return e.subjectCode;
+}
 export function TodayClasses({ days, section, now, query = '' }: TodayClassesProps) {
   const todayISO = toLocalISODate(now);
   const today = days.find((d) => d.date === todayISO && d.section === section);
