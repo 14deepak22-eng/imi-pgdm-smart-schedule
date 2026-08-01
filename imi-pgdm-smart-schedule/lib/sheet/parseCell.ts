@@ -1,7 +1,6 @@
 import type { ClassEntry } from '@/types/timetable';
 import type { EventCategory } from '@/types/events';
 import { EVENT\_KEYWORDS, CANONICAL\_SUBJECT\_CODES\_BY\_BATCH } from './constants';
-
 const EVENT\_CATEGORY\_MAP: Record\<string, EventCategory> = {
 holiday: 'holiday',
 exam: 'exam',
