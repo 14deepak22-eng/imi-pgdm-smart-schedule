@@ -20,8 +20,8 @@ interface WeeklyTimetableProps {
  * split (e.g. "ST509(B)" + section "A" → "ST509(B)(A)") — without
  * this, split subjects would silently lose their section suffix.
  */
-function entryLabel(e: { subjectCode: string; subjectSection?: string }): string {
-  return e.subjectCode + (e.subjectSection ? `(${e.subjectSection})` : '');
+function entryLabel(e: { subjectCode: string }): string {
+  return e.subjectCode;
 }
 
 /**
