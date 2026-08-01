@@ -10,9 +10,18 @@ import {
   type ScheduleSnapshot,
 } from '@/lib/schedule/diffSchedule';
 
-const SNAPSHOT_KEY = 'pgdm-schedule-snapshot';
-const NOTICES_KEY = 'pgdm-change-notices';
-const SEEN_IDS_KEY = 'pgdm-seen-notice-ids';
+/**
+ * Bump this number any time you want to force EVERY visitor's notices to
+ * reset, without touching their device directly (e.g. after a bug caused
+ * bad/duplicate notices, like the one on July 27). Changing this number
+ * changes the storage key below, so old saved notices are simply
+ * abandoned/ignored on each visitor's next load — everyone starts fresh
+ * automatically. No other code changes needed.
+ */
+const NOTICES_VERSION = 1;
+
+const SNAPSHOT_KEY = `pgdm-schedule-snapshot-v${NOTICES_VERSION}`;
+const NOTICES_KEY = `pgdm-change-notices-v${NOTICES_VERSION}`;
 const NOTICE_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
 
 function pruneNotices(notices: ChangeNotice[]): ChangeNotice[] {
@@ -68,25 +77,6 @@ function readSnapshot(): ScheduleSnapshot | null {
   }
 }
 
-function readSeenIds(): Set<string> {
-  try {
-    const raw = localStorage.getItem(SEEN_IDS_KEY);
-    if (!raw) return new Set();
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? new Set(parsed.filter((x) => typeof x === 'string')) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function writeSeenIds(ids: Set<string>): void {
-  try {
-    localStorage.setItem(SEEN_IDS_KEY, JSON.stringify([...ids]));
-  } catch {
-    // Storage unavailable — seen state just won't persist across visits.
-  }
-}
-
 export interface UseChangeNoticesResult {
   notices: ChangeNotice[];
   /**
@@ -95,10 +85,6 @@ export interface UseChangeNoticesResult {
    * everything.
    */
   clearNotices: (predicate?: (notice: ChangeNotice) => boolean) => void;
-  /** IDs of notices the person has already looked at (see markSeen) — used to hide the nav badge dot for those. */
-  seenNoticeIds: Set<string>;
-  /** Marks the given notice IDs as seen, e.g. after visiting the Notices or Events page. */
-  markSeen: (ids: string[]) => void;
 }
 
 /**
@@ -117,7 +103,6 @@ export function useChangeNotices(
   serverFetchedAt: string | null,
 ): UseChangeNoticesResult {
   const [notices, setNotices] = useState<ChangeNotice[]>([]);
-  const [seenNoticeIds, setSeenNoticeIds] = useState<Set<string>>(new Set());
   const hasData = classes.length > 0 || events.length > 0;
 
   useEffect(() => {
@@ -150,7 +135,6 @@ export function useChangeNotices(
       }
 
       setNotices(updatedNotices);
-      setSeenNoticeIds(readSeenIds());
     });
     // Re-run whenever the underlying data actually changes (a new fetch
     // resolved) — comparing serialized content, not just array identity.
@@ -167,22 +151,5 @@ export function useChangeNotices(
     }
   };
 
-  const markSeen = (ids: string[]) => {
-    if (ids.length === 0) return;
-    setSeenNoticeIds((prev) => {
-      const next = new Set(prev);
-      let changed = false;
-      for (const id of ids) {
-        if (!next.has(id)) {
-          next.add(id);
-          changed = true;
-        }
-      }
-      if (!changed) return prev; // avoid a redundant re-render/write
-      writeSeenIds(next);
-      return next;
-    });
-  };
-
-  return { notices, clearNotices, seenNoticeIds, markSeen };
+  return { notices, clearNotices };
 }
