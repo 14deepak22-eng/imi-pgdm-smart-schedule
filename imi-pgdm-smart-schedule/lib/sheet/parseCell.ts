@@ -1,6 +1,6 @@
 import type { ClassEntry } from '@/types/timetable';
 import type { EventCategory } from '@/types/events';
-import { EVENT_KEYWORDS, CANONICAL_SUBJECT_CODES_BY_BATCH } from './constants';
+import { EVENT_KEYWORDS } from './constants';
 
 const EVENT_CATEGORY_MAP: Record<string, EventCategory> = {
   holiday: 'holiday',
@@ -41,59 +41,14 @@ function isRoomLike(group: string): boolean {
   return /CR|CL|Tutorial/i.test(group);
 }
 
-function normalize(text: string): string {
-  return text.replace(/\s+/g, '').toUpperCase();
-}
-
-interface NormalizedCode {
-  original: string;
-  normalized: string;
-}
-
-// Cache of precomputed, longest-first normalized code lists, one per
-// batch — so prefix matching always prefers the most specific known
-// subject code (e.g. "ST509(B)(A)" over a shorter partial), without
-// recomputing this on every single cell.
-const normalizedCanonicalByBatch = new Map<string, NormalizedCode[]>();
-
-function getNormalizedCanonical(batchPrefix: string): NormalizedCode[] {
-  const cached = normalizedCanonicalByBatch.get(batchPrefix);
-  if (cached) return cached;
-
-  const codes = CANONICAL_SUBJECT_CODES_BY_BATCH[batchPrefix] ?? [];
-  const list = codes
-    .map((code) => ({ original: code, normalized: normalize(code) }))
-    .sort((a, b) => b.normalized.length - a.normalized.length);
-
-  normalizedCanonicalByBatch.set(batchPrefix, list);
-  return list;
-}
-
 /**
- * Matches a cell's course code + bracketed qualifiers against that
- * batch's authoritative subject list (CANONICAL_SUBJECT_CODES_BY_BATCH),
- * returning the longest canonical code that is a prefix of it.
- *
- * This is how we correctly resolve subjects like "MK629(A)" vs "MK629(B)"
- * as two distinct offerings, and "MK630(B)(B)" (the real code "MK630(B)"
- * with an extra trailing qualifier) — by matching against the known list
- * for THIS batch instead of guessing from context. If nothing in that
- * batch's list matches (including batches with no list configured at
- * all), the raw identity text is kept as-is, so no subject is ever
- * silently dropped.
+ * Splits a cell's text into the room (if any "(...)" group looks like
+ * CR-x / CL-x / Tutorial) and the rest of the subject label — but keeps
+ * EVERY other bracketed qualifier exactly as written, whatever it says
+ * (a section letter, a faculty note like "(Prof. SM)", anything).
+ * Nothing beyond the room is ever dropped or rewritten, for any batch.
  */
-function matchCanonicalCode(identityCandidate: string, batchPrefix: string): string | null {
-  const normalizedCandidate = normalize(identityCandidate);
-  for (const { original, normalized } of getNormalizedCanonical(batchPrefix)) {
-    if (normalizedCandidate.startsWith(normalized)) return original;
-  }
-  return null;
-}
-
-function extractCodeAndRoom(
-  part: string,
-  batchPrefix: string,
-): { subjectCode: string; room?: string } {
+function extractCodeAndRoom(part: string): { subjectCode: string; room?: string } {
   const baseMatch = part.match(BASE_CODE_PATTERN);
   if (!baseMatch) return { subjectCode: part };
 
@@ -101,8 +56,6 @@ function extractCodeAndRoom(
   let room: string | undefined;
   let rest = part.slice(baseMatch[0].length);
 
-  // Walk through every "(...)" group right after the code, classifying
-  // each as either the room or a qualifier that's part of the subject's identity.
   let match = rest.match(NEXT_GROUP_PATTERN);
   while (match) {
     const value = match[1].trim();
@@ -115,9 +68,7 @@ function extractCodeAndRoom(
     match = rest.match(NEXT_GROUP_PATTERN);
   }
 
-  const identityCandidate = baseMatch[0] + identityGroups.map((g) => `(${g})`).join('');
-  const subjectCode = matchCanonicalCode(identityCandidate, batchPrefix) ?? identityCandidate;
-
+  const subjectCode = baseMatch[0] + identityGroups.map((g) => `(${g})`).join('');
   return { subjectCode, room };
 }
 
@@ -125,10 +76,6 @@ function extractCodeAndRoom(
  * Parses a single session-slot cell into one or more class entries.
  * A slot can hold multiple parallel/alternate offerings separated by "/",
  * e.g. "MK629 (A) (CR-5)/MK630 (A) (CR-2)".
- *
- * `batchPrefix` (e.g. "PGDM 2025-27") selects which batch's canonical
- * subject list to match against, since the same-looking bracketed code
- * can mean different things in different batches.
  */
 export function parseSessionCell(cellText: string, batchPrefix: string): ClassEntry[] {
   const trimmed = cellText.trim();
@@ -139,7 +86,7 @@ export function parseSessionCell(cellText: string, batchPrefix: string): ClassEn
     .map((part) => part.trim())
     .filter(Boolean)
     .map((part) => {
-      const { subjectCode, room } = extractCodeAndRoom(part, batchPrefix);
+      const { subjectCode, room } = extractCodeAndRoom(part);
       return { raw: part, subjectCode, room };
     });
 }
