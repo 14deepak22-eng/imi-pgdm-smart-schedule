@@ -58,9 +58,7 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
   // including the trailing section letter if this subject is split
   // (e.g. "ST509(B)" + section "A" → "ST509(B)(A)") — without that, the
   // heading would silently drop the section on split subjects.
-  const primaryLabel = primaryEntry
-    ? primaryEntry.subjectCode + (primaryEntry.subjectSection ? `(${primaryEntry.subjectSection})` : "")
-    : "Class";
+ const primaryLabel = primaryEntry?.subjectCode ?? "Class";
 
   return (
     <Card
