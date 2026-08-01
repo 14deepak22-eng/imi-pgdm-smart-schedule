@@ -12,6 +12,13 @@ import { extractSheetId } from "@/lib/utils/sheetId";
 // below always bypass this via no-store fetches.
 export const revalidate = 300;
 
+// Fallback used ONLY if NEXT_PUBLIC_SHEET_ID isn't set at all — e.g. a
+// new Vercel Preview deployment that doesn't inherit Production env
+// vars. Without this, a missing env var blocks the entire app right at
+// the year-selection screen (no batches to show, nothing to click).
+// The env var, when set, always takes priority over this.
+const FALLBACK_SHEET_ID = "1FEKe5fBUREJ_dx8lrwvW3p89u8kZw1lEo6nC7ERA15U";
+
 async function fetchWithRetry<T>(
   fn: () => Promise<T>,
   retries: number,
@@ -43,17 +50,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const sheetId = overrideId ?? process.env.NEXT_PUBLIC_SHEET_ID;
+  const sheetId = overrideId ?? process.env.NEXT_PUBLIC_SHEET_ID ?? FALLBACK_SHEET_ID;
   const sheetTab = overrideId
     ? undefined
     : process.env.SHEET_TAB_NAME || undefined;
-
-  if (!sheetId) {
-    return NextResponse.json(
-      { error: "Server is missing NEXT_PUBLIC_SHEET_ID configuration" },
-      { status: 500 },
-    );
-  }
 
   try {
     const rows = await fetchWithRetry(
