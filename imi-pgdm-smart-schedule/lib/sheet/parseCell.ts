@@ -11,7 +11,7 @@ const EVENT_CATEGORY_MAP: Record<string, EventCategory> = {
   placement: 'placement',
   notice: 'notice',
 };
-
+ 
 /**
  * Checks whether a cell's text represents an event (holiday, exam, etc.)
  * rather than a regular class. Matches by substring so variants like
