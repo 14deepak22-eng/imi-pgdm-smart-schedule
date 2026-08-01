@@ -4,17 +4,12 @@ export type TargetSection = 'A' | 'B' | 'C';
 
 /** A single subject offering within a session slot (slots can hold 2+ parallel offerings, separated by "/"). */
 export interface ClassEntry {
-  /** Original text for this offering */
+  /** Original text for this offering, e.g. "MK629 (A) (CR-5)" */
   raw: string;
-
-  /** Canonical subject code */
+  /** Extracted subject code, e.g. "MK629(A)" */
   subjectCode: string;
-
-  /** Room if present */
+  /** Extracted room/venue, e.g. "CR-5", if found */
   room?: string;
-
-  /** Time inside brackets, e.g. (10:00) */
-  time?: string;
 }
 
 export interface SessionSlot {
