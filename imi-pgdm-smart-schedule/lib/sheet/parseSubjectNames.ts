@@ -18,14 +18,6 @@ const QUALIFIER_GROUP = /^\s*\(([^)]+)\)/;
 // normalizes it to the app's internal "PGDM 2025-27" (2-digit end year) shape.
 const BATCH_LABEL_PATTERN = /PGDM\s*(\d{4})\s*-\s*(\d{2,4})/i;
 
-// Same rule as parseCell.ts: a time note like "(10:00)" is a scheduling
-// detail, not part of a subject's identity — drop it so the legend key
-// always matches what parseCell.ts resolves for the same subject,
-// however the time happened to get typed into either sheet.
-function isTimeLike(group: string): boolean {
-  return /^\d{1,2}:\d{2}\s*(AM|PM)?$/i.test(group.trim());
-}
-
 function extractBatchLabel(cell: string): string | null {
   const match = cell.match(BATCH_LABEL_PATTERN);
   if (!match) return null;
@@ -46,13 +38,11 @@ function normalizeCode(raw: string): string | null {
   const baseMatch = spaceless.match(/^[A-Z]{2,4}\d{3,4}/);
   if (!baseMatch || !BASE_CODE_PATTERN.test(baseMatch[0])) return null;
 
-let rest = spaceless.slice(baseMatch[0].length);
+  let rest = spaceless.slice(baseMatch[0].length);
   const groups: string[] = [];
   let match = rest.match(QUALIFIER_GROUP);
   while (match) {
-    if (!isTimeLike(match[1])) {
-      groups.push(match[1]);
-    }
+    groups.push(match[1]);
     rest = rest.slice(match[0].length);
     match = rest.match(QUALIFIER_GROUP);
   }
