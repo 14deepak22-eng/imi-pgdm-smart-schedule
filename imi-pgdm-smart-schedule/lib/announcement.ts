@@ -26,7 +26,7 @@ export const ANNOUNCEMENT = {
   title: "DEAR USER🧑‍💻",
   message:
     "Here's a quick demo showing how the new settings page works.",
-  videoUrl: "https://youtu.be/IrDKclsyO8s?si=lTPDOzRMiJyDzyPA" null as string | null,
+  videoUrl: "https://youtu.be/IrDKclsyO8s?si=lTPDOzRMiJyDzyPA" as string | null,
   // Example: live from right now until end of day tomorrow (IST).
   startAt: "2026-08-01T00:00:00+05:30" as string | null,
   endAt: "2026-08-02T17:59:59+05:30" as string | null,
