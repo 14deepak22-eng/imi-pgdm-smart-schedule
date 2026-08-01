@@ -12,7 +12,7 @@ const STORAGE_KEY = "pgdm-selected-subjects-by-batch";
 // Everyone just falls back to "show everything" and can re-pick fresh
 // in Settings, instead of ending up with silently mismatched/hidden
 // classes.
-const SCHEMA_VERSION = "5";
+const SCHEMA_VERSION = "2";
 const VERSION_KEY = "pgdm-selected-subjects-schema-version";
 
 function migrateIfNeeded(): void {
