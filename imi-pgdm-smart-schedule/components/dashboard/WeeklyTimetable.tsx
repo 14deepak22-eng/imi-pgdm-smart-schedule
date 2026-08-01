@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { SESSION_ORDER } from '@/lib/sheet/constants';
 import { sessionLabel, formatSessionTimeRange, toLocalISODate } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
+import { subjectSelectionKey } from '@/lib/schedule/subjectKey';
 import { MAX_WEEKS_TO_SHOW } from '@/hooks/useWeeksToShow';
 
 interface WeeklyTimetableProps {
@@ -144,13 +145,13 @@ function SingleWeekTable({
                     ) : slot && slot.entries.length > 0 ? (
                       <div
                         className={
-                          q && !slot.entries.some((e) => e.subjectCode.toLowerCase().includes(q))
+                          q && !slot.entries.some((e) => subjectSelectionKey(e).toLowerCase().includes(q))
                             ? 'opacity-30'
                             : undefined
                         }
                       >
                         <p className="leading-tight font-medium">
-                          {slot.entries.map((e) => e.subjectCode).join(' / ')}
+                          {slot.entries.map((e) => subjectSelectionKey(e)).join(' / ')}
                         </p>
                         {slot.entries.some((e) => e.room) && (
                           <p className="text-muted text-xs">
