@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { sessionLabel, toLocalISODate } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
-import { subjectSelectionKey } from '@/lib/schedule/subjectKey';
 import { CalendarCheck2 } from 'lucide-react';
 
 interface TodayClassesProps {
@@ -28,6 +27,16 @@ const STATUS_EDGE: Record<RowStatus, string> = {
   done: 'border-l-border',
 };
 
+/**
+ * Reconstructs the full subject label exactly as it'd appear in the
+ * sheet, including the trailing section letter if this subject is
+ * split (e.g. "ST509(B)" + section "A" → "ST509(B)(A)") — without
+ * this, split subjects would silently lose their section suffix.
+ */
+function entryLabel(e: { subjectCode: string; subjectSection?: string }): string {
+  return e.subjectCode + (e.subjectSection ? `(${e.subjectSection})` : '');
+}
+
 export function TodayClasses({ days, section, now, query = '' }: TodayClassesProps) {
   const todayISO = toLocalISODate(now);
   const today = days.find((d) => d.date === todayISO && d.section === section);
@@ -49,7 +58,7 @@ export function TodayClasses({ days, section, now, query = '' }: TodayClassesPro
   const sessions = today.sessions.filter((s) => s.entries.length > 0);
   const q = query.trim().toLowerCase();
   const filtered = q
-    ? sessions.filter((s) => s.entries.some((e) => subjectSelectionKey(e).toLowerCase().includes(q)))
+    ? sessions.filter((s) => s.entries.some((e) => entryLabel(e).toLowerCase().includes(q)))
     : sessions;
 
   if (sessions.length === 0) {
@@ -93,9 +102,7 @@ export function TodayClasses({ days, section, now, query = '' }: TodayClassesPro
                 {slot.startTime}–{slot.endTime}
               </span>
               <div>
-                <p className="font-medium">
-                  {slot.entries.map((e) => subjectSelectionKey(e)).join(' / ')}
-                </p>
+                <p className="font-medium">{slot.entries.map(entryLabel).join(' / ')}</p>
                 <p className="text-muted text-xs">
                   {sessionLabel(slot.session)}
                   {slot.entries.some((e) => e.room) &&
