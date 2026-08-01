@@ -33,10 +33,8 @@ const STATUS_EDGE: Record<RowStatus, string> = {
  * split (e.g. "ST509(B)" + section "A" → "ST509(B)(A)") — without
  * this, split subjects would silently lose their section suffix.
  */
-function entryLabel(e: { subjectCode: string; subjectSection?: string }): string {
-  return e.subjectCode + (e.subjectSection ? `(${e.subjectSection})` : '');
-}
-
+function entryLabel(e: { subjectCode: string }): string {
+  return e.subjectCode;
 export function TodayClasses({ days, section, now, query = '' }: TodayClassesProps) {
   const todayISO = toLocalISODate(now);
   const today = days.find((d) => d.date === todayISO && d.section === section);
