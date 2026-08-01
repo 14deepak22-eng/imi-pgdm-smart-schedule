@@ -1,30 +1,33 @@
-'use client';
+"use client";
 
-import { X, Sparkles } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { useHasSeenWelcomeTip } from '@/hooks/useHasSeenWelcomeTip';
+import { X, Sparkles } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { useHasSeenWelcomeTip } from "@/hooks/useHasSeenWelcomeTip";
+import { getYouTubeEmbedUrl } from "@/lib/utils/youtube";
+import { cn } from "@/lib/utils/cn";
+
+// Paste any normal YouTube link here (a full youtube.com/watch?v=...
+// link or a youtu.be/... short link both work) to show a demo video
+// in this welcome popup. Leave as `null` to hide the video entirely.
+const DEMO_VIDEO_URL: string | null = 'https://youtu.be/IrDKclsyO8s';
 
 const STEPS = [
   {
-    title: 'Open the website',
-    text: 'Visit IMI PGDM Smart Schedule in your browser.',
+    title: "Select your Year",
+    text: "Choose your batch on the welcome screen.",
   },
   {
-    title: 'Select your Year',
-    text: 'Choose your batch on the welcome screen.',
+    title: "Go to Settings",
+    text: "Tap Settings in the top menu.",
   },
   {
-    title: 'Go to Settings',
-    text: 'Tap Settings in the top menu.',
-  },
-  {
-    title: 'Select your Subjects and Section',
+    title: "Select your Subjects and Section",
     text: "Choose the subjects you're taking, and your section — or combine all sections into one view.",
   },
   {
-    title: 'Return to the Dashboard',
-    text: 'Head back to Board to see your personalized class schedule, timings, and next-class countdown.',
+    title: "Return to the Dashboard",
+    text: "Head back to Board to see your personalized class schedule, timings, and next-class countdown.",
   },
 ];
 
@@ -33,6 +36,8 @@ export function WelcomeTipModal() {
 
   if (hasSeen) return null;
 
+  const embedUrl = DEMO_VIDEO_URL ? getYouTubeEmbedUrl(DEMO_VIDEO_URL) : null;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
@@ -40,7 +45,12 @@ export function WelcomeTipModal() {
       aria-modal="true"
       aria-labelledby="welcome-tip-title"
     >
-      <Card className="relative w-full max-w-md p-6">
+      <Card
+        className={cn(
+          "relative w-full p-6",
+          embedUrl ? "max-w-xl" : "max-w-md",
+        )}
+      >
         <button
           onClick={markSeen}
           aria-label="Close"
@@ -59,8 +69,21 @@ export function WelcomeTipModal() {
           </h2>
         </div>
         <p className="text-muted mb-5 text-sm">
-          A quick, one-time walkthrough — five steps to a schedule that&apos;s yours.
+          A quick, one-time walkthrough — five steps to a schedule that&apos;s
+          yours.
         </p>
+
+        {embedUrl && (
+          <div className="border-border mb-5 aspect-video overflow-hidden rounded-lg border">
+            <iframe
+              src={embedUrl}
+              title="How to personalise — demo video"
+              className="h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        )}
 
         <ol className="mb-6 flex flex-col gap-3.5">
           {STEPS.map((step, i) => (
