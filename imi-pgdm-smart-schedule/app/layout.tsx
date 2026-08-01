@@ -49,9 +49,14 @@ export const metadata: Metadata = {
 
   keywords: [
     'IMI Smart Schedule',
+    'Imi Smart Schedule',
+    'imi Smart Schedule',
     'IMI PGDM Smart Schedule',
+    'Imi PGDM Smart Schedule',
+    'imi PGDM Smart Schedule',
     'IMI Bhubaneswar',
     'IMI timetable',
+    'imi timetable',
     'IMI class schedule',
     'IMI routine',
     'IMI PGDM timetable',
@@ -60,6 +65,16 @@ export const metadata: Metadata = {
     'College timetable',
     'Class countdown',
     'Student timetable',
+    'timetable',
+    'IMI Delhi',
+    'IMI kolkata ',
+    'imi Smart Schedule',
+    'imi Schedule,
+    'Imi Student timetable',
+    'imi Student',
+    'IMI pgdm Smart Schedule',
+    'IMI',
+    'IMI',
   ],
 
   authors: [
