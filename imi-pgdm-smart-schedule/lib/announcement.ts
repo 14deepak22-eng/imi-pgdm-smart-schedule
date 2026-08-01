@@ -10,6 +10,10 @@
  *   Outside that window the popup never appears, no matter what.
  *   Both are optional — leave either one `null` for "no limit" on that side.
  * - To turn the popup off entirely regardless of the window, set `enabled: false`.
+ * - `videoUrl` is optional — paste any normal YouTube link (a full
+ *   youtube.com/watch?v=... link, or a youtu.be/... short link both
+ *   work) to show an embedded video in the popup. Leave it `null` for
+ *   a text-only announcement.
  *
  * DATE FORMAT: use ISO strings like '2026-07-26T00:00:00+05:30' (IST offset
  * shown). Easiest is to just write the date + time in IST and add the
@@ -18,10 +22,12 @@
  */
 export const ANNOUNCEMENT = {
   enabled: false,
-  id: 'sheet-year-error-26ju',
-  title: 'DEAR USER🧑‍💻',
-  message: 'Please share your valuable feedback in the WhatsApp group🤗. Your suggestions and ideas will help improve the website and make it more useful for everyone.',
+  id: "sheet-year-error-26ju",
+  title: "DEAR USER🧑‍💻",
+  message:
+    "Please share your valuable feedback in the WhatsApp group🤗. Your suggestions and ideas will help improve the website and make it more useful for everyone.",
+  videoUrl: null as string | null,
   // Example: live from right now until end of day tomorrow (IST).
-  startAt: '2026-07-30T00:00:00+05:30' as string | null,
-  endAt: '2026-07-31T17:59:59+05:30' as string | null,
+  startAt: "2026-07-30T00:00:00+05:30" as string | null,
+  endAt: "2026-07-31T17:59:59+05:30" as string | null,
 };
