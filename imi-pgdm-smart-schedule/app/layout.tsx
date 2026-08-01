@@ -33,23 +33,22 @@ const mono = IBM_Plex_Mono({
 });
 
 const siteUrl = 'https://imi-pgdm-smart-schedule-iota.vercel.app';
-// Google's logo structured data spec wants this served at at least
-// 112x112px and look correct on a WHITE background (not transparent) —
-// worth double-checking icon-512-v2.png against that before relying on it.
+const siteName = 'IMI Smart Schedule';
 const logoUrl = `${siteUrl}/icons/icon-512-v2.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
-    default: 'IMI PGDM Smart Schedule',
-    template: '%s | IMI PGDM Smart Schedule',
+    default: siteName,
+    template: `%s | ${siteName}`,
   },
 
   description:
-    'IMI PGDM Smart Schedule helps IMI Bhubaneswar PGDM students access live class schedules, next class countdowns, events, and personalized subject timetables synced automatically.',
+    'IMI Smart Schedule helps IMI Bhubaneswar PGDM students access live class schedules, next class countdowns, events, and personalized subject timetables synced automatically.',
 
   keywords: [
+    'IMI Smart Schedule',
     'IMI PGDM Smart Schedule',
     'IMI Bhubaneswar',
     'IMI timetable',
@@ -61,7 +60,6 @@ export const metadata: Metadata = {
     'College timetable',
     'Class countdown',
     'Student timetable',
-    'IMI smart schedule',
   ],
 
   authors: [
@@ -72,11 +70,11 @@ export const metadata: Metadata = {
 
   creator: 'Deepak Kumar',
 
-  publisher: 'IMI PGDM Smart Schedule',
+  publisher: siteName,
 
   category: 'Education',
 
-  applicationName: 'IMI PGDM Smart Schedule',
+  applicationName: siteName,
 
   alternates: {
     canonical: '/',
@@ -102,13 +100,13 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: 'IMI PGDM Smart Schedule',
+    title: siteName,
     description:
       'Live timetable, class countdowns, events, and personalized schedules for IMI PGDM students.',
 
     url: siteUrl,
 
-    siteName: 'IMI PGDM Smart Schedule',
+    siteName,
 
     locale: 'en_US',
 
@@ -119,14 +117,14 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'IMI PGDM Smart Schedule',
+        alt: siteName,
       },
     ],
   },
 
   twitter: {
     card: 'summary_large_image',
-    title: 'IMI PGDM Smart Schedule',
+    title: siteName,
     description:
       'Live timetable, countdowns, events, and personalized schedules for IMI Bhubaneswar PGDM students.',
 
@@ -155,7 +153,7 @@ export const metadata: Metadata = {
 
   appleWebApp: {
     capable: true,
-    title: 'Smart Schedule',
+    title: siteName,
     statusBarStyle: 'black-translucent',
   },
 
@@ -182,7 +180,7 @@ const themeInitScript = `(function () {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "IMI PGDM Smart Schedule",
+  name: siteName,
   applicationCategory: "EducationalApplication",
   operatingSystem: "Any",
   url: siteUrl,
@@ -196,13 +194,9 @@ const jsonLd = {
     name: "Deepak Kumar",
   },
 
-  // This is the specific block Google's "Logo" structured data feature
-  // reads from — it requires BOTH `logo` and `url` on the Organization
-  // object (a `name` alone, which is what this had before, isn't enough
-  // for Google to source an actual image from).
   publisher: {
     "@type": "Organization",
-    name: "IMI PGDM Smart Schedule",
+    name: siteName,
     url: siteUrl,
     logo: logoUrl,
   },
