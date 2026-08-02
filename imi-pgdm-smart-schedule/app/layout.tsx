@@ -45,7 +45,6 @@ export const metadata: Metadata = {
 },
 
   description:
-    'description:
 "Access your personalized IMI Bhubaneswar PGDM timetable with live class schedules, next class countdown, events, notices, and automatic Google Sheet updates. Fast, mobile-friendly, and always up to date.",',
 
   keywords: [
