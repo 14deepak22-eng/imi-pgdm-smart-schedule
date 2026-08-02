@@ -33,19 +33,20 @@ const mono = IBM_Plex_Mono({
 });
 
 const siteUrl = 'https://imi-pgdm-smart-schedule-iota.vercel.app';
-const siteName = 'IMI Smart Schedule';
+const siteName = "IMI Smart Schedule";
 const logoUrl = `${siteUrl}/icons/icon-512-v2.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 
-  title: {
-    default: siteName,
-    template: `%s | ${siteName}`,
-  },
+ title: {
+  default: "IMI Smart Schedule | PGDM Timetable - IMI Bhubaneswar",
+  template: "%s | IMI Smart Schedule",
+},
 
   description:
-    'IMI Smart Schedule helps IMI Bhubaneswar PGDM students access live class schedules, next class countdowns, events, and personalized subject timetables synced automatically.',
+    'description:
+"Access your personalized IMI Bhubaneswar PGDM timetable with live class schedules, next class countdown, events, notices, and automatic Google Sheet updates. Fast, mobile-friendly, and always up to date.",',
 
   keywords: [
     'IMI Smart Schedule',
@@ -115,9 +116,10 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: siteName,
+    title: "IMI Smart Schedule | PGDM Timetable - IMI Bhubaneswar",
     description:
-      'Live timetable, class countdowns, events, and personalized schedules for IMI PGDM students.',
+      'description:
+"Live class schedules, next class countdown, events and personalized timetable for IMI Bhubaneswar PGDM students.",
 
     url: siteUrl,
 
@@ -139,7 +141,7 @@ export const metadata: Metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: siteName,
+    title: "IMI Smart Schedule | PGDM Timetable - IMI Bhubaneswar",
     description:
       'Live timetable, countdowns, events, and personalized schedules for IMI Bhubaneswar PGDM students.',
 
@@ -168,7 +170,7 @@ export const metadata: Metadata = {
 
   appleWebApp: {
     capable: true,
-    title: siteName,
+    title: "IMI Smart Schedule | PGDM Timetable - IMI Bhubaneswar",
     statusBarStyle: 'black-translucent',
   },
 
@@ -194,7 +196,14 @@ const themeInitScript = `(function () {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
+  "@type": "EducationalApplication",
+  applicationSubCategory: "Student Timetable",
+
+offers: {
+  "@type": "Offer",
+  price: "0",
+  priceCurrency: "INR",
+},
   name: siteName,
   applicationCategory: "EducationalApplication",
   operatingSystem: "Any",
