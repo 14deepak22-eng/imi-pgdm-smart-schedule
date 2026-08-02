@@ -117,7 +117,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: "IMI Smart Schedule | PGDM Timetable - IMI Bhubaneswar",
     description:
-      'description:
 "Live class schedules, next class countdown, events and personalized timetable for IMI Bhubaneswar PGDM students.",
 
     url: siteUrl,
