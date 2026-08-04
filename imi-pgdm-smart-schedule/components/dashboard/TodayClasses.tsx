@@ -92,7 +92,7 @@ export function TodayClasses({ days, section, now, query = '' }: TodayClassesPro
                 {slot.startTime}–{slot.endTime}
               </span>
               <div>
-                <p className="font-medium">{slot.entries.map((e) => e.subjectCode).join(' / ')}</p>
+                <p className="font-medium">{slot.entries.map((e) => e.displayCode).join(' / ')}</p>
                 <p className="text-muted text-xs">
                   {sessionLabel(slot.session)}
                   {slot.entries.some((e) => e.room) &&
