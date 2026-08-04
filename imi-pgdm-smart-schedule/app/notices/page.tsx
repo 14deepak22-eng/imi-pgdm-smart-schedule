@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
@@ -38,6 +38,7 @@ export default function NoticesPage() {
     notices,
     clearNotices,
     markNoticesSeen,
+    seenNoticeIds,
     initialLoading,
     error,
     refresh,
@@ -47,6 +48,13 @@ export default function NoticesPage() {
     selectedSubjects,
     subjectLegend,
   } = useSchedule();
+
+  // Frozen the moment this page mounts — deliberately NOT kept in sync
+  // with the live `seenNoticeIds` below, so a notice that was new when
+  // you arrived keeps showing its "New" tag for this whole visit, even
+  // though it gets marked seen (for next time) within a few moments.
+  // Navigating away and back remounts the page, taking a fresh snapshot.
+  const [seenAtVisitStart] = useState(() => seenNoticeIds);
 
   const effectiveSection = showAllSections ? "A" : section;
 
@@ -146,11 +154,13 @@ export default function NoticesPage() {
               title="Class Notices"
               notices={classNotices}
               emptyTitle="No class changes"
+              seenNoticeIds={seenAtVisitStart}
             />
             <NoticeList
               title="Event Notices"
               notices={eventNotices}
               emptyTitle="No event changes"
+              seenNoticeIds={seenAtVisitStart}
             />
           </>
         )}
