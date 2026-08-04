@@ -6,8 +6,19 @@ export type TargetSection = 'A' | 'B' | 'C';
 export interface ClassEntry {
   /** Original text for this offering, e.g. "MK629 (A) (CR-5)" */
   raw: string;
-  /** Extracted subject code, e.g. "MK629(A)" */
+  /**
+   * Canonical subject code used for matching against Settings selections,
+   * grouping, counting, and search — e.g. "MK629(A)". Collapses away any
+   * extra qualifiers (like a time) that aren't part of the subject's
+   * identity, so it always matches what was picked in Settings.
+   */
   subjectCode: string;
+  /**
+   * Full code exactly as written in the sheet — the base code plus every
+   * non-room bracket qualifier (e.g. "MK630(B)(10:00)") — with only the
+   * room stripped out. This is what's shown on the dashboard.
+   */
+  displayCode: string;
   /** Extracted room/venue, e.g. "CR-5", if found */
   room?: string;
 }
