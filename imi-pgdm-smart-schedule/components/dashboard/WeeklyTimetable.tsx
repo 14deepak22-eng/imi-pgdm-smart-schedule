@@ -150,7 +150,7 @@ function SingleWeekTable({
                         }
                       >
                         <p className="leading-tight font-medium">
-                          {slot.entries.map((e) => e.subjectCode).join(' / ')}
+                          {slot.entries.map((e) => e.displayCode).join(' / ')}
                         </p>
                         {slot.entries.some((e) => e.room) && (
                           <p className="text-muted text-xs">
