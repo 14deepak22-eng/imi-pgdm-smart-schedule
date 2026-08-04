@@ -93,9 +93,9 @@ function matchCanonicalCode(identityCandidate: string, batchPrefix: string): str
 function extractCodeAndRoom(
   part: string,
   batchPrefix: string,
-): { subjectCode: string; room?: string } {
+): { subjectCode: string; displayCode: string; room?: string } {
   const baseMatch = part.match(BASE_CODE_PATTERN);
-  if (!baseMatch) return { subjectCode: part };
+  if (!baseMatch) return { subjectCode: part, displayCode: part };
 
   const identityGroups: string[] = [];
   let room: string | undefined;
@@ -115,10 +115,16 @@ function extractCodeAndRoom(
     match = rest.match(NEXT_GROUP_PATTERN);
   }
 
+  // The full code exactly as written in sheet 1 — base code plus every
+  // non-room bracket qualifier (e.g. a time like "(10:00)") — with the
+  // room stripped out. This is what's shown on the dashboard.
   const identityCandidate = baseMatch[0] + identityGroups.map((g) => `(${g})`).join('');
+  // The canonical code used for matching against Settings selections,
+  // grouping, and counting — collapses "MK630(B)(10:00)" down to
+  // "MK630(B)" so it still falls under the subject the student picked.
   const subjectCode = matchCanonicalCode(identityCandidate, batchPrefix) ?? identityCandidate;
 
-  return { subjectCode, room };
+  return { subjectCode, displayCode: identityCandidate, room };
 }
 
 /**
@@ -139,8 +145,8 @@ export function parseSessionCell(cellText: string, batchPrefix: string): ClassEn
     .map((part) => part.trim())
     .filter(Boolean)
     .map((part) => {
-      const { subjectCode, room } = extractCodeAndRoom(part, batchPrefix);
-      return { raw: part, subjectCode, room };
+      const { subjectCode, displayCode, room } = extractCodeAndRoom(part, batchPrefix);
+      return { raw: part, subjectCode, displayCode, room };
     });
 }
 
