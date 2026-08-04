@@ -122,5 +122,19 @@ export function isSubjectSelected(
   if (!selected || selected.length === 0) return true; // no preference = show all
   const resolved = resolveSubjectIdentity(subjectCode, legend);
   if (!legend[resolved.baseCode]) return true; // not a known/pickable subject — never hide it
-  return selected.includes(resolved.code);
+
+  if (selected.includes(resolved.code)) return true;
+
+  // Sheet 1 sometimes lists a subject WITHOUT its section suffix (e.g.
+  // just "MK630" instead of "MK630(B)") — typically a joint session that
+  // applies to every parallel section at once. In that case `resolved`
+  // has no section at all, so treat it as belonging to EVERY section of
+  // that subject: if the student picked any section of it in Settings,
+  // still show it, rather than hiding it just because the sheet didn't
+  // say which section it's for.
+  if (!resolved.section) {
+    return selected.some((code) => code.startsWith(`${resolved.baseCode}(`));
+  }
+
+  return false;
 }
