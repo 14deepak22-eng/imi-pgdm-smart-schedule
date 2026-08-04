@@ -1,49 +1,170 @@
-import { Bell } from 'lucide-react';
-import type { ChangeNotice, NoticeCategory } from '@/lib/schedule/diffSchedule';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { formatRelativeTime } from '@/lib/utils/date';
+"use client";
 
-const CATEGORY_TONE: Record<NoticeCategory, 'amber' | 'teal' | 'danger' | 'muted'> = {
-  'class-added': 'teal',
-  'class-removed': 'danger',
-  'class-changed': 'amber',
-  'event-added': 'teal',
-  'event-removed': 'danger',
-  'event-changed': 'amber',
-};
+import { useEffect, useMemo, useState } from "react";
+import { Trash2 } from "lucide-react";
+import { Header } from "@/components/layout/Header";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/shared/Skeleton";
+import { ErrorState } from "@/components/shared/ErrorState";
+import { NoticeList } from "@/components/events/NoticeList";
+import { useSchedule } from "@/components/providers/ScheduleProvider";
+import { isSubjectSelected } from "@/hooks/useSubjectPreferences";
+import type { ChangeNotice } from "@/lib/schedule/diffSchedule";
 
-interface NoticeListProps {
-  title: string;
-  notices: ChangeNotice[];
-  emptyTitle: string;
+/**
+ * Collapses notices that read identically (same category/message) into
+ * one entry — used ONLY for display in "show all sections" merged view,
+ * so a change that legitimately hit every section (e.g. a room swap
+ * applied to A, B, and C) shows once instead of 3 times. Genuinely
+ * different per-section changes have different message text, so they're
+ * unaffected and still show separately. This never touches what's
+ * actually stored — single-section viewers always see their section's
+ * own accurate notices, untouched by this.
+ */
+function dedupeForMergedView(notices: ChangeNotice[]): ChangeNotice[] {
+  const seen = new Set<string>();
+  const result: ChangeNotice[] = [];
+  for (const notice of notices) {
+    const key = `${notice.category}::${notice.batch}::${notice.message}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(notice);
+  }
+  return result;
 }
 
-export function NoticeList({ title, notices, emptyTitle }: NoticeListProps) {
+export default function NoticesPage() {
+  const {
+    notices,
+    clearNotices,
+    markNoticesSeen,
+    seenNoticeIds,
+    initialLoading,
+    error,
+    refresh,
+    section,
+    showAllSections,
+    selectedBatch,
+    selectedSubjects,
+    subjectLegend,
+  } = useSchedule();
+
+  // Frozen the moment this page mounts — deliberately NOT kept in sync
+  // with the live `seenNoticeIds` below, so a notice that was new when
+  // you arrived keeps showing its "New" tag for this whole visit, even
+  // though it gets marked seen (for next time) within a few moments.
+  // Navigating away and back remounts the page, taking a fresh snapshot.
+  const [seenAtVisitStart] = useState(() => seenNoticeIds);
+
+  const effectiveSection = showAllSections ? "A" : section;
+
+  const matchesSubject = (n: ChangeNotice) => {
+    const codes = n.subjectCodes ?? [];
+    // Event notices aren't tied to a subject, so they're never filtered out here.
+    return (
+      codes.length === 0 ||
+      codes.some((code) =>
+        isSubjectSelected(selectedSubjects, code, subjectLegend),
+      )
+    );
+  };
+
+  // Every notice that matches the current batch/section/subject scope —
+  // this is the FULL set (including cross-section duplicates collapsed
+  // below for display), because the nav badge dot counts these raw
+  // notices, not the deduped display list. Marking-seen has to use this
+  // full set too, or the dot never clears in merged "All Sections" view.
+  const allScopedNotices = notices.filter((n) => {
+    if (n.batch !== selectedBatch) return false;
+    if (!showAllSections && n.section !== effectiveSection) return false;
+    if (!matchesSubject(n)) return false;
+    return true;
+  });
+
+  const displayNotices = showAllSections
+    ? dedupeForMergedView(allScopedNotices)
+    : allScopedNotices;
+
+  const classNotices = useMemo(
+    () => displayNotices.filter((n) => n.category.startsWith("class-")),
+    [displayNotices],
+  );
+  const eventNotices = useMemo(
+    () => displayNotices.filter((n) => n.category.startsWith("event-")),
+    [displayNotices],
+  );
+
+  // Visiting this page counts as "having seen" everything in scope —
+  // using the full (pre-dedupe) set so the nav badge dot, which counts
+  // raw notices, actually clears. Doesn't delete anything (Clear All
+  // still does that separately).
+  const allScopedNoticeIds = allScopedNotices.map((n) => n.id).join(",");
+  useEffect(() => {
+    if (!allScopedNoticeIds) return;
+    markNoticesSeen(allScopedNoticeIds.split(","));
+    // Only re-run when the actual set of matching notice IDs changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allScopedNoticeIds]);
+
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="font-display text-lg font-bold tracking-wide uppercase">
-        {title} <span className="text-muted font-sans text-sm font-normal">({notices.length})</span>
-      </h2>
-      {notices.length === 0 ? (
-        <EmptyState
-          icon={<Bell className="h-5 w-5" />}
-          title={emptyTitle}
-          description="Updates made to the sheet will show up here, and stay visible for 1 week."
-        />
-      ) : (
-        <div className="flex flex-col gap-2">
-          {notices.map((notice) => (
-            <Card key={notice.id} className="flex items-center justify-between gap-3 p-4">
-              <p className="text-sm">{notice.message}</p>
-              <Badge tone={CATEGORY_TONE[notice.category]} className="shrink-0">
-                {formatRelativeTime(notice.detectedAt)}
-              </Badge>
-            </Card>
-          ))}
-        </div>
-      )}
-    </section>
+    <>
+      <Header />
+
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6">
+        {error && !initialLoading && (
+          <ErrorState message={error} onRetry={refresh} />
+        )}
+
+        {initialLoading ? (
+          <div className="flex flex-col gap-6">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-full" />
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h1 className="font-display text-2xl font-bold tracking-wide uppercase">
+                  Notice
+                </h1>
+                <p className="text-muted text-sm">
+                  Auto-detected changes to the sheet, kept visible for 1 week.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  clearNotices(
+                    (n) =>
+                      n.batch === selectedBatch &&
+                      (showAllSections || n.section === effectiveSection) &&
+                      matchesSubject(n),
+                  )
+                }
+                disabled={displayNotices.length === 0}
+                className="gap-1.5"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear All
+              </Button>
+            </div>
+
+            <NoticeList
+              title="Class Notices"
+              notices={classNotices}
+              emptyTitle="No class changes"
+              seenNoticeIds={seenAtVisitStart}
+            />
+            <NoticeList
+              title="Event Notices"
+              notices={eventNotices}
+              emptyTitle="No event changes"
+              seenNoticeIds={seenAtVisitStart}
+            />
+          </>
+        )}
+      </main>
+    </>
   );
 }
