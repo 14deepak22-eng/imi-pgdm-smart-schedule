@@ -8,19 +8,9 @@ interface EventListProps {
   events: ScheduleEvent[];
   emptyMessage: string;
   dimmed?: boolean;
-  /** Event IDs new as of this page visit — pinned to the top with a "New" tag. */
-  newEventIds?: Set<string>;
 }
 
-export function EventList({ title, events, emptyMessage, dimmed, newEventIds }: EventListProps) {
-  const ordered = newEventIds?.size
-    ? [...events].sort((a, b) => {
-        const aNew = newEventIds.has(a.id) ? 1 : 0;
-        const bNew = newEventIds.has(b.id) ? 1 : 0;
-        return bNew - aNew;
-      })
-    : events;
-
+export function EventList({ title, events, emptyMessage, dimmed }: EventListProps) {
   return (
     <section className="flex flex-col gap-3">
       <h2 className="font-display text-lg font-bold tracking-wide uppercase">
@@ -30,8 +20,8 @@ export function EventList({ title, events, emptyMessage, dimmed, newEventIds }: 
         <EmptyState icon={<CalendarSearch className="h-5 w-5" />} title={emptyMessage} />
       ) : (
         <div className={dimmed ? 'flex flex-col gap-2 opacity-70' : 'flex flex-col gap-2'}>
-          {ordered.map((event) => (
-            <EventCard key={event.id} event={event} isNew={newEventIds?.has(event.id)} />
+          {events.map((event) => (
+            <EventCard key={event.id} event={event} />
           ))}
         </div>
       )}
