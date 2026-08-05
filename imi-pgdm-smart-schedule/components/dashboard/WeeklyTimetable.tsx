@@ -85,6 +85,7 @@ function SingleWeekTable({
   // Skip weekend columns entirely if there's no data for them at all this week.
   const visibleDates = weekDates.filter((iso, idx) => idx < 5 || byDate.has(iso));
   const todayISO = toLocalISODate(now);
+  const visibleSessions = SESSION_ORDER.filter((s) => s !== 'LUNCH');
 
   return (
     <Card className="overflow-x-auto p-0">
@@ -114,7 +115,9 @@ function SingleWeekTable({
                   key={iso}
                   className={cn(
                     'px-1 py-2 text-center text-[10px] font-medium tracking-wide uppercase sm:px-2 sm:py-2.5 sm:text-xs',
-                    isToday ? 'text-accent' : 'text-muted',
+                    isToday
+                      ? 'text-accent border-accent rounded-t-lg border-t-2 border-r-2 border-l-2'
+                      : 'text-muted',
                   )}
                 >
                   <div className="flex flex-col items-center leading-tight sm:flex-row sm:justify-center sm:gap-1">
@@ -129,7 +132,9 @@ function SingleWeekTable({
                     </span>
                   )}
                   {isToday && (
-                    <span className="bg-accent mx-auto mt-1 block h-0.5 w-4 rounded-full" />
+                    <span className="text-accent mt-0.5 block text-[9px] normal-case">
+                      today
+                    </span>
                   )}
                 </th>
               );
@@ -137,7 +142,7 @@ function SingleWeekTable({
           </tr>
         </thead>
         <tbody>
-          {SESSION_ORDER.filter((s) => s !== 'LUNCH').map((session) => (
+          {visibleSessions.map((session, sessionIdx) => (
             <tr key={session} className="border-border border-b last:border-0">
               <td className="text-muted bg-surface sticky left-0 z-10 px-1.5 py-2 align-top text-[10px] sm:px-3 sm:py-2.5 sm:text-xs">
                 <div className="text-foreground font-medium">{sessionLabel(session)}</div>
@@ -154,12 +159,14 @@ function SingleWeekTable({
                 const day = byDate.get(iso);
                 const slot = day?.sessions.find((s) => s.session === session);
                 const isToday = iso === todayISO;
+                const isLastSession = sessionIdx === visibleSessions.length - 1;
                 return (
                   <td
                     key={iso}
                     className={cn(
                       'px-1 py-2 align-top text-center sm:px-2 sm:py-2.5',
-                      isToday && 'bg-surface-2/60',
+                      isToday && 'bg-surface-2/40 border-accent border-r-2 border-l-2',
+                      isToday && isLastSession && 'rounded-b-lg border-b-2',
                     )}
                   >
                     {day?.isHoliday ? (
