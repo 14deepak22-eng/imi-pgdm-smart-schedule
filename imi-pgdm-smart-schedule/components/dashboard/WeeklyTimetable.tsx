@@ -1,7 +1,12 @@
 import type { DaySchedule, TargetSection } from '@/types/timetable';
 import { Card } from '@/components/ui/Card';
 import { SESSION_ORDER } from '@/lib/sheet/constants';
-import { sessionLabel, formatSessionTimeRange, toLocalISODate } from '@/lib/utils/date';
+import {
+  sessionLabel,
+  formatSessionTimeRange,
+  formatTime12h,
+  toLocalISODate,
+} from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
 import { MAX_WEEKS_TO_SHOW } from '@/hooks/useWeeksToShow';
 
@@ -91,7 +96,7 @@ function SingleWeekTable({
     <Card className="overflow-x-auto p-0">
       <table className="w-full table-fixed border-collapse text-sm">
         <colgroup>
-          <col className="w-11 sm:w-16" />
+          <col className="w-11 sm:w-24" />
           {visibleDates.map((iso) => (
             <col key={iso} />
           ))}
@@ -144,14 +149,22 @@ function SingleWeekTable({
         <tbody>
           {visibleSessions.map((session, sessionIdx) => (
             <tr key={session} className="border-border border-b last:border-0">
-              <td className="text-muted bg-surface sticky left-0 z-10 px-1.5 py-2 align-top text-[10px] sm:px-3 sm:py-2.5 sm:text-xs">
-                <div className="text-foreground font-medium">{sessionLabel(session)}</div>
+              <td className="text-muted bg-surface sticky left-0 z-10 px-1.5 py-2 align-top text-[10px] whitespace-nowrap sm:px-3 sm:py-2.5 sm:text-xs">
+                <div className="text-foreground font-medium">
+                  <span className="sm:hidden">{session}</span>
+                  <span className="hidden sm:inline">{sessionLabel(session)}</span>
+                </div>
                 {sessionTimes[session] && (
-                  <div className="tabular mt-0.5 font-mono text-[8px] leading-tight sm:text-[11px]">
-                    {formatSessionTimeRange(
-                      sessionTimes[session]!.start,
-                      sessionTimes[session]!.end,
-                    )}
+                  <div className="tabular mt-0.5 font-mono text-[8px] leading-tight whitespace-nowrap sm:text-[11px]">
+                    <span className="sm:hidden">
+                      {formatTime12h(sessionTimes[session]!.start)}
+                    </span>
+                    <span className="hidden sm:inline">
+                      {formatSessionTimeRange(
+                        sessionTimes[session]!.start,
+                        sessionTimes[session]!.end,
+                      )}
+                    </span>
                   </div>
                 )}
               </td>
