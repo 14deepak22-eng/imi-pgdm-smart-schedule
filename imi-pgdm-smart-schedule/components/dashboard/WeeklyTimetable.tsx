@@ -88,11 +88,22 @@ function SingleWeekTable({
 
   return (
     <Card className="overflow-x-auto p-0">
-      <table className="w-full min-w-[640px] border-collapse text-sm">
+      <table className="w-full table-fixed border-collapse text-sm">
+        <colgroup>
+          <col className="w-11 sm:w-16" />
+          {visibleDates.map((iso) => (
+            <col key={iso} />
+          ))}
+        </colgroup>
         <thead>
           <tr className="border-border border-b">
-            <th className="text-muted w-24 px-3 py-2.5 text-left text-xs font-medium tracking-wide uppercase">
-              Session
+            <th
+              className={cn(
+                'text-muted bg-surface sticky left-0 z-10 px-1.5 py-2 text-left',
+                'text-[10px] font-medium tracking-wide uppercase sm:px-3 sm:py-2.5 sm:text-xs',
+              )}
+            >
+              Sess.
             </th>
             {visibleDates.map((iso) => {
               const day: DaySchedule | undefined = byDate.get(iso);
@@ -102,15 +113,24 @@ function SingleWeekTable({
                 <th
                   key={iso}
                   className={cn(
-                    'px-3 py-2.5 text-left text-xs font-medium tracking-wide uppercase',
+                    'px-1 py-2 text-center text-[10px] font-medium tracking-wide uppercase sm:px-2 sm:py-2.5 sm:text-xs',
                     isToday ? 'text-accent' : 'text-muted',
                   )}
                 >
-                  {date.toLocaleDateString('en-IN', { weekday: 'short' })}{' '}
-                  <span className="tabular font-mono font-normal normal-case">
-                    {date.getDate()}
-                  </span>
-                  {day?.isHoliday && <span className="text-accent-2 ml-1">·hol</span>}
+                  <div className="flex flex-col items-center leading-tight sm:flex-row sm:justify-center sm:gap-1">
+                    <span>{date.toLocaleDateString('en-IN', { weekday: 'short' })}</span>
+                    <span className="tabular font-mono font-normal normal-case">
+                      {date.getDate()}
+                    </span>
+                  </div>
+                  {day?.isHoliday && (
+                    <span className="text-accent-2 mt-0.5 block text-[9px] normal-case">
+                      hol
+                    </span>
+                  )}
+                  {isToday && (
+                    <span className="bg-accent mx-auto mt-1 block h-0.5 w-4 rounded-full" />
+                  )}
                 </th>
               );
             })}
@@ -119,10 +139,10 @@ function SingleWeekTable({
         <tbody>
           {SESSION_ORDER.filter((s) => s !== 'LUNCH').map((session) => (
             <tr key={session} className="border-border border-b last:border-0">
-              <td className="text-muted px-3 py-2.5 align-top text-xs">
+              <td className="text-muted bg-surface sticky left-0 z-10 px-1.5 py-2 align-top text-[10px] sm:px-3 sm:py-2.5 sm:text-xs">
                 <div className="text-foreground font-medium">{sessionLabel(session)}</div>
                 {sessionTimes[session] && (
-                  <div className="tabular mt-0.5 font-mono text-[11px]">
+                  <div className="tabular mt-0.5 font-mono text-[8px] leading-tight sm:text-[11px]">
                     {formatSessionTimeRange(
                       sessionTimes[session]!.start,
                       sessionTimes[session]!.end,
@@ -137,10 +157,13 @@ function SingleWeekTable({
                 return (
                   <td
                     key={iso}
-                    className={cn('px-3 py-2.5 align-top', isToday && 'bg-surface-2/60')}
+                    className={cn(
+                      'px-1 py-2 align-top text-center sm:px-2 sm:py-2.5',
+                      isToday && 'bg-surface-2/60',
+                    )}
                   >
                     {day?.isHoliday ? (
-                      <span className="text-muted text-xs">—</span>
+                      <span className="text-muted text-[10px] sm:text-xs">—</span>
                     ) : slot && slot.entries.length > 0 ? (
                       <div
                         className={
@@ -149,11 +172,11 @@ function SingleWeekTable({
                             : undefined
                         }
                       >
-                        <p className="leading-tight font-medium">
+                        <p className="text-[10px] leading-tight font-medium break-words sm:text-sm">
                           {slot.entries.map((e) => e.displayCode).join(' / ')}
                         </p>
                         {slot.entries.some((e) => e.room) && (
-                          <p className="text-muted text-xs">
+                          <p className="text-muted text-[9px] leading-tight break-words sm:text-xs">
                             {slot.entries
                               .map((e) => e.room)
                               .filter(Boolean)
@@ -162,7 +185,7 @@ function SingleWeekTable({
                         )}
                       </div>
                     ) : (
-                      <span className="text-muted text-xs">—</span>
+                      <span className="text-muted text-[10px] sm:text-xs">—</span>
                     )}
                   </td>
                 );
