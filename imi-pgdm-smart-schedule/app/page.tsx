@@ -6,7 +6,7 @@ import { NextClassCard } from "@/components/dashboard/NextClassCard";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { TodayClasses } from "@/components/dashboard/TodayClasses";
 import { WeeklyTimetable } from "@/components/dashboard/WeeklyTimetable";
-import { WeekNav } from "@/components/dashboard/WeekNav";
+import { WeekPillToggle, WeekArrowBar } from "@/components/dashboard/WeekNav";
 import { SearchBox } from "@/components/shared/SearchBox";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { ErrorState } from "@/components/shared/ErrorState";
@@ -112,18 +112,19 @@ export default function DashboardPage() {
             </section>
 
             <section className="flex flex-col gap-3 pb-8">
-              <h2 className="font-display text-lg font-bold tracking-wide uppercase">
-                Weekly Timetable
-              </h2>
-              <div className="flex justify-center">
-                <WeekNav
-                  value={weekOffset}
-                  onChange={setWeekOffset}
-                  days={filteredClasses}
-                  section={effectiveSection}
-                  now={now}
-                />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-display text-lg font-bold tracking-wide uppercase">
+                  Weekly Timetable
+                </h2>
+                <WeekPillToggle value={weekOffset} onChange={setWeekOffset} />
               </div>
+              <WeekArrowBar
+                value={weekOffset}
+                onChange={setWeekOffset}
+                days={filteredClasses}
+                section={effectiveSection}
+                now={now}
+              />
               <WeeklyTimetable
                 days={filteredClasses}
                 section={effectiveSection}
