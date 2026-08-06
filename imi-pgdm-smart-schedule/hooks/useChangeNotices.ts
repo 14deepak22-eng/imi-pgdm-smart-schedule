@@ -17,8 +17,11 @@ import {
  * changes the storage key below, so old saved notices are simply
  * abandoned/ignored on each visitor's next load — everyone starts fresh
  * automatically. No other code changes needed.
+ *
+ * Bumped to 2 because notices now carry an `eventDate` field (used to
+ * order them day-by-day) that older stored notices don't have.
  */
-const NOTICES_VERSION = 1;
+const NOTICES_VERSION = 2;
 
 const SNAPSHOT_KEY = `pgdm-schedule-snapshot-v${NOTICES_VERSION}`;
 const NOTICES_KEY = `pgdm-change-notices-v${NOTICES_VERSION}`;
@@ -55,7 +58,14 @@ function dedupeNotices(notices: ChangeNotice[]): ChangeNotice[] {
  * that read `notice.subjectCodes` never crash on stale stored data.
  */
 function migrateNotice(notice: ChangeNotice): ChangeNotice {
-  return { ...notice, subjectCodes: notice.subjectCodes ?? [] };
+  return {
+    ...notice,
+    subjectCodes: notice.subjectCodes ?? [],
+    // Old notices saved before `eventDate` existed won't have it — fall
+    // back to the detection date so sorting/display never breaks on
+    // stale stored data.
+    eventDate: notice.eventDate ?? notice.detectedAt.slice(0, 10),
+  };
 }
 
 function readNotices(): ChangeNotice[] {
