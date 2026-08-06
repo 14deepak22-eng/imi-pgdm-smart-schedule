@@ -108,6 +108,7 @@ export default function DashboardPage() {
                 section={effectiveSection}
                 now={now}
                 query={query}
+                subjectLegend={subjectLegend}
               />
             </section>
 
