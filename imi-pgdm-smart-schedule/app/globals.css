@@ -27,6 +27,11 @@
   --muted: var(--color-ink-soft);
   --danger: var(--color-danger);
   --border: rgba(243, 241, 234, 0.12);
+  /* Pure white for numbers/labels that need to read brighter than the
+     regular (slightly warm, off-white) --foreground — e.g. headline
+     stat figures. Falls back to --foreground in light mode, where a
+     literal white would have no contrast against the paper background. */
+  --strong: #ffffff;
 }
 
 .light {
@@ -40,6 +45,7 @@
   --muted: #6b7280;
   --danger: #c94a3a;
   --border: rgba(20, 22, 28, 0.1);
+  --strong: var(--foreground);
 }
 
 @theme inline {
@@ -53,6 +59,7 @@
   --color-muted: var(--muted);
   --color-danger: var(--danger);
   --color-border: var(--border);
+  --color-strong: var(--strong);
 
   --font-display: var(--font-display);
   --font-sans: var(--font-sans);
