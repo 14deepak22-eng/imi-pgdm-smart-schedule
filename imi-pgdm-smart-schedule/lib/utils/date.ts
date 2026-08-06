@@ -113,6 +113,30 @@ export function formatFullDate(date: Date): string {
   });
 }
 
+/** Returns midnight of the Monday that starts the week containing `date`. */
+export function startOfWeek(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = Sunday
+  const diff = day === 0 ? -6 : 1 - day; // week starts Monday
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/** Formats a week's Mon–Sun range, e.g. "3 – 9 Aug 2026". */
+export function formatWeekRange(start: Date, end: Date): string {
+  const sameMonth = start.getMonth() === end.getMonth();
+  const startLabel = sameMonth
+    ? start.getDate().toString()
+    : start.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  const endLabel = end.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  return `${startLabel} – ${endLabel}`;
+}
+
 /** Formats an ISO timestamp as a short relative time, e.g. "2h ago", "3d ago". */
 export function formatRelativeTime(iso: string, now: Date = new Date()): string {
   const diffMs = now.getTime() - new Date(iso).getTime();
