@@ -1,13 +1,7 @@
 import type { DaySchedule, TargetSection } from '@/types/timetable';
 import { Card } from '@/components/ui/Card';
 import { SESSION_ORDER } from '@/lib/sheet/constants';
-import {
-  sessionLabel,
-  formatSessionTimeRange,
-  formatTime12h,
-  toLocalISODate,
-  startOfWeek,
-} from '@/lib/utils/date';
+import { toLocalISODate, startOfWeek } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
 import type { WeekOffset } from '@/hooks/useWeekOffset';
 
@@ -73,7 +67,7 @@ export function WeeklyTimetable({
     <Card className="overflow-x-auto p-3 sm:p-4">
       <table className="w-full table-fixed border-separate border-spacing-x-1 border-spacing-y-1 text-sm sm:border-spacing-x-1.5 sm:border-spacing-y-1.5">
         <colgroup>
-          <col className="w-11 sm:w-24" />
+          <col className="w-9 sm:w-12" />
           {visibleDates.map((iso) => (
             <col key={iso} />
           ))}
@@ -120,21 +114,10 @@ export function WeeklyTimetable({
           {visibleSessions.map((session) => (
             <tr key={session}>
               <td className="text-muted bg-surface sticky left-0 z-10 px-1 py-1 align-top text-[10px] whitespace-nowrap sm:px-2 sm:text-xs">
-                <div className="text-foreground font-medium">
-                  <span className="sm:hidden">{session}</span>
-                  <span className="hidden sm:inline">{sessionLabel(session)}</span>
-                </div>
+                <div className="text-foreground font-medium">{session}</div>
                 {sessionTimes[session] && (
                   <div className="tabular mt-0.5 font-mono text-[8px] leading-tight whitespace-nowrap sm:text-[11px]">
-                    <span className="sm:hidden">
-                      {formatTime12h(sessionTimes[session]!.start)}
-                    </span>
-                    <span className="hidden sm:inline">
-                      {formatSessionTimeRange(
-                        sessionTimes[session]!.start,
-                        sessionTimes[session]!.end,
-                      )}
-                    </span>
+                    {sessionTimes[session]!.start}
                   </div>
                 )}
               </td>
