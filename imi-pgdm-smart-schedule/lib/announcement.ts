@@ -23,11 +23,11 @@
 export const ANNOUNCEMENT = {
   enabled: true,
   id: "sheet-year-error-26ju",
-  title: "Important Update",
+  title: "Fresh New Look!",
   message:
-    "Your selected subjects have been reset due to a recent update.👉 Please go to Settings and select your subjects again to continue viewing your schedule. Sorry for the inconvenience, and thank you for your support! ❤️",
+    "✨ We've refreshed the app with a brand-new look and improved user experience. Enjoy the update, and thank you for using IMI PGDM Smart Schedule! 🚀",
   videoUrl: null as string | null,
   // Example: live from right now until end of day tomorrow (IST).
-  startAt: "2026-08-01T00:00:00+05:30" as string | null,
-  endAt: "2026-08-02T17:59:59+05:30" as string | null,
+  startAt: "2026-08-06T00:00:00+05:30" as string | null,
+  endAt: "2026-08-07T17:59:59+05:30" as string | null,
 };
