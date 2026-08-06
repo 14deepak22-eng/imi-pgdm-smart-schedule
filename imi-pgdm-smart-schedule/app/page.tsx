@@ -112,10 +112,10 @@ export default function DashboardPage() {
             </section>
 
             <section className="flex flex-col gap-3 pb-8">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="font-display text-lg font-bold tracking-wide uppercase">
-                  Weekly Timetable
-                </h2>
+              <h2 className="font-display text-lg font-bold tracking-wide uppercase">
+                Weekly Timetable
+              </h2>
+              <div className="flex justify-center">
                 <WeekNav
                   value={weekOffset}
                   onChange={setWeekOffset}
