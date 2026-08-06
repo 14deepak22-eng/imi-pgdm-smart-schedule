@@ -65,9 +65,9 @@ export function WeeklyTimetable({
 
   return (
     <Card className="overflow-x-auto p-3 sm:p-4">
-      <table className="w-full table-fixed border-separate border-spacing-x-1 border-spacing-y-1 text-sm sm:border-spacing-x-1.5 sm:border-spacing-y-1.5">
+      <table className="w-full border-separate border-spacing-x-1 border-spacing-y-1 text-sm sm:border-spacing-x-1.5 sm:border-spacing-y-1.5">
         <colgroup>
-          <col className="w-9 sm:w-12" />
+          <col />
           {visibleDates.map((iso) => (
             <col key={iso} />
           ))}
@@ -130,7 +130,7 @@ export function WeeklyTimetable({
                   <td
                     key={iso}
                     className={cn(
-                      'rounded-lg px-1 py-1.5 align-top text-center sm:px-2 sm:py-2',
+                      'rounded-lg px-2 py-1.5 align-top text-center sm:px-3 sm:py-2',
                       hasClass ? 'bg-surface-2' : 'bg-surface-2/30',
                       isToday && 'ring-accent ring-1 ring-inset',
                     )}
@@ -145,11 +145,11 @@ export function WeeklyTimetable({
                             : undefined
                         }
                       >
-                        <p className="text-[10px] leading-tight font-medium break-words sm:text-sm">
+                        <p className="text-[11px] leading-tight font-medium whitespace-nowrap sm:text-sm">
                           {slot.entries.map((e) => e.displayCode).join(' / ')}
                         </p>
                         {slot.entries.some((e) => e.room) && (
-                          <p className="text-muted text-[9px] leading-tight break-words sm:text-xs">
+                          <p className="text-muted text-[9px] leading-tight whitespace-nowrap sm:text-xs">
                             {slot.entries
                               .map((e) => e.room)
                               .filter(Boolean)
