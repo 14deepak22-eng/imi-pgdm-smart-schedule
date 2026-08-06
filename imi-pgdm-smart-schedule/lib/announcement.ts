@@ -25,7 +25,7 @@ export const ANNOUNCEMENT = {
   id: "sheet-year-error-26ju",
   title: "Fresh New Look!",
   message:
-    "✨ We've refreshed the app with a brand-new look and improved user experience. Enjoy the update, and thank you for using IMI PGDM Smart Schedule! 🚀",
+    "✨ Refreshed the app with a brand-new look and improved user experience. Enjoy the update, and thank you for using IMI PGDM Smart Schedule! 🚀",
   videoUrl: null as string | null,
   // Example: live from right now until end of day tomorrow (IST).
   startAt: "2026-08-06T00:00:00+05:30" as string | null,
