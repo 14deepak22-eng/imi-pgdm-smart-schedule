@@ -63,7 +63,7 @@ export function WeekPillToggle({ value, onChange }: Pick<WeekNavProps, 'value' |
   );
 }
 
-/** Prev-arrow / date-range / next-arrow row — no surrounding box, arrows at the edges. */
+/** Prev-arrow / date-range / next-arrow row — arrows are circular buttons sitting close to the date block, not spread to the container edges. */
 export function WeekArrowBar({ value, onChange, days, section, now }: WeekNavProps) {
   const thisWeekStart = startOfWeek(now);
   const weekStart = new Date(thisWeekStart);
@@ -75,13 +75,13 @@ export function WeekArrowBar({ value, onChange, days, section, now }: WeekNavPro
   const isCurrentWeek = value === 0;
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex items-center justify-center gap-4">
       <button
         type="button"
         aria-label="Previous week"
         disabled={value <= 0}
         onClick={() => onChange(value - 1)}
-        className="text-muted hover:text-foreground rounded p-1.5 transition-colors disabled:pointer-events-none disabled:opacity-30"
+        className="border-border bg-surface text-foreground hover:bg-surface-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors disabled:pointer-events-none disabled:opacity-30"
       >
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
       </button>
@@ -99,7 +99,7 @@ export function WeekArrowBar({ value, onChange, days, section, now }: WeekNavPro
         aria-label="Next week"
         disabled={value >= MAX_WEEK_OFFSET}
         onClick={() => onChange(value + 1)}
-        className="text-muted hover:text-foreground rounded p-1.5 transition-colors disabled:pointer-events-none disabled:opacity-30"
+        className="border-border bg-surface text-foreground hover:bg-surface-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors disabled:pointer-events-none disabled:opacity-30"
       >
         <ChevronRight className="h-5 w-5" aria-hidden="true" />
       </button>
