@@ -71,6 +71,15 @@ export function formatCountdownDigits(ms: number): string {
   return `${pad(minutes)}:${pad(seconds)}`;
 }
 
+/** Formats a millisecond duration as "1h 24m" / "24m", rounded to the minute. */
+export function formatShortDuration(ms: number): string {
+  const totalMinutes = Math.max(0, Math.round(ms / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  return `${minutes}m`;
+}
+
 export function formatDayCountdown(ms: number): string {
   const days = Math.round(ms / (1000 * 60 * 60 * 24));
   if (days <= 0) return 'today';
