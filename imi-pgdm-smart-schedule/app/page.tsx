@@ -94,7 +94,7 @@ export default function DashboardPage() {
               onDismiss={dayComplete.dismiss}
             />
 
-            <StatsCards stats={stats} nextEvent={nextEvent} />
+            <StatsCards stats={stats} current={current} nextEvent={nextEvent} />
 
             <section className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
