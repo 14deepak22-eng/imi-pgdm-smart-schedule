@@ -45,7 +45,7 @@ export function WeekNav({ value, onChange, days, section, now }: WeekNavProps) {
     value === 0 && toLocalISODate(now) >= toLocalISODate(thisWeekStart);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col items-center gap-2">
       <div
         role="radiogroup"
         aria-label="Select week"
