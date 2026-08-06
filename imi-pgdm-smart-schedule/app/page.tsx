@@ -6,13 +6,13 @@ import { NextClassCard } from "@/components/dashboard/NextClassCard";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { TodayClasses } from "@/components/dashboard/TodayClasses";
 import { WeeklyTimetable } from "@/components/dashboard/WeeklyTimetable";
-import { WeeksSelector } from "@/components/dashboard/WeeksSelector";
+import { WeekPillToggle, WeekArrowBar } from "@/components/dashboard/WeekNav";
 import { SearchBox } from "@/components/shared/SearchBox";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { useSchedule } from "@/components/providers/ScheduleProvider";
 import { useCountdown } from "@/hooks/useCountdown";
-import { useWeeksToShow } from "@/hooks/useWeeksToShow";
+import { useWeekOffset } from "@/hooks/useWeekOffset";
 import { useDayComplete } from "@/hooks/useDayComplete";
 import { DayCompleteBanner } from "@/components/dashboard/DayCompleteBanner";
 import { computeDashboardStats } from "@/lib/schedule/deriveStats";
@@ -40,7 +40,7 @@ export default function DashboardPage() {
     selectedBatch,
   } = useSchedule();
   const [query, setQuery] = useState("");
-  const [weeksToShow, setWeeksToShow] = useWeeksToShow();
+  const [weekOffset, setWeekOffset] = useWeekOffset();
 
   const batchClasses = filterClassesByBatch(classes, selectedBatch);
   const batchEvents = filterEventsByBatch(events, selectedBatch);
@@ -116,14 +116,21 @@ export default function DashboardPage() {
                 <h2 className="font-display text-lg font-bold tracking-wide uppercase">
                   Weekly Timetable
                 </h2>
-                <WeeksSelector value={weeksToShow} onChange={setWeeksToShow} />
+                <WeekPillToggle value={weekOffset} onChange={setWeekOffset} />
               </div>
+              <WeekArrowBar
+                value={weekOffset}
+                onChange={setWeekOffset}
+                days={filteredClasses}
+                section={effectiveSection}
+                now={now}
+              />
               <WeeklyTimetable
                 days={filteredClasses}
                 section={effectiveSection}
                 now={now}
                 query={query}
-                weeksToShow={weeksToShow}
+                weekOffset={weekOffset}
               />
             </section>
           </>
