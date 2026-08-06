@@ -21,7 +21,7 @@ import {
  * Bumped to 2 because notices now carry an `eventDate` field (used to
  * order them day-by-day) that older stored notices don't have.
  */
-const NOTICES_VERSION = 2;
+const NOTICES_VERSION = 3;
 
 const SNAPSHOT_KEY = `pgdm-schedule-snapshot-v${NOTICES_VERSION}`;
 const NOTICES_KEY = `pgdm-change-notices-v${NOTICES_VERSION}`;
