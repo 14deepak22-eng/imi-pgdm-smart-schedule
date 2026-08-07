@@ -19,8 +19,16 @@ export interface ChangeNotice {
   message: string;
   /** Subject codes this notice concerns (empty for event notices). */
   subjectCodes: string[];
-  /** ISO date (e.g. "2026-08-21") of the class/event this notice is about — used to order notices day-by-day. */
-  eventDate: string;
+  /**
+   * ISO date (e.g. "2026-08-21") of the class/event this notice is
+   * about — NOT when the change was detected. Used to order notices by
+   * the day they actually affect (Day 1, Day 2, …) and, combined with
+   * `session`, to reliably tell apart two structurally-identical
+   * notices without relying on exact message-text matching.
+   */
+  date: string;
+  /** Session slot (e.g. "Session III") for class notices. Absent for event notices. */
+  session?: string;
 }
 
 export interface ScheduleSnapshot {
@@ -38,9 +46,9 @@ export interface ScheduleSnapshot {
  * separately, at the page level, without touching what's stored.
  */
 export function noticeContentKey(
-  notice: Pick<ChangeNotice, 'category' | 'batch' | 'section' | 'message'>,
+  notice: Pick<ChangeNotice, 'category' | 'batch' | 'section' | 'date' | 'session' | 'message'>,
 ): string {
-  return `${notice.category}::${notice.batch}::${notice.section}::${notice.message}`;
+  return `${notice.category}::${notice.batch}::${notice.section}::${notice.date}::${notice.session ?? ''}::${notice.message}`;
 }
 
 interface ClassSlotInfo {
@@ -112,7 +120,8 @@ export function diffSchedules(
         category: 'class-added',
         message: `New class added: ${after.desc} on ${after.dayLabel} (Session ${after.session})`,
         subjectCodes: after.subjectCodes,
-        eventDate: after.date,
+        date: after.date,
+        session: after.session,
       });
     } else if (before && !after) {
       notices.push({
@@ -123,7 +132,8 @@ export function diffSchedules(
         category: 'class-removed',
         message: `Class removed: ${before.desc} that was on ${before.dayLabel} (Session ${before.session})`,
         subjectCodes: before.subjectCodes,
-        eventDate: before.date,
+        date: before.date,
+        session: before.session,
       });
     } else if (before && after && before.desc !== after.desc) {
       notices.push({
@@ -134,7 +144,8 @@ export function diffSchedules(
         category: 'class-changed',
         message: `Class updated on ${after.dayLabel} (Session ${after.session}): ${before.desc} → ${after.desc}`,
         subjectCodes: [...new Set([...before.subjectCodes, ...after.subjectCodes])],
-        eventDate: after.date,
+        date: after.date,
+        session: after.session,
       });
     }
   }
@@ -156,7 +167,7 @@ export function diffSchedules(
         category: 'event-added',
         message: `New event: ${after.title} on ${after.dayLabel}`,
         subjectCodes: [],
-        eventDate: after.date,
+        date: after.date,
       });
     } else if (before && !after) {
       notices.push({
@@ -167,7 +178,7 @@ export function diffSchedules(
         category: 'event-removed',
         message: `Event removed: ${before.title} that was on ${before.dayLabel}`,
         subjectCodes: [],
-        eventDate: before.date,
+        date: before.date,
       });
     } else if (before && after && before.title !== after.title) {
       notices.push({
@@ -178,7 +189,7 @@ export function diffSchedules(
         category: 'event-changed',
         message: `Event updated on ${after.dayLabel}: ${before.title} → ${after.title}`,
         subjectCodes: [],
-        eventDate: after.date,
+        date: after.date,
       });
     }
   }
