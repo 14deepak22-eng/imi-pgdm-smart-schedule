@@ -7,7 +7,7 @@ import type { SubjectLegendEntry } from '@/lib/sheet/parseSubjectNames';
 import { resolveSubjectIdentity } from '@/lib/sheet/resolveSubjectIdentity';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { formatCountdownDigits, formatDaysHoursCountdown, sessionLabel } from '@/lib/utils/date';
+import { formatCountdownDigits, formatDaysHoursCountdown } from '@/lib/utils/date';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { cn } from '@/lib/utils/cn';
 
@@ -94,7 +94,7 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
       />
 
       <div className="bg-surface/85 relative p-5 backdrop-blur-sm sm:p-6">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           {isLive ? (
             <Badge tone="amber" className="gap-1.5">
               <Radio className="h-3 w-3 animate-pulse" aria-hidden /> Live now
@@ -105,7 +105,10 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
               {state.kind === 'upcoming-today' ? 'Next up today' : 'Next class'}
             </Badge>
           )}
-          <span className="text-muted text-sm">{sessionLabel(session.session)}</span>
+          <span className="text-strong flex items-center gap-1.5 text-sm font-semibold tabular-nums">
+            <Clock className="text-accent-2 h-3.5 w-3.5 shrink-0" aria-hidden />
+            {formatTimeShort(session.start)}&ndash;{formatTimeShort(session.end)}
+          </span>
           <span className="text-muted ml-auto flex items-center gap-1.5 text-xs">
             <CalendarClock className="h-3.5 w-3.5" aria-hidden />
             {new Date(session.start).toLocaleDateString('en-IN', {
@@ -116,24 +119,22 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
           </span>
         </div>
 
-        <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:mt-6">
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:mt-4">
           <div className="min-w-0">
-            <p className="text-strong font-display text-3xl leading-tight font-extrabold tracking-wide uppercase sm:text-4xl">
+            <p className="text-strong font-display text-2xl leading-tight font-extrabold tracking-wide uppercase sm:text-3xl">
               {primaryEntry?.displayCode ?? 'Class'}
             </p>
-            <div className="bg-background mt-2 inline-flex items-center gap-1 rounded-md px-2 py-1">
-              <Clock className="text-accent-2 h-3 w-3 shrink-0" aria-hidden />
-              <span className="text-strong text-xs font-bold tabular-nums whitespace-nowrap">
-                {formatTimeShort(session.start)}&ndash;{formatTimeShort(session.end)}
-              </span>
-            </div>
             {primaryEntry?.room && (
               <p className="text-muted mt-2 flex items-center gap-1.5 text-sm">
                 <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 Room {primaryEntry.room}
               </p>
             )}
-            {faculty && <p className="text-muted mt-0.5 text-sm">{faculty}</p>}
+            {faculty && (
+              <p className="text-muted mt-0.5 line-clamp-2 text-sm" title={faculty}>
+                {faculty}
+              </p>
+            )}
             {extraCount > 0 && (
               <p className="text-muted mt-1 text-xs">
                 +{extraCount} more offering{extraCount > 1 ? 's' : ''} in this slot
@@ -142,12 +143,12 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
           </div>
 
           {isDayScale ? (
-            <div className="flex flex-col items-start gap-1 sm:items-end">
-              <span className="text-muted text-xs tracking-wide uppercase">
+            <div className="flex flex-col items-end gap-0.5 pt-1">
+              <span className="text-muted text-[10px] tracking-wide uppercase">
                 {isLive ? 'Time remaining' : 'Starts in'}
               </span>
               <span
-                className="font-display text-2xl font-bold tracking-wide sm:text-3xl"
+                className="font-display text-lg leading-tight font-bold tracking-wide whitespace-nowrap sm:text-xl"
                 style={{ color: toneVar }}
               >
                 {dayCountdownText}
