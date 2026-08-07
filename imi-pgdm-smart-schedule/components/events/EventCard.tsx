@@ -1,50 +1,66 @@
-import { CalendarPlus } from 'lucide-react';
 import type { ScheduleEvent } from '@/types/events';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { CATEGORY_META } from '@/lib/sheet/categoryMeta';
-import { buildGoogleCalendarUrl } from '@/lib/utils/calendar';
+import { formatDayCountdown } from '@/lib/utils/date';
+import { cn } from '@/lib/utils/cn';
+
+type Tone = 'amber' | 'teal' | 'muted' | 'danger';
+
+const ICON_BG: Record<Tone, string> = {
+  amber: 'bg-accent/15',
+  teal: 'bg-accent-2/15',
+  muted: 'bg-surface-2',
+  danger: 'bg-danger/15',
+};
+
+const ICON_TEXT: Record<Tone, string> = {
+  amber: 'text-accent',
+  teal: 'text-accent-2',
+  muted: 'text-muted',
+  danger: 'text-danger',
+};
 
 interface EventCardProps {
   event: ScheduleEvent;
+  now: Date;
 }
 
-export function EventCard({ event }: EventCardProps) {
+export function EventCard({ event, now }: EventCardProps) {
   const meta = CATEGORY_META[event.category];
   const Icon = meta.icon;
   const date = new Date(`${event.date}T00:00:00`);
 
+  const dayMs = date.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const isToday = dayMs === 0;
+  const relative = formatDayCountdown(dayMs);
+
+  const dateLabel = date.toLocaleDateString('en-IN', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+
   return (
-    <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
-      <div className="flex items-center gap-3">
-        <div className="bg-surface-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-md">
-          <Icon className="text-muted h-4 w-4" aria-hidden />
-        </div>
-        <div>
-          <p className="font-medium">{event.title}</p>
-          <p className="text-muted text-xs">
-            {date.toLocaleDateString('en-IN', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            })}
-            {' · '}Section {event.section}
-          </p>
-        </div>
+    <div className="active:bg-surface-2 flex items-center gap-3 px-2 py-2.5 transition-colors">
+      <div
+        className={cn(
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
+          ICON_BG[meta.tone],
+        )}
+      >
+        <Icon className={cn('h-4 w-4', ICON_TEXT[meta.tone])} aria-hidden />
       </div>
-      <div className="flex items-center gap-2">
-        <Badge tone={meta.tone}>{meta.label}</Badge>
-        <a
-          href={buildGoogleCalendarUrl(event)}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Add ${event.title} to calendar`}
-          className="text-muted hover:bg-surface-2 hover:text-foreground rounded-md p-1.5 transition-colors"
-        >
-          <CalendarPlus className="h-4 w-4" />
-        </a>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium">{event.title}</p>
+        <p className="text-muted flex items-center gap-1.5 text-xs">
+          {isToday && (
+            <span className="bg-danger inline-block h-1.5 w-1.5 shrink-0 animate-pulse rounded-full" />
+          )}
+          <span className="truncate">
+            {dateLabel} · Section {event.section}
+            {!isToday && relative && <> · {relative}</>}
+          </span>
+        </p>
       </div>
-    </Card>
+    </div>
   );
 }
