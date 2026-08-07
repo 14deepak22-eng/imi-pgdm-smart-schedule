@@ -63,16 +63,19 @@ export default function EventsPage() {
               title="Today"
               events={buckets.today}
               emptyMessage="No events today for this section."
+              now={now}
             />
             <EventList
               title="Upcoming"
               events={buckets.upcoming}
               emptyMessage="No upcoming events match your filters."
+              now={now}
             />
             <EventList
               title="Previous"
               events={buckets.previous}
               emptyMessage="No previous events on record."
+              now={now}
               dimmed
             />
           </>
