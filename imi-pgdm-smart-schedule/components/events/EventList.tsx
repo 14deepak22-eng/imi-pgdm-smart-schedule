@@ -7,10 +7,11 @@ interface EventListProps {
   title: string;
   events: ScheduleEvent[];
   emptyMessage: string;
+  now: Date;
   dimmed?: boolean;
 }
 
-export function EventList({ title, events, emptyMessage, dimmed }: EventListProps) {
+export function EventList({ title, events, emptyMessage, now, dimmed }: EventListProps) {
   return (
     <section className="flex flex-col gap-3">
       <h2 className="font-display text-lg font-bold tracking-wide uppercase">
@@ -19,10 +20,12 @@ export function EventList({ title, events, emptyMessage, dimmed }: EventListProp
       {events.length === 0 ? (
         <EmptyState icon={<CalendarSearch className="h-5 w-5" />} title={emptyMessage} />
       ) : (
-        <div className={dimmed ? 'flex flex-col gap-2 opacity-70' : 'flex flex-col gap-2'}>
-          {events.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
+        <div className={dimmed ? 'opacity-70' : undefined}>
+          <div className="border-border divide-border rounded-xl border-2 divide-y-2">
+            {events.map((event) => (
+              <EventCard key={event.id} event={event} now={now} />
+            ))}
+          </div>
         </div>
       )}
     </section>
