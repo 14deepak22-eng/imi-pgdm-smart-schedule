@@ -1,7 +1,7 @@
 'use client';
 
 import { useLayoutEffect, useState } from 'react';
-import { Radio, ArrowRight, CalendarClock, CalendarX } from 'lucide-react';
+import { Radio, ArrowRight, CalendarClock, CalendarX, Clock, MapPin } from 'lucide-react';
 import type { ClassCountdownState } from '@/hooks/useCountdown';
 import type { SubjectLegendEntry } from '@/lib/sheet/parseSubjectNames';
 import { resolveSubjectIdentity } from '@/lib/sheet/resolveSubjectIdentity';
@@ -15,6 +15,11 @@ interface NextClassCardProps {
   state: ClassCountdownState;
   /** Subject code → {name, faculty}, auto-fetched from the sheet's legend tab. Used to show the faculty name below the room. */
   subjectLegend: Record<string, SubjectLegendEntry>;
+}
+
+/** Formats a Date as "6:30 PM" — no seconds, unlike formatClockTime. */
+function formatTimeShort(date: Date): string {
+  return date.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
 export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
@@ -116,7 +121,18 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
             <p className="text-strong font-display text-3xl leading-none font-extrabold tracking-wide uppercase sm:text-4xl">
               {primaryEntry?.displayCode ?? 'Class'}
             </p>
-            {primaryEntry?.room && <p className="text-muted mt-2.5 text-sm">Room {primaryEntry.room}</p>}
+            <div className="bg-background mt-2.5 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5">
+              <Clock className="text-accent-2 h-3.5 w-3.5" aria-hidden />
+              <span className="text-strong text-sm font-bold tabular-nums">
+                {formatTimeShort(session.start)} – {formatTimeShort(session.end)}
+              </span>
+            </div>
+            {primaryEntry?.room && (
+              <p className="text-muted mt-2.5 flex items-center gap-1.5 text-sm">
+                <MapPin className="h-3.5 w-3.5" aria-hidden />
+                Room {primaryEntry.room}
+              </p>
+            )}
             {faculty && <p className="text-muted mt-0.5 text-sm">{faculty}</p>}
             {extraCount > 0 && (
               <p className="text-muted mt-1 text-xs">
