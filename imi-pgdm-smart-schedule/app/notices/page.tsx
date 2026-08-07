@@ -25,7 +25,7 @@ function dedupeForMergedView(notices: ChangeNotice[]): ChangeNotice[] {
   const seen = new Set<string>();
   const result: ChangeNotice[] = [];
   for (const notice of notices) {
-    const key = `${notice.category}::${notice.batch}::${notice.message}`;
+    const key = `${notice.category}::${notice.batch}::${notice.date}::${notice.session ?? ""}::${notice.message}`;
     if (seen.has(key)) continue;
     seen.add(key);
     result.push(notice);
