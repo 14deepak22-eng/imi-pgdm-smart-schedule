@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { SearchBox } from '@/components/shared/SearchBox';
 import { Skeleton } from '@/components/shared/Skeleton';
@@ -9,26 +9,14 @@ import { EventFilters } from '@/components/events/EventFilters';
 import { EventList } from '@/components/events/EventList';
 import { useSchedule } from '@/components/providers/ScheduleProvider';
 import { useLiveClock } from '@/hooks/useLiveClock';
-import { isSubjectSelected } from '@/hooks/useSubjectPreferences';
 import { filterEvents, bucketEvents } from '@/lib/schedule/deriveEvents';
 import { mergeAllSectionEvents } from '@/lib/schedule/mergeSections';
 import { filterEventsByBatch } from '@/lib/schedule/filterBatch';
 import type { EventCategory } from '@/types/events';
 
 export default function EventsPage() {
-  const {
-    events,
-    initialLoading,
-    error,
-    refresh,
-    section,
-    showAllSections,
-    selectedBatch,
-    notices,
-    selectedSubjects,
-    subjectLegend,
-    markNoticesSeen,
-  } = useSchedule();
+  const { events, initialLoading, error, refresh, section, showAllSections, selectedBatch } =
+    useSchedule();
   const { now } = useLiveClock();
   const [query, setQuery] = useState('');
   const [categories, setCategories] = useState<EventCategory[]>([]);
@@ -42,31 +30,11 @@ export default function EventsPage() {
     return bucketEvents(filtered, now);
   }, [scopedEvents, effectiveSection, query, categories, now]);
 
-  // Visiting this page counts as "having seen" any event-change notices
-  // currently relevant to you — clears the Events nav badge dot. Class
-  // notices are untouched here; those only clear by visiting Notices.
-  const scopedEventNoticeIds = useMemo(() => {
-    return notices
-      .filter((n) => {
-        if (!n.category.startsWith('event-')) return false;
-        if (n.batch !== selectedBatch) return false;
-        if (!showAllSections && n.section !== effectiveSection) return false;
-        const codes = n.subjectCodes ?? [];
-        return (
-          codes.length === 0 ||
-          codes.some((code) => isSubjectSelected(selectedSubjects, code, subjectLegend))
-        );
-      })
-      .map((n) => n.id)
-      .join(',');
-  }, [notices, selectedBatch, showAllSections, effectiveSection, selectedSubjects, subjectLegend]);
-
-  useEffect(() => {
-    if (!scopedEventNoticeIds) return;
-    markNoticesSeen(scopedEventNoticeIds.split(','));
-    // Only re-run when the actual set of relevant event-notice IDs changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scopedEventNoticeIds]);
+  // Intentionally does NOT touch notice "seen" state. The Notices page
+  // is the only place that marks notices as seen — visiting Events (or
+  // any other page) must never clear the Notices badge or the "new" tag,
+  // so a notice you haven't actually opened Notices to look at still
+  // shows as new when you get there.
 
   return (
     <>
