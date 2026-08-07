@@ -3,7 +3,6 @@ import {
   CalendarPlus,
   ArrowLeftRight,
   Bell,
-  Trash2,
 } from 'lucide-react';
 import type { ChangeNotice, NoticeCategory } from '@/lib/schedule/diffSchedule';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -134,6 +133,7 @@ function NoticeCard({ notice, isNew }: { notice: ChangeNotice; isNew: boolean })
         'group relative flex items-center gap-3 overflow-hidden rounded-xl border-2',
         'border-[rgba(243,241,234,0.12)] bg-[#1b1f2a] px-4 py-3',
         'transition-colors duration-150 hover:border-[rgba(243,241,234,0.22)]',
+        isNew && 'border-[rgba(232,163,61,0.4)]',
       )}
     >
       {/* left accent bar */}
@@ -156,11 +156,16 @@ function NoticeCard({ notice, isNew }: { notice: ChangeNotice; isNew: boolean })
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            'mb-1 font-display text-xs font-bold uppercase leading-none tracking-[.07em]',
+            'mb-1 flex items-center gap-1.5 font-display text-xs font-bold uppercase leading-none tracking-[.07em]',
             colors.title,
           )}
         >
           {cfg.label}
+          {isNew && (
+            <span className="rounded-full bg-[rgba(232,163,61,0.18)] px-1.5 py-0.5 text-[9px] font-bold tracking-[.08em] text-[#e8a33d]">
+              NEW
+            </span>
+          )}
         </p>
         <p className="flex flex-wrap items-center gap-1 text-xs leading-snug text-[#f3f1ea]">
           <code className="rounded border border-[rgba(243,241,234,0.12)] bg-[#232837] px-1.5 py-px font-mono text-[11px] text-[#f3f1ea]">
@@ -202,14 +207,13 @@ interface NoticeListProps {
 }
 
 export function NoticeList({ title, notices, emptyTitle, seenNoticeIds }: NoticeListProps) {
-  // New notices float to the top; within each group the original order is preserved.
-  const ordered = seenNoticeIds
-    ? [...notices].sort((a, b) => {
-        const aNew = !seenNoticeIds.has(a.id) ? 1 : 0;
-        const bNew = !seenNoticeIds.has(b.id) ? 1 : 0;
-        return bNew - aNew;
-      })
-    : notices;
+  // Chronological by the day the change actually affects — Day 1 first,
+  // then Day 2, etc. — NOT by when it was detected or whether it's new
+  // (a "new" tag marks new ones in place; it no longer reorders the list,
+  // since jumping new items to the top was breaking day order).
+  // Array.prototype.sort is stable, so same-day notices keep their
+  // existing relative order (newest-detected-first) as a tiebreaker.
+  const ordered = [...notices].sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <section className="flex flex-col gap-3">
