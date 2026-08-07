@@ -116,20 +116,20 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
           </span>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-5 sm:mt-6">
-          <div className="min-w-0">
-            <p className="text-strong font-display text-3xl leading-none font-extrabold tracking-wide uppercase sm:text-4xl">
+        <div className="mt-5 flex flex-nowrap items-center justify-between gap-4 sm:mt-6">
+          <div className="min-w-0 flex-1">
+            <p className="text-strong font-display truncate text-3xl leading-none font-extrabold tracking-wide uppercase sm:text-4xl">
               {primaryEntry?.displayCode ?? 'Class'}
             </p>
-            <div className="bg-background mt-2.5 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5">
-              <Clock className="text-accent-2 h-3.5 w-3.5" aria-hidden />
-              <span className="text-strong text-sm font-bold tabular-nums">
-                {formatTimeShort(session.start)} – {formatTimeShort(session.end)}
+            <div className="bg-background mt-2 inline-flex items-center gap-1 rounded-md px-2 py-1">
+              <Clock className="text-accent-2 h-3 w-3 shrink-0" aria-hidden />
+              <span className="text-strong text-xs font-bold tabular-nums whitespace-nowrap">
+                {formatTimeShort(session.start)}&ndash;{formatTimeShort(session.end)}
               </span>
             </div>
             {primaryEntry?.room && (
-              <p className="text-muted mt-2.5 flex items-center gap-1.5 text-sm">
-                <MapPin className="h-3.5 w-3.5" aria-hidden />
+              <p className="text-muted mt-2 flex items-center gap-1.5 text-sm">
+                <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 Room {primaryEntry.room}
               </p>
             )}
