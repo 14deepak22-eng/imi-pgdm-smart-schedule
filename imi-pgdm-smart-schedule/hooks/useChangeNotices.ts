@@ -138,7 +138,18 @@ export function useChangeNotices(
       let updatedNotices = pruneNotices(existingNotices);
 
       if (prevSnapshot) {
-        const newNotices = diffSchedules(prevSnapshot, next, detectedAt);
+        const detectedNotices = diffSchedules(prevSnapshot, next, detectedAt);
+        // A "detected" notice whose content (category/batch/section/date/
+        // session/message) already matches one we have stored is the SAME
+        // real-world change being re-detected — not a new one. Drop it here
+        // so it can never displace the original's id/detectedAt below; only
+        // genuinely new content reaches the merge. Without this, a notice
+        // you already saw could silently get a fresh id + "just now"
+        // timestamp on a later re-fetch and reappear as new.
+        const existingKeys = new Set(updatedNotices.map(noticeContentKey));
+        const newNotices = detectedNotices.filter(
+          (n) => !existingKeys.has(noticeContentKey(n)),
+        );
         if (newNotices.length > 0) {
           updatedNotices = dedupeNotices(pruneNotices([...newNotices, ...updatedNotices]));
         }
