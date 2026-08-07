@@ -116,9 +116,9 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
           </span>
         </div>
 
-        <div className="mt-5 flex flex-nowrap items-center justify-between gap-4 sm:mt-6">
-          <div className="min-w-0 flex-1">
-            <p className="text-strong font-display truncate text-3xl leading-none font-extrabold tracking-wide uppercase sm:text-4xl">
+        <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:mt-6">
+          <div className="min-w-0">
+            <p className="text-strong font-display text-3xl leading-tight font-extrabold tracking-wide uppercase sm:text-4xl">
               {primaryEntry?.displayCode ?? 'Class'}
             </p>
             <div className="bg-background mt-2 inline-flex items-center gap-1 rounded-md px-2 py-1">
@@ -188,7 +188,10 @@ interface CountdownRingProps {
 
 /** A circular countdown: filled arc = elapsed proportion when live, an
  *  unfilled decorative ring when counting down to a future start (there's
- *  no meaningful "percent" to show for that case). Animates in on mount. */
+ *  no meaningful "percent" to show for that case). Animates in on mount.
+ *  Sized via the wrapper's height/width classes so it can shrink on
+ *  narrow phones — the SVG itself scales to fill whatever box it's given.
+ */
 function CountdownRing({ digits, ratio, isLive, toneVar, label }: CountdownRingProps) {
   const size = 100;
   const strokeWidth = 7;
@@ -203,7 +206,7 @@ function CountdownRing({ digits, ratio, isLive, toneVar, label }: CountdownRingP
   }, [ratio, circumference]);
 
   return (
-    <div className="relative h-[100px] w-[100px] shrink-0">
+    <div className="relative h-20 w-20 shrink-0 sm:h-[100px] sm:w-[100px]">
       {isLive && (
         <span
           className="absolute -inset-1.5 rounded-full"
@@ -214,7 +217,7 @@ function CountdownRing({ digits, ratio, isLive, toneVar, label }: CountdownRingP
           aria-hidden
         />
       )}
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="relative -rotate-90">
+      <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="relative -rotate-90">
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -240,12 +243,12 @@ function CountdownRing({ digits, ratio, isLive, toneVar, label }: CountdownRingP
         <span
           className={cn(
             'text-strong tabular-nums font-extrabold tracking-tight',
-            digits.length > 5 ? 'text-sm' : 'text-lg',
+            digits.length > 5 ? 'text-xs sm:text-sm' : 'text-base sm:text-lg',
           )}
         >
           {digits}
         </span>
-        <span className="text-muted mt-0.5 text-[9px] tracking-wide uppercase">{label}</span>
+        <span className="text-muted mt-0.5 text-[8px] tracking-wide uppercase sm:text-[9px]">{label}</span>
       </div>
     </div>
   );
