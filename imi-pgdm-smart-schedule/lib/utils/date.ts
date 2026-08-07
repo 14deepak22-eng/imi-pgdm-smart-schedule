@@ -100,8 +100,7 @@ export function formatDaysHoursCountdown(ms: number): string {
   const dayLabel = `${days} day${days === 1 ? '' : 's'}`;
   if (hours === 0) return dayLabel;
 
-  const hourLabel = `${hours} hour${hours === 1 ? '' : 's'}`;
-  return `${dayLabel} ${hourLabel}`;
+  return `${dayLabel} ${hours}Hr`;
 }
 
 export function formatClockTime(date: Date): string {
