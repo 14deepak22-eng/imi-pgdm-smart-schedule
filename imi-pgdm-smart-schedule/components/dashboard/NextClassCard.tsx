@@ -11,6 +11,10 @@ import { formatCountdownDigits, formatDaysHoursCountdown } from '@/lib/utils/dat
 import { Skeleton } from '@/components/shared/Skeleton';
 import { cn } from '@/lib/utils/cn';
 
+// Scoped to just this "starts in" ring, per explicit request — not a
+// site-wide token, so it doesn't touch the rest of the app's palette.
+const STARTS_IN_BLUE = '#2e7dfa';
+
 interface NextClassCardProps {
   state: ClassCountdownState;
   /** Subject code → {name, faculty}, auto-fetched from the sheet's legend tab. Used to show the faculty name below the room. */
@@ -23,6 +27,11 @@ function formatTimeShort(date: Date): string {
 }
 
 export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
+  // Both must be called unconditionally, before the early returns below
+  // — rules of hooks. See their use further down for what they track.
+  const [startingKeySeen, setStartingKeySeen] = useState<number | null>(null);
+  const [startingTotal, setStartingTotal] = useState(0);
+
   if (state.kind === 'not-ready') {
     return (
       <Card className="p-6 sm:p-8">
@@ -57,13 +66,32 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
     ? resolveSubjectIdentity(primaryEntry.subjectCode, subjectLegend).faculty
     : undefined;
 
-  // Ring progress only means something for a session in progress — how
-  // much of it has elapsed. There's no natural denominator for "starts
-  // in", so the ring stays unfilled (decorative outline) in that case.
+  // Ring progress: for a session in progress, it's how much of the
+  // session has elapsed (unchanged). For "starts in", there's no
+  // externally-known total wait — so the ring's own first-seen value
+  // becomes the reference: it starts empty the moment you start
+  // watching it count down, and fills in as it approaches zero.
+  //
+  // Resets whenever the upcoming session changes (a new "next class")
+  // — this is React's documented pattern for resetting state during
+  // render when a value changes, not an effect: calling setState here
+  // makes React immediately re-render with the reset value before
+  // anything commits, so there's no stale-frame flicker.
   const totalMs = session.end.getTime() - session.start.getTime();
-  const ratio = isLive && totalMs > 0 ? 1 - state.msRemaining / totalMs : 0;
+  const startingKey = session.start.getTime();
+  if (!isLive && startingKey !== startingKeySeen) {
+    setStartingKeySeen(startingKey);
+    setStartingTotal(msValue);
+  }
 
-  const toneVar = isLive ? 'var(--color-accent)' : 'var(--color-accent-2)';
+  let ratio = 0;
+  if (isLive) {
+    ratio = totalMs > 0 ? 1 - state.msRemaining / totalMs : 0;
+  } else if (startingKey === startingKeySeen && startingTotal > 0) {
+    ratio = 1 - msValue / startingTotal;
+  }
+
+  const toneVar = isLive ? 'var(--color-accent)' : STARTS_IN_BLUE;
   const toneGlowRgb = isLive ? '232,163,61' : '79,182,168';
 
   return (
