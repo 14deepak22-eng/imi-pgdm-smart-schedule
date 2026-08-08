@@ -21,7 +21,7 @@ export function EventList({ title, events, emptyMessage, now, dimmed }: EventLis
         <EmptyState icon={<CalendarSearch className="h-5 w-5" />} title={emptyMessage} />
       ) : (
         <div className={dimmed ? 'opacity-70' : undefined}>
-          <div className="border-border divide-border rounded-xl border-2 divide-y-2">
+          <div className="divide-border divide-y">
             {events.map((event) => (
               <EventCard key={event.id} event={event} now={now} />
             ))}
