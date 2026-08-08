@@ -51,6 +51,22 @@ export function noticeContentKey(
   return `${notice.category}::${notice.batch}::${notice.section}::${notice.date}::${notice.session ?? ''}::${notice.message}`;
 }
 
+/**
+ * Identifies the physical CLASS SLOT a notice is about — one specific
+ * session, on one specific day, for one specific section — ignoring the
+ * message text. Unlike noticeContentKey (which treats "A → B" and its
+ * reverse "B → A" as two unrelated notices), this key is the SAME for
+ * both, so a fresh detection about a slot can replace whatever older
+ * notice already covers that same slot instead of stacking up next to
+ * it. Only meaningful for class-* notices, which map 1:1 to a single
+ * timetable slot — event notices aren't slot-based this way.
+ */
+export function noticeSlotKey(
+  notice: Pick<ChangeNotice, 'category' | 'batch' | 'section' | 'date' | 'session'>,
+): string {
+  return `${notice.batch}::${notice.section}::${notice.date}::${notice.session ?? ''}`;
+}
+
 interface ClassSlotInfo {
   desc: string;
   date: string;
