@@ -39,6 +39,7 @@ export default function NoticesPage() {
     clearNotices,
     markNoticesSeen,
     seenNoticeIds,
+    seenNoticeIdsReady,
     initialLoading,
     error,
     refresh,
@@ -49,12 +50,28 @@ export default function NoticesPage() {
     subjectLegend,
   } = useSchedule();
 
-  // Frozen the moment this page mounts — deliberately NOT kept in sync
-  // with the live `seenNoticeIds` below, so a notice that was new when
-  // you arrived keeps showing its "New" tag for this whole visit, even
-  // though it gets marked seen (for next time) within a few moments.
-  // Navigating away and back remounts the page, taking a fresh snapshot.
-  const [seenAtVisitStart] = useState(() => seenNoticeIds);
+  // Frozen the moment seenNoticeIds actually finishes loading from
+  // storage — deliberately NOT kept in sync with the live
+  // `seenNoticeIds` afterward, so a notice that was new when you arrived
+  // keeps showing its "New" tag for this whole visit, even though it
+  // gets marked seen (for next time) within a few moments. Navigating
+  // away and back remounts the page, taking a fresh snapshot.
+  //
+  // Waits for seenNoticeIdsReady rather than snapshotting on first
+  // render: on a fresh page load, seenNoticeIds briefly starts as an
+  // empty placeholder Set before it's hydrated from storage — freezing
+  // that empty set immediately made every notice look "new" on every
+  // hard refresh, even ones seen days ago.
+  const [seenAtVisitStart, setSeenAtVisitStart] = useState<Set<string> | null>(
+    null,
+  );
+  useEffect(() => {
+    if (seenAtVisitStart === null && seenNoticeIdsReady) {
+      queueMicrotask(() => setSeenAtVisitStart(seenNoticeIds));
+    }
+    // Only take this snapshot once, the first time it's ready.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seenNoticeIdsReady]);
 
   const effectiveSection = showAllSections ? "A" : section;
 
@@ -154,13 +171,13 @@ export default function NoticesPage() {
               title="Class Notices"
               notices={classNotices}
               emptyTitle="No class changes"
-              seenNoticeIds={seenAtVisitStart}
+              seenNoticeIds={seenAtVisitStart ?? undefined}
             />
             <NoticeList
               title="Event Notices"
               notices={eventNotices}
               emptyTitle="No event changes"
-              seenNoticeIds={seenAtVisitStart}
+              seenNoticeIds={seenAtVisitStart ?? undefined}
             />
           </>
         )}
