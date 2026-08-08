@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import type { DaySchedule } from '@/types/timetable';
 import type { ScheduleEvent } from '@/types/events';
+import { toLocalISODate } from '@/lib/utils/date';
 import {
   diffSchedules,
   noticeContentKey,
+  noticeSlotKey,
   type ChangeNotice,
   type ScheduleSnapshot,
 } from '@/lib/schedule/diffSchedule';
@@ -27,7 +29,16 @@ const NOTICE_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
 
 function pruneNotices(notices: ChangeNotice[]): ChangeNotice[] {
   const cutoff = Date.now() - NOTICE_LIFETIME_MS;
-  return notices.filter((n) => new Date(n.detectedAt).getTime() >= cutoff);
+  const today = toLocalISODate(new Date());
+  return notices.filter((n) => {
+    if (new Date(n.detectedAt).getTime() < cutoff) return false;
+    // The class/event this notice is about is entirely in the past —
+    // once that day has ended, the notice stops being useful and should
+    // disappear from the list on its own, rather than lingering for the
+    // full 1-week window regardless of whether the day already happened.
+    if (n.date < today) return false;
+    return true;
+  });
 }
 
 /**
@@ -99,6 +110,15 @@ export interface UseChangeNoticesResult {
   clearNotices: (predicate?: (notice: ChangeNotice) => boolean) => void;
   /** IDs of notices the person has already looked at. */
   seenNoticeIds: Set<string>;
+  /**
+   * True once seenNoticeIds has actually been loaded from storage at
+   * least once. Starts false (seenNoticeIds starts as an empty Set
+   * purely as a placeholder) — any consumer that snapshots
+   * seenNoticeIds to decide what counts as "new" (e.g. the Notices
+   * page) must wait for this to flip true first, or it'll capture that
+   * placeholder empty set and treat every notice as new.
+   */
+  seenNoticeIdsReady: boolean;
   /** Marks the given notice IDs as seen (persisted across visits). */
   markSeen: (ids: string[]) => void;
 }
@@ -120,6 +140,7 @@ export function useChangeNotices(
 ): UseChangeNoticesResult {
   const [notices, setNotices] = useState<ChangeNotice[]>([]);
   const [seenNoticeIds, setSeenNoticeIds] = useState<Set<string>>(new Set());
+  const [seenNoticeIdsReady, setSeenNoticeIdsReady] = useState(false);
   const hasData = classes.length > 0 || events.length > 0;
 
   useEffect(() => {
@@ -151,7 +172,25 @@ export function useChangeNotices(
           (n) => !existingKeys.has(noticeContentKey(n)),
         );
         if (newNotices.length > 0) {
-          updatedNotices = dedupeNotices(pruneNotices([...newNotices, ...updatedNotices]));
+          // A fresh class-notice detection describes the SAME physical
+          // slot (day + session + section) as an older stored notice —
+          // e.g. an earlier "A → B" and this one being "B → A" — is a
+          // newer transition for that one slot, not a second, unrelated
+          // change. Drop the superseded old notice for that slot so the
+          // list only ever shows the latest known change per slot, not
+          // every intermediate edit stacked on top of each other.
+          const newSlotKeys = new Set(
+            newNotices
+              .filter((n) => n.category.startsWith('class'))
+              .map(noticeSlotKey),
+          );
+          const withoutSuperseded = updatedNotices.filter((n) => {
+            if (!n.category.startsWith('class')) return true;
+            return !newSlotKeys.has(noticeSlotKey(n));
+          });
+          updatedNotices = dedupeNotices(
+            pruneNotices([...newNotices, ...withoutSuperseded]),
+          );
         }
       }
 
@@ -170,6 +209,7 @@ export function useChangeNotices(
       const storedSeen = readSeenIds();
       const trimmedSeen = new Set([...storedSeen].filter((id) => validIds.has(id)));
       setSeenNoticeIds(trimmedSeen);
+      setSeenNoticeIdsReady(true);
       try {
         localStorage.setItem(SEEN_KEY, JSON.stringify([...trimmedSeen]));
       } catch {
@@ -205,5 +245,5 @@ export function useChangeNotices(
     });
   };
 
-  return { notices, clearNotices, seenNoticeIds, markSeen };
+  return { notices, clearNotices, seenNoticeIds, seenNoticeIdsReady, markSeen };
 }
