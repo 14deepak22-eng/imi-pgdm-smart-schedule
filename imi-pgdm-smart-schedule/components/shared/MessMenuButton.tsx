@@ -18,12 +18,12 @@ export function MessMenuButton() {
       >
         <span
           className={cn(
-            'border-accent text-accent flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all duration-150',
+            'border-accent text-white flex h-9 w-9 items-center justify-center rounded-full border-2 p-1.5 transition-all duration-150',
             'group-hover:bg-accent/10 group-hover:brightness-110',
             'group-focus-visible:ring-accent group-focus-visible:ring-offset-background group-focus-visible:ring-2 group-focus-visible:ring-offset-2',
           )}
         >
-          <MessMenuIcon className="h-4 w-4" />
+          <MessMenuIcon className="h-full w-full" />
         </span>
         <span className="text-muted text-[9px] leading-none font-bold tracking-wide uppercase">
           Mess Menu
