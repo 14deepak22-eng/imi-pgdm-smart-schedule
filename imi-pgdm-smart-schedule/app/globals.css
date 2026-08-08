@@ -80,6 +80,15 @@ body {
   color: var(--foreground);
 }
 
+/* Dark mode gets its live animated dot-wave background (AnimatedBackground
+   component, canvas, fixed behind everything) instead of this static
+   grid — turned off here so the two don't double up. Light mode keeps
+   the static grid as before; the canvas fades itself out in light mode
+   too, so this is really just belt-and-suspenders. */
+.dark body {
+  background-image: none;
+}
+
 /* Tabular figures everywhere numbers tick, so digits don't jitter in width. */
 .tabular {
   font-variant-numeric: tabular-nums;
