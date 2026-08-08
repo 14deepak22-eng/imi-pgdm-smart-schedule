@@ -9,6 +9,7 @@ import { Nav } from './Nav';
 import { SectionSwitcher } from './SectionSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { SettingsIconButton } from '@/components/shared/SettingsIconButton';
+import { MessMenuButton } from '@/components/shared/MessMenuButton';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
 
@@ -62,6 +63,8 @@ export function Header() {
             <SettingsIconButton />
             <ThemeToggle />
           </div>
+
+          <MessMenuButton />
         </div>
       </div>
     </header>
