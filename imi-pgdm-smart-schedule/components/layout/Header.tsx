@@ -9,6 +9,7 @@ import { Nav } from './Nav';
 import { SectionSwitcher } from './SectionSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { SettingsIconButton } from '@/components/shared/SettingsIconButton';
+import { MessMenuButton } from '@/components/shared/MessMenuButton';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
 
@@ -57,6 +58,8 @@ export function Header() {
           >
             <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
           </Button>
+
+          <MessMenuButton />
 
           <div className="hidden items-center gap-1 sm:flex">
             <SettingsIconButton />
