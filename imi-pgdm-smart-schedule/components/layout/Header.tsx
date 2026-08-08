@@ -64,7 +64,9 @@ export function Header() {
             <ThemeToggle />
           </div>
 
-          <MessMenuButton />
+          <div className="ml-auto sm:ml-0">
+            <MessMenuButton />
+          </div>
         </div>
       </div>
     </header>
