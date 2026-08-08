@@ -1,6 +1,7 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Coffee, UtensilsCrossed, Cookie, Moon } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { ErrorState } from '@/components/shared/ErrorState';
@@ -35,20 +36,36 @@ interface MessMenuModalProps {
 }
 
 export function MessMenuModal({ onClose }: MessMenuModalProps) {
+  // Portals need the DOM, which only exists client-side after mount —
+  // this also doubles as the guard that stops the modal from ever
+  // rendering during SSR.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    // Lock background scroll while the modal is open.
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
   const { week, initialLoading, error, refresh } = useMessMenu();
   const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
   const today = week.find((d) => d.day === todayName);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
-     className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/60 p-4 pt-20 sm:pt-28"
+      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/60 p-4 pt-16 sm:pt-24"
       role="dialog"
       aria-modal="true"
       aria-labelledby="mess-menu-title"
       onClick={onClose}
     >
       <Card
-        className="relative max-h-[85vh] w-full max-w-lg overflow-y-auto p-6"
+        className="relative max-h-[80vh] w-full max-w-lg overflow-y-auto p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -122,6 +139,7 @@ export function MessMenuModal({ onClose }: MessMenuModalProps) {
           </>
         )}
       </Card>
-    </div>
+    </div>,
+    document.body,
   );
 }
