@@ -11,6 +11,7 @@ import { ServiceWorkerRegistration } from '@/components/providers/ServiceWorkerR
 import { YearGate } from '@/components/onboarding/YearGate';
 import { AnnouncementModal } from '@/components/shared/AnnouncementModal';
 import { InstallPrompt } from '@/components/shared/InstallPrompt';
+import { AnimatedBackground } from '@/components/shared/AnimatedBackground';
 
 import './globals.css';
 
@@ -251,6 +252,7 @@ export default function RootLayout({
       </head>
 
       <body className="h-full">
+        <AnimatedBackground />
         <ScheduleProvider>
           <YearGate>
             {children}
