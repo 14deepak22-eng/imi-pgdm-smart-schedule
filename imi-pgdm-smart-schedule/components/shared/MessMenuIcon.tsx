@@ -1,4 +1,10 @@
+import type { CSSProperties } from 'react';
 import { cn } from '@/lib/utils/cn';
+
+interface GlyphProps {
+  className?: string;
+  style?: CSSProperties;
+}
 
 /**
  * Simple, solid fork glyph built from rects/polygon — deliberately avoids
@@ -6,9 +12,9 @@ import { cn } from '@/lib/utils/cn';
  * browsers. Square viewBox so CSS transform-origin percentages line up
  * cleanly when animated.
  */
-export function ForkGlyph({ className }: { className?: string }) {
+export function ForkGlyph({ className, style }: GlyphProps) {
   return (
-    <svg viewBox="0 0 100 100" fill="currentColor" className={className} aria-hidden="true">
+    <svg viewBox="0 0 100 100" fill="currentColor" className={className} style={style} aria-hidden="true">
       <rect x="37.5" y="6" width="4" height="32" rx="2" />
       <rect x="44.5" y="6" width="4" height="32" rx="2" />
       <rect x="51.5" y="6" width="4" height="32" rx="2" />
@@ -20,9 +26,9 @@ export function ForkGlyph({ className }: { className?: string }) {
 }
 
 /** Simple, solid spoon glyph — bowl ellipse + handle, same footprint as ForkGlyph. */
-export function SpoonGlyph({ className }: { className?: string }) {
+export function SpoonGlyph({ className, style }: GlyphProps) {
   return (
-    <svg viewBox="0 0 100 100" fill="currentColor" className={className} aria-hidden="true">
+    <svg viewBox="0 0 100 100" fill="currentColor" className={className} style={style} aria-hidden="true">
       <ellipse cx="50" cy="22" rx="15" ry="20" />
       <rect x="44" y="42" width="12" height="52" rx="6" />
     </svg>
