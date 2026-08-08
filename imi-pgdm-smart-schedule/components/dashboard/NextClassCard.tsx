@@ -15,6 +15,46 @@ import { cn } from '@/lib/utils/cn';
 // site-wide token, so it doesn't touch the rest of the app's palette.
 const STARTS_IN_BLUE = '#2e7dfa';
 
+// The "starts in" ring has no externally-known total wait, so we anchor
+// it to the first moment this device ever saw that session as "next" —
+// persisted to localStorage (keyed by the session's start time) so a
+// page refresh/reload reuses the same baseline instead of restarting
+// the ring from "just started watching" every time.
+const STARTING_TOTAL_KEY_PREFIX = 'pgdm-next-class-starting-total:';
+
+function getStoredStartingTotal(startingKey: number): number | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(`${STARTING_TOTAL_KEY_PREFIX}${startingKey}`);
+    if (!raw) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function setStoredStartingTotal(startingKey: number, total: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(`${STARTING_TOTAL_KEY_PREFIX}${startingKey}`, String(total));
+    // Housekeeping: drop baselines for sessions that started more than a
+    // day ago so this doesn't grow forever across the semester.
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(STARTING_TOTAL_KEY_PREFIX)) continue;
+      const keyStart = Number(key.slice(STARTING_TOTAL_KEY_PREFIX.length));
+      if (Number.isFinite(keyStart) && keyStart < cutoff) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch {
+    // Storage unavailable (private mode, quota, etc.) — the ring just
+    // falls back to resetting on refresh, same as before.
+  }
+}
+
 interface NextClassCardProps {
   state: ClassCountdownState;
   /** Subject code → {name, faculty}, auto-fetched from the sheet's legend tab. Used to show the faculty name below the room. */
@@ -80,8 +120,15 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
   const totalMs = session.end.getTime() - session.start.getTime();
   const startingKey = session.start.getTime();
   if (!isLive && startingKey !== startingKeySeen) {
+    const stored = getStoredStartingTotal(startingKey);
+    const total = stored ?? msValue;
+    if (stored === null) {
+      // First time this device has seen this session as "next" — lock
+      // this moment in as the ring's 0%-filled baseline.
+      setStoredStartingTotal(startingKey, msValue);
+    }
     setStartingKeySeen(startingKey);
-    setStartingTotal(msValue);
+    setStartingTotal(total);
   }
 
   let ratio = 0;
