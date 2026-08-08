@@ -1,13 +1,43 @@
+import { cn } from '@/lib/utils/cn';
+
 /**
- * Solid fork + spoon glyph, filled (not stroked) so it reads clearly at
- * small sizes. Renders in the current text color — set to white in
- * MessMenuButton, and to the accent gold in the modal header.
+ * Simple, solid fork glyph built from rects/polygon — deliberately avoids
+ * fragile hand-drawn bezier paths, which don't render reliably across
+ * browsers. Square viewBox so CSS transform-origin percentages line up
+ * cleanly when animated.
+ */
+export function ForkGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" fill="currentColor" className={className} aria-hidden="true">
+      <rect x="37.5" y="6" width="4" height="32" rx="2" />
+      <rect x="44.5" y="6" width="4" height="32" rx="2" />
+      <rect x="51.5" y="6" width="4" height="32" rx="2" />
+      <rect x="58.5" y="6" width="4" height="32" rx="2" />
+      <polygon points="37,40 63,40 56,52 44,52" />
+      <rect x="44" y="52" width="12" height="42" rx="6" />
+    </svg>
+  );
+}
+
+/** Simple, solid spoon glyph — bowl ellipse + handle, same footprint as ForkGlyph. */
+export function SpoonGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" fill="currentColor" className={className} aria-hidden="true">
+      <ellipse cx="50" cy="22" rx="15" ry="20" />
+      <rect x="44" y="42" width="12" height="52" rx="6" />
+    </svg>
+  );
+}
+
+/**
+ * Static combined icon (fork + spoon, fixed crossed pose) — used where a
+ * single non-animated glyph is needed, e.g. the modal header.
  */
 export function MessMenuIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 980 980" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M300 190c-14 0-24 12-22 26l16 150c3 26 20 47 43 55l-14 300c-1 22 16 40 38 40s39-18 38-40l-14-300c23-8 40-29 43-55l16-150c2-14-8-26-22-26s-24 12-22 26l-14 130h-14V196c0-14-11-24-24-24s-24 10-24 24v150h-14V196c0-14-11-24-24-24s-24 10-24 24v150h-14l-14-130c-2-14-12-26-26-26z" />
-      <path d="M660 190c-70 0-120 65-120 165 0 75 32 130 80 152l-12 273c-1 22 16 40 38 40h28c22 0 39-18 38-40l-12-273c48-22 80-77 80-152 0-100-50-165-120-165z" />
-    </svg>
+    <span className={cn('relative inline-block', className)}>
+      <ForkGlyph className="absolute inset-0" style={{ transform: 'rotate(-14deg)' }} />
+      <SpoonGlyph className="absolute inset-0" style={{ transform: 'rotate(14deg)' }} />
+    </span>
   );
 }
