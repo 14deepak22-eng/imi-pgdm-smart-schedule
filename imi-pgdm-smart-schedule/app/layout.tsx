@@ -11,6 +11,7 @@ import { ServiceWorkerRegistration } from '@/components/providers/ServiceWorkerR
 import { YearGate } from '@/components/onboarding/YearGate';
 import { AnnouncementModal } from '@/components/shared/AnnouncementModal';
 import { InstallPrompt } from '@/components/shared/InstallPrompt';
+import { AmbientBackground } from '@/components/layout/AmbientBackground';
 
 import './globals.css';
 
@@ -176,7 +177,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#12141C',
+  themeColor: '#0A0A0C',
   width: 'device-width',
   initialScale: 1,
 };
@@ -251,6 +252,7 @@ export default function RootLayout({
       </head>
 
       <body className="h-full">
+        <AmbientBackground />
         <ScheduleProvider>
           <YearGate>
             {children}
