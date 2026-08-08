@@ -127,7 +127,7 @@ export function StatsCards({ stats, current, nextEvent }: StatsCardsProps) {
               <span className="text-strong text-[22px] leading-none font-extrabold tracking-tight">
                 {stats.isHolidayToday ? '—' : stats.classesToday}
               </span>
-              <span className="text-muted text-xs">classes today</span>
+              <span className="text-strong text-xs">classes today</span>
             </div>
             <p className="text-muted mt-0.5 text-[11px]">{todaySub}</p>
           </div>
@@ -144,7 +144,7 @@ export function StatsCards({ stats, current, nextEvent }: StatsCardsProps) {
                 <span className="text-strong text-[22px] leading-none font-extrabold tracking-tight">
                   {stats.classesThisWeek}
                 </span>
-                <span className="text-muted text-xs">this week</span>
+                <span className="text-strong text-xs">this week</span>
               </div>
               <div className="flex h-4 items-end gap-[3px]" aria-hidden>
                 {stats.weekdayCounts.map((count, i) => (
@@ -254,7 +254,7 @@ function WeekBar({
 
   return (
     <div
-      className={cn('w-1 origin-bottom rounded-[1px] transition-transform duration-500 ease-out', isToday ? 'bg-accent-2' : 'bg-surface-2')}
+      className={cn('w-1 origin-bottom rounded-[1px] transition-transform duration-500 ease-out', isToday ? 'bg-accent-2' : 'bg-muted/45')}
       style={{ height: `${heightPct}%`, transform: grown ? 'scaleY(1)' : 'scaleY(0)' }}
     />
   );
