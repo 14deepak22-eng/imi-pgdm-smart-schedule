@@ -19,6 +19,8 @@ export function MessMenuButton() {
         <span
           className={cn(
             'border-accent text-white flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 p-1.5 transition-all duration-150',
+            'ring-accent ring-offset-background ring-2 ring-offset-2',
+            'shadow-[0_0_8px_1px_rgba(201,122,34,0.45)]',
             'group-hover:bg-accent/10 group-hover:brightness-110',
             'group-focus-visible:ring-accent group-focus-visible:ring-offset-background group-focus-visible:ring-2 group-focus-visible:ring-offset-2',
           )}
