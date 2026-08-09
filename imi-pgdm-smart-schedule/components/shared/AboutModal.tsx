@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, CalendarClock, GitFork } from 'lucide-react';
+import { X, CalendarClock } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { CREATOR_CREDIT } from '@/lib/sheet/constants';
 
@@ -12,8 +12,7 @@ interface AboutModalProps {
 
 const APP_NAME = 'IMI PGDM Smart Schedule';
 const APP_DESCRIPTION =
-  'Live class schedules, next-class countdowns, events, notices, and mess menu for IMI Bhubaneswar PGDM batches — auto-synced from the master Google Sheet.';
-const REPO_URL = 'https://github.com/14deepak22-eng/imi-pgdm-smart-schedule';
+  'Live class schedules, next-class countdowns, events, notices, and mess menu for IMI Bhubaneswar PGDM batches - auto-synced from the master Google Sheet.';
 
 export function AboutModal({ onClose }: AboutModalProps) {
   // Portals need the DOM, which only exists client-side after mount —
@@ -74,16 +73,6 @@ export function AboutModal({ onClose }: AboutModalProps) {
         <div className="border-border mt-5 border-t pt-4">
           <p className="text-accent/80 text-xs font-medium">{CREATOR_CREDIT}</p>
         </div>
-
-        
-          href={REPO_URL}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="border-border bg-surface hover:bg-surface-2 text-foreground mt-4 inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
-        >
-          <GitFork className="h-3.5 w-3.5" aria-hidden />
-          View source on GitHub
-        </a>
       </Card>
     </div>,
     document.body,
