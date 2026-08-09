@@ -62,13 +62,18 @@ export function SettingsMenu() {
         aria-expanded={open}
         className={cn(
           'inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors',
-          'bg-transparent text-foreground hover:bg-surface-2',
+          'bg-transparent text-white hover:bg-surface-2',
           'focus-visible:ring-accent focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
         )}
       >
         <Settings
-          className="h-4 w-4"
-          style={{ animation: 'settings-gear-spin 6s linear infinite' }}
+          className="h-6 w-6"
+          strokeWidth={1.75}
+          style={{
+            animation: 'settings-gear-spin 6s linear infinite',
+            filter:
+              'drop-shadow(0 0 6px rgba(46,125,250,1)) drop-shadow(0 0 14px rgba(46,125,250,0.75)) drop-shadow(0 0 22px rgba(46,125,250,0.4))',
+          }}
           aria-hidden
         />
       </button>
