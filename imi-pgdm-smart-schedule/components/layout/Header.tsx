@@ -8,7 +8,7 @@ import { CREATOR_CREDIT } from '@/lib/sheet/constants';
 import { Nav } from './Nav';
 import { SectionSwitcher } from './SectionSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
-import { SettingsIconButton } from '@/components/shared/SettingsIconButton';
+import { SettingsMenu } from '@/components/shared/SettingsMenu';
 import { MessMenuButton } from '@/components/shared/MessMenuButton';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
@@ -32,7 +32,7 @@ export function Header() {
             <p className="text-accent/80 mt-0.5 text-[11px] font-medium">{CREATOR_CREDIT}</p>
           </div>
           <div className="flex items-center gap-1 sm:hidden">
-            <SettingsIconButton />
+            <SettingsMenu />
             <ThemeToggle />
           </div>
         </div>
@@ -60,7 +60,7 @@ export function Header() {
           </Button>
 
           <div className="hidden items-center gap-1 sm:flex">
-            <SettingsIconButton />
+            <SettingsMenu />
             <ThemeToggle />
           </div>
 
