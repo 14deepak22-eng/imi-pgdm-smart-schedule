@@ -76,5 +76,5 @@ export function useInstallPrompt() {
   // prompt, or it's iOS (which needs manual "Add to Home Screen" instructions).
   const canShow = !alreadyInstalled && !dismissed && (Boolean(deferredPrompt) || ios);
 
-  return { canShow, ios, promptInstall, dismiss };
+  return { canShow, ios, alreadyInstalled, promptInstall, dismiss };
 }
