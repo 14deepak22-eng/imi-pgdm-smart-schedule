@@ -57,10 +57,16 @@ export function WeeklyTimetable({
   });
 
   const byDate = new Map(days.filter((d) => d.section === section).map((d) => [d.date, d]));
-
-  // Skip weekend columns entirely if there's no data for them at all this week.
-  const visibleDates = weekDates.filter((iso, idx) => idx < 5 || byDate.has(iso));
   const todayISO = toLocalISODate(now);
+
+  // Skip weekend columns entirely if there's no data for them at all this
+  // week, and drop any day that has already gone by — once a day's
+  // schedule is done, it clutters the table rather than helping.
+  const visibleDates = weekDates.filter((iso) => {
+    if (iso < todayISO) return false;
+    const idx = weekDates.indexOf(iso);
+    return idx < 5 || byDate.has(iso);
+  });
   const visibleSessions = SESSION_ORDER.filter((s) => s !== 'LUNCH');
 
   return (
