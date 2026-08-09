@@ -59,9 +59,11 @@ export function AnimatedBackground() {
         for (let x = 10 * dpr; x < w; x += spacing) {
           const wave = Math.sin(x * 0.03 + y * 0.03 - time * 3);
           const b = (wave + 1) / 2;
-          const alpha = 0.03 + b * b * 0.16;
+          const alpha = 0.08 + b * b * 0.5;
           ctx.beginPath();
-          ctx.arc(x, y, dpr, 0, Math.PI * 2);
+          ctx.shadowColor = `rgba(46,125,250,${Math.min(1, alpha * 1.4).toFixed(3)})`;
+          ctx.shadowBlur = 3.5 * dpr;
+          ctx.arc(x, y, 0.9 * dpr, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(46,125,250,${alpha.toFixed(3)})`;
           ctx.fill();
         }
