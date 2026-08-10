@@ -3,6 +3,9 @@
  *
  * HOW TO USE:
  * - Edit `title` / `message` below to whatever you want to announce.
+ *   For multiple paragraphs/sentences, use a template literal (backticks)
+ *   with a blank line between each one — each becomes its own paragraph
+ *   in the popup. See the example below.
  * - Bump `id` (e.g. "2026-07-26-fees" -> "2026-08-01-exam") any time you
  *   publish a NEW announcement and want it to show again to everyone,
  *   including people who already dismissed a previous one.
@@ -38,8 +41,8 @@ export const ANNOUNCEMENT = {
   message:
     "✨ Refreshed the app with a brand-new look and improved user experience. Enjoy the update, and thank you for using IMI PGDM Smart Schedule! 🚀",
   videoUrl: null as string | null,
-imageUrl: "/announcements/WhatsApp Image 2026-08-10 at 8.20.09 PM.jpeg" as string | null,
+  imageUrl: null as string | null,
   // Example: live from right now until end of day tomorrow (IST).
-  startAt: "2026-08-10T00:00:00+05:30" as string | null,
-  endAt: "2026-08-11T17:59:59+05:30" as string | null,
+  startAt: "2026-08-06T00:00:00+05:30" as string | null,
+  endAt: "2026-08-07T17:59:59+05:30" as string | null,
 };
