@@ -22,9 +22,10 @@ export function AnnouncementModal() {
 
   if (!ANNOUNCEMENT.enabled || hasSeen || !isWithinWindow()) return null;
 
-  const embedUrl = ANNOUNCEMENT.videoUrl
-    ? getYouTubeEmbedUrl(ANNOUNCEMENT.videoUrl)
-    : null;
+  const embedUrl =
+    !ANNOUNCEMENT.imageUrl && ANNOUNCEMENT.videoUrl
+      ? getYouTubeEmbedUrl(ANNOUNCEMENT.videoUrl)
+      : null;
 
   return (
     <div
@@ -36,7 +37,7 @@ export function AnnouncementModal() {
       <Card
         className={cn(
           "relative w-full p-6",
-          embedUrl ? "max-w-xl" : "max-w-md",
+          embedUrl || ANNOUNCEMENT.imageUrl ? "max-w-xl" : "max-w-md",
         )}
       >
         <button
@@ -57,7 +58,27 @@ export function AnnouncementModal() {
           </h2>
         </div>
 
-        <p className="text-muted mb-4 text-sm">{ANNOUNCEMENT.message}</p>
+        <div className="text-muted mb-4 space-y-2.5 text-sm">
+          {ANNOUNCEMENT.message
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0)
+            .map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+        </div>
+
+        {ANNOUNCEMENT.imageUrl && (
+          // Plain <img>, not next/image — announcement photos can come
+          // from any external host the person pastes in, and next/image
+          // would need that host added to next.config first.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={ANNOUNCEMENT.imageUrl}
+            alt=""
+            className="border-border mb-6 max-h-72 w-full rounded-lg border object-cover"
+          />
+        )}
 
         {embedUrl && (
           <div className="border-border mb-6 aspect-video overflow-hidden rounded-lg border">
