@@ -58,7 +58,15 @@ export function AnnouncementModal() {
           </h2>
         </div>
 
-        <p className="text-muted mb-4 text-sm">{ANNOUNCEMENT.message}</p>
+        <div className="text-muted mb-4 space-y-2.5 text-sm">
+          {ANNOUNCEMENT.message
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0)
+            .map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+        </div>
 
         {ANNOUNCEMENT.imageUrl && (
           // Plain <img>, not next/image — announcement photos can come
