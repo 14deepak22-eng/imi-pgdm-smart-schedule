@@ -14,6 +14,17 @@
  *   youtube.com/watch?v=... link, or a youtu.be/... short link both
  *   work) to show an embedded video in the popup. Leave it `null` for
  *   a text-only announcement.
+ * - `imageUrl` is optional — shows a photo in the popup, above the
+ *   message. Two ways to set it:
+ *     1. Drop the image file into the `public/` folder (e.g.
+ *        `public/announcements/fest-poster.jpg`) and set
+ *        imageUrl: "/announcements/fest-poster.jpg"
+ *     2. Or paste any direct https image URL (must end in the image
+ *        itself, not a webpage — e.g. a link that opens straight to a
+ *        .jpg/.png, like Google Drive's "uc?export=view&id=..." link
+ *        or an Imgur direct link).
+ *   Leave it `null` for no photo. If both imageUrl and videoUrl are
+ *   set, the photo shows and the video is skipped.
  *
  * DATE FORMAT: use ISO strings like '2026-07-26T00:00:00+05:30' (IST offset
  * shown). Easiest is to just write the date + time in IST and add the
@@ -27,6 +38,7 @@ export const ANNOUNCEMENT = {
   message:
     "✨ Refreshed the app with a brand-new look and improved user experience. Enjoy the update, and thank you for using IMI PGDM Smart Schedule! 🚀",
   videoUrl: null as string | null,
+  imageUrl: null as string | null,
   // Example: live from right now until end of day tomorrow (IST).
   startAt: "2026-08-06T00:00:00+05:30" as string | null,
   endAt: "2026-08-07T17:59:59+05:30" as string | null,
