@@ -38,8 +38,7 @@ export const ANNOUNCEMENT = {
   enabled: true,
   id: "sheet-year-error-26ju",
   title: "🔎 Now on Google! 🎉",
-  message:
-    message: `Just search "IMI PGDM Smart Schedule" on Google and you can find the website directly. 🌐
+  message:`Just search "IMI PGDM Smart Schedule" on Google and you can find the website directly. 🌐
 No need to search for the link separately anymore! 😄`,
   videoUrl: null as string | null,
   imageUrl: "/announcements/WhatsApp Image 2026-08-10 at 8.20.09 PM.jpeg" as string | null,
