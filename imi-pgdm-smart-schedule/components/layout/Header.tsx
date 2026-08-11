@@ -49,14 +49,14 @@ export function Header() {
 
           <SectionSwitcher value={section} onChange={setSection} disabled={showAllSections} />
 
-          <Button
+         <Button
             variant="outline"
-            className="h-9 w-9 p-0"
+            className="h-6 w-6 shrink-0 p-0 sm:h-9 sm:w-9"
             onClick={refresh}
             aria-label="Refresh schedule"
             disabled={loading}
           >
-            <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+            <RefreshCw className={cn('h-2.5 w-2.5 sm:h-4 sm:w-4', loading && 'animate-spin')} />
           </Button>
 
           <div className="hidden items-center gap-1 sm:flex">
