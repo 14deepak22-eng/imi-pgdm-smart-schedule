@@ -41,7 +41,7 @@ export const ANNOUNCEMENT = {
   message:`Just search "IMI PGDM Smart Schedule" on Google and you can find the website directly. 🌐
 No need to search for the link separately anymore! 😄`,
   videoUrl: null as string | null,
-  imageUrl: "/announcements/WhatsApp Image 2026-08-10 at 8.20.09 PM.jpeg" as string | null,
+  imageUrl: "/announcements/logo imi.jpeg" as string | null,
   // Example: live from right now until end of day tomorrow (IST).
   startAt: "2026-08-10T00:00:00+05:30" as string | null,
   endAt: "2026-08-11T17:59:59+05:30" as string | null,
