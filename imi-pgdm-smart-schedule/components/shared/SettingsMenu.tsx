@@ -61,13 +61,13 @@ export function SettingsMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(
-          'inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors',
+          'inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors sm:h-9 sm:w-9',
           'bg-transparent text-white hover:bg-surface-2',
           'focus-visible:ring-accent focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
         )}
       >
         <Settings
-          className="h-6 w-6"
+          className="h-4 w-4 sm:h-6 sm:w-6"
           strokeWidth={1.75}
           style={{
             animation: 'settings-gear-spin 6s linear infinite',
