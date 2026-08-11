@@ -43,6 +43,6 @@ No need to search for the link separately anymore! 😄`,
   videoUrl: null as string | null,
   imageUrl: "/announcements/logo imi.jpeg" as string | null,
   // Example: live from right now until end of day tomorrow (IST).
-  startAt: "2026-08-10T00:00:00+05:30" as string | null,
-  endAt: "2026-08-11T17:59:59+05:30" as string | null,
+  startAt: "2026-08-11T00:00:00+05:30" as string | null,
+  endAt: "2026-08-12T17:59:59+05:30" as string | null,
 };
