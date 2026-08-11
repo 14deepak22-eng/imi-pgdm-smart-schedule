@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils/cn';
 // Tone reuses the app's existing palette (see globals.css): teal for
 // "added" (positive), the shared danger red for "removed", and amber
 // (the app's "live now" accent) for "changed" — no new colors introduced.
-const CATEGORY_CONFIG: Record
+const CATEGORY_CONFIG: Record<
   NoticeCategory,
   {
     label: string;
