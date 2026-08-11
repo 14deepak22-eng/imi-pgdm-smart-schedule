@@ -1,6 +1,6 @@
 {
   "name": "IMI PGDM Smart Schedule",
-  "short_name": "Smart Schedule",
+  "short_name": "IMI Smart Schedule",
   "description": "Live class schedule, countdowns, and events for IMI PGDM batches.",
   "start_url": "/",
   "scope": "/",
