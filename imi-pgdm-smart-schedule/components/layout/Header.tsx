@@ -19,7 +19,7 @@ export function Header() {
 
   return (
     <header className="border-border bg-background/95 sticky top-0 z-10 border-b backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="font-display text-xl leading-none font-bold tracking-wide uppercase">
@@ -49,7 +49,7 @@ export function Header() {
 
           <SectionSwitcher value={section} onChange={setSection} disabled={showAllSections} />
 
-         <Button
+          <Button
             variant="outline"
             className="h-7 w-7 shrink-0 p-0 sm:h-9 sm:w-9"
             onClick={refresh}
@@ -69,6 +69,3 @@ export function Header() {
           </div>
         </div>
       </div>
-    </header>
-  );
-}
