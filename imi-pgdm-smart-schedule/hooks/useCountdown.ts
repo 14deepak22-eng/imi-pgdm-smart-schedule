@@ -13,8 +13,20 @@ import {
 
 export type ClassCountdownState =
   | { kind: 'live-now'; session: SessionInstance; msRemaining: number }
-  | { kind: 'upcoming-today'; session: SessionInstance; msUntilStart: number }
-  | { kind: 'upcoming-future'; session: SessionInstance; msUntilStart: number }
+  | {
+      kind: 'upcoming-today';
+      session: SessionInstance;
+      msUntilStart: number;
+      /** End time of the class right before this one, or null if there
+       *  was none (this is the very first session in the schedule). */
+      previousEnd: Date | null;
+    }
+  | {
+      kind: 'upcoming-future';
+      session: SessionInstance;
+      msUntilStart: number;
+      previousEnd: Date | null;
+    }
   | { kind: 'schedule-ended' }
   | { kind: 'not-ready' };
 
@@ -47,7 +59,7 @@ export function useCountdown(
   const current: ClassCountdownState = useMemo(() => {
     if (!isReady) return { kind: 'not-ready' };
 
-    const { current, next } = getScheduleStatus(sessions, now);
+    const { current, next, previous } = getScheduleStatus(sessions, now);
 
     if (current) {
       return {
@@ -63,6 +75,7 @@ export function useCountdown(
         kind: isSameDay ? 'upcoming-today' : 'upcoming-future',
         session: next,
         msUntilStart: next.start.getTime() - now.getTime(),
+        previousEnd: previous ? previous.end : null,
       };
     }
 
