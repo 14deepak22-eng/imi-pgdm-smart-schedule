@@ -18,7 +18,7 @@ export function MessMenuButton() {
       >
         <span
           className={cn(
-            'text-white flex h-7 w-7 items-center justify-center overflow-hidden rounded-full p-1 transition-all duration-150 sm:h-9 sm:w-9 sm:p-1.5',
+            'text-white flex h-7 w-7 -translate-y-0.5 items-center justify-center overflow-hidden rounded-full p-1 transition-all duration-150 sm:h-9 sm:w-9 sm:translate-y-0 sm:p-1.5',
             'shadow-[0_0_0_2px_var(--color-accent),0_0_6px_1.5px_rgba(201,122,34,0.45)] sm:shadow-[0_0_0_2.5px_var(--color-accent),0_0_8px_2px_rgba(201,122,34,0.45)]',
             'group-hover:bg-accent/10 group-hover:brightness-110',
             'group-focus-visible:ring-accent group-focus-visible:ring-offset-background group-focus-visible:ring-2 group-focus-visible:ring-offset-2',
@@ -41,9 +41,7 @@ export function MessMenuButton() {
             />
           </span>
         </span>
-        {/* Label kept for desktop where the header has room; dropped on
-            mobile since the accent-ring icon alone reads clearly as an action. */}
-        <span className="text-muted hidden text-[9px] leading-none font-bold tracking-wide uppercase sm:block">
+        <span className="text-muted text-[8px] leading-none font-bold tracking-wide uppercase sm:text-[9px]">
           Mess Menu
         </span>
       </button>
