@@ -18,7 +18,7 @@ export function SectionSwitcher({ value, onChange, disabled }: SectionSwitcherPr
       aria-disabled={disabled}
       title={disabled ? 'Disabled while "Show all sections" is on in Settings' : undefined}
       className={cn(
-        'border-border bg-surface tabular inline-flex rounded-md border p-0.5',
+        'border-border bg-surface tabular inline-flex shrink-0 rounded-md border p-0.5',
         disabled && 'opacity-40',
       )}
     >
@@ -30,7 +30,7 @@ export function SectionSwitcher({ value, onChange, disabled }: SectionSwitcherPr
           onClick={() => !disabled && onChange(section)}
           disabled={disabled}
           className={cn(
-            'rounded-[5px] px-3 py-1.5 text-sm font-medium transition-colors',
+            'rounded-[5px] px-2 py-1 text-xs font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-sm',
             disabled && 'cursor-not-allowed',
             value === section && !disabled
               ? 'bg-accent text-background'
