@@ -20,7 +20,7 @@ export function Header() {
   return (
     <header className="border-border bg-background/95 sticky top-0 z-10 border-b backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <p className="font-display text-xl leading-none font-bold tracking-wide uppercase">
               IMI PGDM Smart Schedule
@@ -37,7 +37,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Nav />
 
           <div className="tabular hidden text-right font-mono sm:block">
