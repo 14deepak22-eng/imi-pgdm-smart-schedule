@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils/cn';
 // Tone reuses the app's existing palette (see globals.css): teal for
 // "added" (positive), the shared danger red for "removed", and amber
 // (the app's "live now" accent) for "changed" — no new colors introduced.
-const CATEGORY_CONFIG: Record<
+const CATEGORY_CONFIG: Record
   NoticeCategory,
   {
     label: string;
@@ -161,13 +161,24 @@ interface NoticeListProps {
 }
 
 export function NoticeList({ title, notices, emptyTitle, seenNoticeIds }: NoticeListProps) {
-  // Chronological by the day the change actually affects — Day 1 first,
-  // then Day 2, etc. — NOT by when it was detected or whether it's new
-  // (a "new" tag marks new ones in place; it no longer reorders the list,
-  // since jumping new items to the top was breaking day order).
-  // Array.prototype.sort is stable, so same-day notices keep their
-  // existing relative order (newest-detected-first) as a tiebreaker.
-  const ordered = [...notices].sort((a, b) => a.date.localeCompare(b.date));
+  // Unseen (new) notices are grouped at the top, seen ones below —
+  // and each group is sorted date-wise within itself (Day 1 first,
+  // then Day 2, etc). This is what makes a just-detected change jump
+  // to the top: as soon as it's marked seen (on your next visit to
+  // this page), it drops out of the "new" group and takes its normal
+  // date-wise place among the rest.
+  //
+  // seenNoticeIds here is the frozen "seen at visit start" snapshot
+  // from the page, so this order stays stable for the whole visit —
+  // it won't reshuffle under you mid-scroll just because markSeen ran
+  // in the background a moment after you opened the page.
+  const isUnseen = (n: ChangeNotice) => (seenNoticeIds ? !seenNoticeIds.has(n.id) : false);
+  const ordered = [...notices].sort((a, b) => {
+    const aUnseen = isUnseen(a);
+    const bUnseen = isUnseen(b);
+    if (aUnseen !== bUnseen) return aUnseen ? -1 : 1;
+    return a.date.localeCompare(b.date);
+  });
 
   return (
     <section className="flex flex-col gap-3">
