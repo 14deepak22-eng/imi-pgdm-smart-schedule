@@ -15,44 +15,12 @@ import { cn } from '@/lib/utils/cn';
 // site-wide token, so it doesn't touch the rest of the app's palette.
 const STARTS_IN_BLUE = '#2e7dfa';
 
-// The "starts in" ring has no externally-known total wait, so we anchor
-// it to the first moment this device ever saw that session as "next" —
-// persisted to localStorage (keyed by the session's start time) so a
-// page refresh/reload reuses the same baseline instead of restarting
-// the ring from "just started watching" every time.
-const STARTING_TOTAL_KEY_PREFIX = 'pgdm-next-class-starting-total:';
-
-function getStoredStartingTotal(startingKey: number): number | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(`${STARTING_TOTAL_KEY_PREFIX}${startingKey}`);
-    if (!raw) return null;
-    const parsed = Number(raw);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function setStoredStartingTotal(startingKey: number, total: number): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(`${STARTING_TOTAL_KEY_PREFIX}${startingKey}`, String(total));
-    // Housekeeping: drop baselines for sessions that started more than a
-    // day ago so this doesn't grow forever across the semester.
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-    for (let i = localStorage.length - 1; i >= 0; i -= 1) {
-      const key = localStorage.key(i);
-      if (!key || !key.startsWith(STARTING_TOTAL_KEY_PREFIX)) continue;
-      const keyStart = Number(key.slice(STARTING_TOTAL_KEY_PREFIX.length));
-      if (Number.isFinite(keyStart) && keyStart < cutoff) {
-        localStorage.removeItem(key);
-      }
-    }
-  } catch {
-    // Storage unavailable (private mode, quota, etc.) — the ring just
-    // falls back to resetting on refresh, same as before.
-  }
+/** Midnight of the given date's day — used as the fallback anchor when
+ *  there's no previous class (e.g. the very first session of the day). */
+function startOfDay(d: Date): Date {
+  const copy = new Date(d);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
 }
 
 interface NextClassCardProps {
@@ -67,11 +35,6 @@ function formatTimeShort(date: Date): string {
 }
 
 export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
-  // Both must be called unconditionally, before the early returns below
-  // — rules of hooks. See their use further down for what they track.
-  const [startingKeySeen, setStartingKeySeen] = useState<number | null>(null);
-  const [startingTotal, setStartingTotal] = useState(0);
-
   if (state.kind === 'not-ready') {
     return (
       <Card className="p-6 sm:p-8">
@@ -107,35 +70,27 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
     : undefined;
 
   // Ring progress: for a session in progress, it's how much of the
-  // session has elapsed (unchanged). For "starts in", there's no
-  // externally-known total wait — so the ring's own first-seen value
-  // becomes the reference: it starts empty the moment you start
-  // watching it count down, and fills in as it approaches zero.
+  // session has elapsed (unchanged).
   //
-  // Resets whenever the upcoming session changes (a new "next class")
-  // — this is React's documented pattern for resetting state during
-  // render when a value changes, not an effect: calling setState here
-  // makes React immediately re-render with the reset value before
-  // anything commits, so there's no stale-frame flicker.
+  // For "starts in", the total wait is anchored to a real, fixed point
+  // on the schedule — the moment the previous class actually ended —
+  // not to whenever this device happened to load the page. That anchor
+  // is computed fresh every render from the schedule data (via
+  // `previousEnd`, passed down from useCountdown), so the ring shows the
+  // exact same fill % on every device at any given moment, and starts
+  // moving the instant the prior class's period ends, not whenever
+  // someone next opens the site. If there's no previous class (this is
+  // the very first session of the day), start-of-day is used instead so
+  // the ring still has a sensible reference point.
   const totalMs = session.end.getTime() - session.start.getTime();
-  const startingKey = session.start.getTime();
-  if (!isLive && startingKey !== startingKeySeen) {
-    const stored = getStoredStartingTotal(startingKey);
-    const total = stored ?? msValue;
-    if (stored === null) {
-      // First time this device has seen this session as "next" — lock
-      // this moment in as the ring's 0%-filled baseline.
-      setStoredStartingTotal(startingKey, msValue);
-    }
-    setStartingKeySeen(startingKey);
-    setStartingTotal(total);
-  }
 
   let ratio = 0;
   if (isLive) {
     ratio = totalMs > 0 ? 1 - state.msRemaining / totalMs : 0;
-  } else if (startingKey === startingKeySeen && startingTotal > 0) {
-    ratio = 1 - msValue / startingTotal;
+  } else {
+    const anchor = state.previousEnd ?? startOfDay(session.start);
+    const startingTotal = session.start.getTime() - anchor.getTime();
+    ratio = startingTotal > 0 ? 1 - msValue / startingTotal : 0;
   }
 
   const toneVar = isLive ? 'var(--color-accent)' : STARTS_IN_BLUE;
