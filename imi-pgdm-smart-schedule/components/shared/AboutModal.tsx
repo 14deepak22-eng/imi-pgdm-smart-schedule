@@ -72,6 +72,14 @@ export function AboutModal({ onClose }: AboutModalProps) {
 
         <div className="border-border mt-5 border-t pt-4">
           <p className="text-accent/80 text-xs font-medium">{CREATOR_CREDIT}</p>
+          <a
+            href="https://www.linkedin.com/in/deepak-kumar-dk14"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted hover:text-accent mt-1 inline-block text-xs underline underline-offset-2"
+          >
+            Connect on LinkedIn
+          </a>
         </div>
       </Card>
     </div>,
