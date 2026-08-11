@@ -12,6 +12,7 @@ import { YearGate } from '@/components/onboarding/YearGate';
 import { AnnouncementModal } from '@/components/shared/AnnouncementModal';
 import { InstallPrompt } from '@/components/shared/InstallPrompt';
 import { AnimatedBackground } from '@/components/shared/AnimatedBackground';
+import { SeoFooter } from '@/components/layout/SeoFooter';
 
 import './globals.css';
 
@@ -225,6 +226,29 @@ offers: {
   },
 };
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is the IMI Schedule app?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "IMI Smart Schedule is a live timetable app for IMI Bhubaneswar PGDM students, showing today's classes, a next-class countdown, the weekly timetable, events, and notices, updated automatically from the batch's schedule sheet.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How do I check my IMI Bhubaneswar class timetable?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Open IMI Smart Schedule, pick your section and batch, and the app shows today's classes, the next class countdown, and the full weekly timetable, kept in sync with the official schedule.",
+      },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -249,6 +273,13 @@ export default function RootLayout({
             __html: JSON.stringify(jsonLd),
           }}
         />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqJsonLd),
+          }}
+        />
       </head>
 
       <body className="h-full">
@@ -260,6 +291,8 @@ export default function RootLayout({
             <InstallPrompt />
           </YearGate>
         </ScheduleProvider>
+
+        <SeoFooter />
 
         <ServiceWorkerRegistration />
         <Analytics />
