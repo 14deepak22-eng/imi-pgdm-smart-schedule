@@ -1,5 +1,7 @@
 # IMI PGDM Smart Schedule
 
+**Live app: https://imi-pgdm-smart-schedule-iota.vercel.app**
+
 A live, auto-refreshing dashboard for IMI PGDM class schedules and events,
 sourced directly from a Google Sheet. Supports multiple concurrently-active
 batches (e.g. an outgoing 2nd-year batch and an incoming 1st-year batch),
