@@ -96,7 +96,7 @@ export default function DashboardPage() {
 
             <StatsCards stats={stats} current={current} nextEvent={nextEvent} />
 
-            <section className="flex flex-col gap-3">
+            <section className="-mt-3 flex flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="font-display text-lg font-bold tracking-wide uppercase">
                   Today&apos;s Classes
@@ -112,7 +112,7 @@ export default function DashboardPage() {
               />
             </section>
 
-            <section className="flex flex-col gap-3 pb-8">
+            <section className="flex flex-col gap-2 pb-8">
               <div className="flex flex-nowrap items-center justify-between gap-2 sm:gap-3">
                 <h2 className="font-display text-base font-bold tracking-wide uppercase sm:text-lg">
                   Weekly Timetable
