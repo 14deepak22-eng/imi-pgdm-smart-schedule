@@ -35,14 +35,14 @@ export function WeekPillToggle({ value, onChange }: Pick<WeekNavProps, 'value' |
     <div
       role="radiogroup"
       aria-label="Select week"
-      className="border-border bg-surface inline-flex w-fit rounded-md border p-0.5"
+      className="border-border bg-surface inline-flex w-fit rounded-full border p-0.5"
     >
       <button
         role="radio"
         aria-checked={value === 0}
         onClick={() => onChange(0)}
         className={cn(
-          'rounded-[5px] px-3 py-1.5 text-sm font-medium transition-colors',
+          'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
           value === 0 ? 'bg-accent text-background' : 'text-muted hover:text-foreground',
         )}
       >
@@ -53,7 +53,7 @@ export function WeekPillToggle({ value, onChange }: Pick<WeekNavProps, 'value' |
         aria-checked={value === 1}
         onClick={() => onChange(1)}
         className={cn(
-          'rounded-[5px] px-3 py-1.5 text-sm font-medium transition-colors',
+          'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
           value === 1 ? 'bg-accent text-background' : 'text-muted hover:text-foreground',
         )}
       >
