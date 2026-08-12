@@ -9,9 +9,21 @@ interface EventListProps {
   emptyMessage: string;
   now: Date;
   dimmed?: boolean;
+  hideWhenEmpty?: boolean;
 }
 
-export function EventList({ title, events, emptyMessage, now, dimmed }: EventListProps) {
+export function EventList({
+  title,
+  events,
+  emptyMessage,
+  now,
+  dimmed,
+  hideWhenEmpty,
+}: EventListProps) {
+  if (hideWhenEmpty && events.length === 0) {
+    return null;
+  }
+
   return (
     <section className="flex flex-col gap-3">
       <h2 className="font-display text-lg font-bold tracking-wide uppercase">
