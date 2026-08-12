@@ -7,7 +7,6 @@ import { StatsCards } from "@/components/dashboard/StatsCards";
 import { TodayClasses } from "@/components/dashboard/TodayClasses";
 import { WeeklyTimetable } from "@/components/dashboard/WeeklyTimetable";
 import { WeekPillToggle, WeekArrowBar } from "@/components/dashboard/WeekNav";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { useSchedule } from "@/components/providers/ScheduleProvider";
@@ -97,12 +96,9 @@ export default function DashboardPage() {
             <StatsCards stats={stats} current={current} nextEvent={nextEvent} />
 
             <section className="-mt-3 flex flex-col gap-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="font-display text-lg font-bold tracking-wide uppercase">
-                  Today&apos;s Classes
-                </h2>
-                <SearchBox value={query} onChange={setQuery} />
-              </div>
+              <h2 className="font-display text-lg font-bold tracking-wide uppercase">
+                Today&apos;s Classes
+              </h2>
               <TodayClasses
                 days={filteredClasses}
                 section={effectiveSection}
