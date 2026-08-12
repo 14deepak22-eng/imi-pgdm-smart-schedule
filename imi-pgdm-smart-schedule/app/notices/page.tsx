@@ -140,45 +140,47 @@ export default function NoticesPage() {
           </div>
         ) : (
           <>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h1 className="font-display text-2xl font-bold tracking-wide uppercase">
-                  Notice
-                </h1>
+            <div className="flex flex-col gap-1">
+              <h1 className="font-display text-2xl font-bold tracking-wide uppercase">
+                Notice
+              </h1>
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-muted text-sm">
                   Auto-detected changes to the sheet, kept visible for 1 week.
                 </p>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    clearNotices(
+                      (n) =>
+                        n.batch === selectedBatch &&
+                        (showAllSections || n.section === effectiveSection) &&
+                        matchesSubject(n),
+                    )
+                  }
+                  disabled={displayNotices.length === 0}
+                  className="gap-1 px-2 py-1 text-xs shadow-[2px_2px_0_0_var(--color-border)]"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Clear All
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                onClick={() =>
-                  clearNotices(
-                    (n) =>
-                      n.batch === selectedBatch &&
-                      (showAllSections || n.section === effectiveSection) &&
-                      matchesSubject(n),
-                  )
-                }
-                disabled={displayNotices.length === 0}
-                className="gap-1.5"
-              >
-                <Trash2 className="h-4 w-4" />
-                Clear All
-              </Button>
             </div>
 
-            <NoticeList
-              title="Class Notices"
-              notices={classNotices}
-              emptyTitle="No class changes"
-              seenNoticeIds={seenAtVisitStart ?? undefined}
-            />
-            <NoticeList
-              title="Event Notices"
-              notices={eventNotices}
-              emptyTitle="No event changes"
-              seenNoticeIds={seenAtVisitStart ?? undefined}
-            />
+            <div className="-mt-3 flex flex-col gap-6">
+              <NoticeList
+                title="Class Notices"
+                notices={classNotices}
+                emptyTitle="No class changes"
+                seenNoticeIds={seenAtVisitStart ?? undefined}
+              />
+              <NoticeList
+                title="Event Notices"
+                notices={eventNotices}
+                emptyTitle="No event changes"
+                seenNoticeIds={seenAtVisitStart ?? undefined}
+              />
+            </div>
           </>
         )}
       </main>
