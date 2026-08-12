@@ -51,10 +51,10 @@ export default function EventsPage() {
           </div>
         ) : (
           <>
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h1 className="font-display text-2xl font-bold tracking-wide uppercase">Events</h1>
-                <SearchBox value={query} onChange={setQuery} placeholder="Search events…" />
+                <SearchBox value={query} onChange={setQuery} placeholder="Search events…" size="sm" />
               </div>
               <EventFilters selected={categories} onChange={setCategories} />
             </div>
@@ -64,6 +64,7 @@ export default function EventsPage() {
               events={buckets.today}
               emptyMessage="No events today for this section."
               now={now}
+              hideWhenEmpty
             />
             <EventList
               title="Upcoming"
