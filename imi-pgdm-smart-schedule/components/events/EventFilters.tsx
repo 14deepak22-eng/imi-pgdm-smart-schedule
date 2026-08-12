@@ -17,7 +17,7 @@ export function EventFilters({ selected, onChange }: EventFiltersProps) {
   };
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by event type">
+    <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by event type">
       {ALL_CATEGORIES.map((category) => {
         const meta = CATEGORY_META[category];
         const active = selected.includes(category);
@@ -27,7 +27,7 @@ export function EventFilters({ selected, onChange }: EventFiltersProps) {
             onClick={() => toggle(category)}
             aria-pressed={active}
             className={cn(
-              'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+              'rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors',
               active
                 ? 'border-accent bg-accent/15 text-accent'
                 : 'border-border text-muted hover:text-foreground',
@@ -40,7 +40,7 @@ export function EventFilters({ selected, onChange }: EventFiltersProps) {
       {selected.length > 0 && (
         <button
           onClick={() => onChange([])}
-          className="text-muted hover:text-foreground rounded-full px-3 py-1 text-xs font-medium underline-offset-2 hover:underline"
+          className="text-muted hover:text-foreground rounded-full px-2.5 py-0.5 text-[11px] font-medium underline-offset-2 hover:underline"
         >
           Clear
         </button>
