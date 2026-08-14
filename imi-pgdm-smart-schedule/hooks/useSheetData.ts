@@ -58,9 +58,7 @@ export function useSheetData(
 ): UseSheetDataResult {
   const [classes, setClasses] = useState<DaySchedule[]>([]);
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
-  const [subjectLegend, setSubjectLegend] = useState
-    Record<string, SubjectLegendEntry>
-  >({});
+  const [subjectLegend, setSubjectLegend] = useState<Record<string, SubjectLegendEntry>>({});
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
