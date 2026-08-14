@@ -63,8 +63,12 @@ interface ScheduleContextValue {
 const ScheduleContext = createContext<ScheduleContextValue | null>(null);
 
 export function ScheduleProvider({ children }: { children: ReactNode }) {
-  const [sheetId, setSheetId] = useSheetSource();
-  const sheet = useSheetData(sheetId);
+  const [sheetId, setSheetId, sheetIdLoaded] = useSheetSource();
+  // Wait until we actually know the saved sheet override (from
+  // localStorage) before fetching — otherwise the first fetch races ahead
+  // with the default sheet and the corrected fetch can get silently
+  // dropped. See useSheetData's `ready` param.
+  const sheet = useSheetData(sheetId, sheetIdLoaded);
   const [section, setSection] = useSelectedSection();
   const [showAllSections, setShowAllSections] = useShowAllSections();
   const [selectedBatch, setSelectedBatch] = useSelectedBatch();
