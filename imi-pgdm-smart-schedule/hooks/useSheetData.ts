@@ -44,13 +44,21 @@ const REFRESH_INTERVAL_MS = Number(
 /**
  * @param sheetIdOverride When set, fetches from this Sheet ID instead of the
  * server's default env-configured sheet (see Settings > Sheet source).
+ * @param ready Pass `false` while the caller is still figuring out the real
+ * sheetIdOverride (e.g. reading it from localStorage on mount). No fetch is
+ * made until this is `true` — otherwise this hook fires an initial fetch
+ * with a not-yet-known override (usually `null`/default), and by the time
+ * the real override arrives moments later the first fetch may still be
+ * in-flight, which causes the corrected fetch to be silently skipped (see
+ * the inFlight guard below) until the next interval tick or manual refresh.
  */
 export function useSheetData(
   sheetIdOverride?: string | null,
+  ready: boolean = true,
 ): UseSheetDataResult {
   const [classes, setClasses] = useState<DaySchedule[]>([]);
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
-  const [subjectLegend, setSubjectLegend] = useState<
+  const [subjectLegend, setSubjectLegend] = useState
     Record<string, SubjectLegendEntry>
   >({});
   const [loading, setLoading] = useState(true);
@@ -98,13 +106,14 @@ export function useSheetData(
   }, [sheetIdOverride]);
 
   useEffect(() => {
+    if (!ready) return;
     // Deferred via queueMicrotask so the effect body itself stays
     // synchronous (satisfies react-hooks/set-state-in-effect); the actual
     // setState calls happen inside load()'s own async continuation either way.
     queueMicrotask(load);
     const id = setInterval(load, REFRESH_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [load]);
+  }, [load, ready]);
 
   return {
     classes,
