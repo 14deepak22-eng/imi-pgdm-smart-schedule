@@ -49,6 +49,28 @@ function isLunchCell(text: string): boolean {
   return text.trim().toUpperCase().startsWith('LUNCH');
 }
 
+export interface SessionTimeBlock {
+  /** The batch prefix as written in the header row itself (may lag behind the data rows' label). */
+  headerBatchPrefix: string;
+  times: SessionTimeMap;
+}
+
+export interface ExtractedSessionTimes {
+  /** Keyed by the batch prefix exactly as parsed from the header row text. */
+  byBatchPrefix: Record<string, SessionTimeMap>;
+  /**
+   * The same blocks, in the order they appear top-to-bottom in the sheet
+   * (first block = junior/most-recent term, second = senior, etc.) — used
+   * as a fallback when a data row's batch label has since moved on to a
+   * newer cohort than what's written in the header row's own label (e.g.
+   * header still says "PGDM 2025-2027" while data rows already say
+   * "PGDM 2026-28" because the header text wasn't updated when the new
+   * batch started). Position in the sheet is a more reliable signal than
+   * the header's own label text in that case.
+   */
+  byPosition: SessionTimeBlock[];
+}
+
 /**
  * Scans the whole sheet for the "Session No. - PGDM <years> (Term ...)"
  * header rows and the session-number / time-range rows immediately
@@ -61,8 +83,9 @@ function isLunchCell(text: string): boolean {
  * one "Time" row in this sheet's layout — session-number row first,
  * time row directly below it.
  */
-export function extractSessionTimesByBatch(rows: string[][]): Record<string, SessionTimeMap> {
-  const result: Record<string, SessionTimeMap> = {};
+export function extractSessionTimesByBatch(rows: string[][]): ExtractedSessionTimes {
+  const byBatchPrefix: Record<string, SessionTimeMap> = {};
+  const byPosition: SessionTimeBlock[] = [];
 
   for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
     const row = rows[rowIdx];
@@ -73,8 +96,8 @@ export function extractSessionTimesByBatch(rows: string[][]): Record<string, Ses
     const headerCellIdx = row.findIndex((cell) => SESSION_HEADER_PATTERN.test(cell ?? ''));
     if (headerCellIdx === -1) continue;
 
-    const batchPrefix = normalizeBatchPrefix(row[headerCellIdx]);
-    if (!batchPrefix) continue;
+    const headerBatchPrefix = normalizeBatchPrefix(row[headerCellIdx]);
+    if (!headerBatchPrefix) continue;
 
     // Locate "I" — the first session column — searching to the right of
     // the label cell. Session columns are always contiguous and in
@@ -96,7 +119,8 @@ export function extractSessionTimesByBatch(rows: string[][]): Record<string, Ses
       const labelCell = (row[col] ?? '').trim();
       const timeCell = (timeRow[col] ?? '').trim();
 
-      const labelMatches = key === 'LUNCH' ? isLunchCell(labelCell) : labelCell.toUpperCase() === key;
+      const labelMatches =
+        key === 'LUNCH' ? isLunchCell(labelCell) : labelCell.toUpperCase() === key;
       if (!labelMatches) return;
 
       const parsed = parseTimeRangeCell(timeCell);
@@ -104,11 +128,13 @@ export function extractSessionTimesByBatch(rows: string[][]): Record<string, Ses
     });
 
     if (Object.keys(times).length > 0) {
-      // Later occurrences (e.g. a repeated header further down the sheet)
-      // overwrite earlier ones, so the most recent timing in the sheet wins.
-      result[batchPrefix] = { ...result[batchPrefix], ...times };
+      // Later occurrences of the SAME batch prefix (e.g. a repeated header
+      // further down the sheet) overwrite earlier ones, so the most recent
+      // timing in the sheet wins.
+      byBatchPrefix[headerBatchPrefix] = { ...byBatchPrefix[headerBatchPrefix], ...times };
+      byPosition.push({ headerBatchPrefix, times });
     }
   }
 
-  return result;
+  return { byBatchPrefix, byPosition };
 }
