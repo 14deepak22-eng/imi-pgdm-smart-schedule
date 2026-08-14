@@ -6,6 +6,7 @@ import {
   FALLBACK_SESSION_TIMES_JUNIOR,
   FALLBACK_SESSION_TIMES_SENIOR,
 } from './constants';
+import { extractSessionTimesByBatch } from './parseSessionTimes';
 import { parseBatchCell } from './matchBatch';
 import { parseDateLabel } from './parseDate';
 import { detectEventCategory, looksLikeSubjectCell, parseSessionCell } from './parseCell';
@@ -123,23 +124,37 @@ function dedupeEvents(events: ScheduleEvent[]): ScheduleEvent[] {
  * events list, for EVERY batch found in the sheet — subject parsing is
  * exactly as before (parseSessionCell, driven by
  * CANONICAL_SUBJECT_CODES_BY_BATCH in constants.ts — completely
- * untouched). The only change here is session TIMING: each batch is
- * ranked by how recently it started, and the correct year-specific
- * fallback grid (junior vs senior) is applied per batch.
+ * untouched). Session TIMING is now read live from the sheet's own
+ * "Session No. - PGDM <years> (Term ...)" header rows (see
+ * parseSessionTimes.ts) for whichever batch each row belongs to, so
+ * editing those header rows (e.g. a term's timing changes) is picked up
+ * everywhere automatically. The old FALLBACK_SESSION_TIMES_JUNIOR/_SENIOR
+ * constants are only used as a per-key safety net if the sheet header
+ * couldn't be found or parsed for a given batch.
  */
 export function parseSchedule(rows: string[][]): ParsedSchedule {
   const validRows = collectValidRows(rows);
   const batchRanks = rankBatches(validRows.map((r) => r.batchPrefix));
+  const sheetSessionTimes = extractSessionTimesByBatch(rows);
 
   const classes: DaySchedule[] = [];
   const events: ScheduleEvent[] = [];
 
   for (const row of validRows) {
     const { batchPrefix, section, isoDate, dateLabel, sessionCells } = row;
-    const sessionTimes =
+    // Prefer the times actually written in the sheet's own header rows for
+    // this batch (auto-updates if the sheet's timing ever changes). Fall
+    // back to the hardcoded junior/senior grid only for whichever session
+    // keys the sheet header didn't supply for this batch — e.g. if the
+    // header rows are missing entirely or a column couldn't be parsed.
+    const fallbackForBatch =
       (batchRanks.get(batchPrefix) ?? 0) === 0
         ? FALLBACK_SESSION_TIMES_JUNIOR
         : FALLBACK_SESSION_TIMES_SENIOR;
+    const sessionTimes: Record<string, { start: string; end: string }> = {
+      ...fallbackForBatch,
+      ...sheetSessionTimes[batchPrefix],
+    };
 
     const isHoliday = sessionCells.some((cell) => detectEventCategory(cell) === 'holiday');
     if (isHoliday) {
