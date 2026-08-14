@@ -142,18 +142,24 @@ export function parseSchedule(rows: string[][]): ParsedSchedule {
 
   for (const row of validRows) {
     const { batchPrefix, section, isoDate, dateLabel, sessionCells } = row;
-    // Prefer the times actually written in the sheet's own header rows for
-    // this batch (auto-updates if the sheet's timing ever changes). Fall
-    // back to the hardcoded junior/senior grid only for whichever session
-    // keys the sheet header didn't supply for this batch — e.g. if the
-    // header rows are missing entirely or a column couldn't be parsed.
-    const fallbackForBatch =
-      (batchRanks.get(batchPrefix) ?? 0) === 0
-        ? FALLBACK_SESSION_TIMES_JUNIOR
-        : FALLBACK_SESSION_TIMES_SENIOR;
+    const rank = batchRanks.get(batchPrefix) ?? 0;
+
+    // Prefer the times actually written in the sheet's own header rows,
+    // matched by POSITION rather than by the header's own label text: the
+    // Nth header block in the sheet (top-to-bottom) is always this year's
+    // Nth-most-recently-started batch (1st = junior/Term I, 2nd = senior/
+    // Term IV, and so on) — regardless of what exact batch name the header
+    // text says. This matters because the header's label can lag a cohort
+    // behind the data rows (e.g. header still says "PGDM 2025-2027" while
+    // classes have moved on to "PGDM 2026-28"); matching by the header's
+    // literal name text in that situation can coincidentally string-match
+    // the WRONG (now-senior) batch and silently apply the wrong grid, so
+    // position is the safer signal. Only if the sheet has no header block
+    // at that position at all do we fall back to the hardcoded grid.
+    const fallbackForBatch = rank === 0 ? FALLBACK_SESSION_TIMES_JUNIOR : FALLBACK_SESSION_TIMES_SENIOR;
     const sessionTimes: Record<string, { start: string; end: string }> = {
       ...fallbackForBatch,
-      ...sheetSessionTimes[batchPrefix],
+      ...sheetSessionTimes.byPosition[rank]?.times,
     };
 
     const isHoliday = sessionCells.some((cell) => detectEventCategory(cell) === 'holiday');
