@@ -51,16 +51,44 @@ export async function GET(request: NextRequest) {
   }
 
   const sheetId = overrideId ?? process.env.NEXT_PUBLIC_SHEET_ID ?? FALLBACK_SHEET_ID;
-  const sheetTab = overrideId
-    ? undefined
-    : process.env.SHEET_TAB_NAME || undefined;
+  // Even for a custom override sheet, still try the configured tab name
+  // first — a test/copy sheet made from the original almost always
+  // preserves the same tab name and order, and silently defaulting to
+  // "just the first tab" for overrides was causing custom sheets whose
+  // schedule isn't on the very first tab to read the wrong (often empty)
+  // tab with no visible error.
+  const sheetTab = process.env.SHEET_TAB_NAME || undefined;
 
   try {
-    const rows = await fetchWithRetry(
-      () => fetchSheetRows(sheetId, sheetTab),
-      2,
-    );
+    let rows: string[][];
+    try {
+      rows = await fetchWithRetry(() => fetchSheetRows(sheetId, sheetTab), 2);
+    } catch (err) {
+      // A custom override sheet might not have a tab by this exact name
+      // (e.g. renamed in a copy) — fall back to its default tab rather
+      // than failing outright. The env-configured default sheet is
+      // assumed to always have this tab, so it still fails loudly there.
+      if (overrideId && sheetTab) {
+        rows = await fetchWithRetry(() => fetchSheetRows(sheetId, undefined), 2);
+      } else {
+        throw err;
+      }
+    }
     const { classes, events } = parseSchedule(rows);
+
+    // An override sheet that parses to zero classes is almost always a
+    // wrong-tab or sharing-permissions problem — surface that clearly
+    // instead of returning a silent empty success response, which just
+    // looks like "nothing happened" with no clue why.
+    if (overrideId && classes.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "No classes found in this sheet. Double-check it's shared as \"Anyone with the link can view\" and that the timetable is on the same tab name as your main sheet.",
+        },
+        { status: 502, headers: { "Cache-Control": "no-store" } },
+      );
+    }
 
     // Best-effort: if the legend tab is missing/renamed/unreadable, this
     // resolves to {} rather than failing the whole request — the rest of
