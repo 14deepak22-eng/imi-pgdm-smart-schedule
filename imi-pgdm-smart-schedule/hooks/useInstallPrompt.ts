@@ -15,7 +15,6 @@ function isStandalone(): boolean {
   if (typeof window === 'undefined') return false;
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
-    // iOS Safari-specific flag for installed home-screen apps.
     (window.navigator as Navigator & { standalone?: boolean }).standalone === true
   );
 }
@@ -37,7 +36,7 @@ function isWithinCooldown(cooldownMs: number): boolean {
 
 export function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [dismissed, setDismissed] = useState(true); // default true avoids a flash
+  const [dismissed, setDismissed] = useState(true);
   const [alreadyInstalled, setAlreadyInstalled] = useState(false);
   const [ios, setIos] = useState(false);
 
@@ -73,17 +72,8 @@ export function useInstallPrompt() {
     }
   };
 
-  // Show the banner if: not already installed, not dismissed within the
-  // cooldown (7 days on iOS, 1 day elsewhere), and either Chrome/Android/
-  // Desktop gave us a real install prompt, or it's iOS (which needs manual
-  // "Add to Home Screen" instructions).
   const canShow = !alreadyInstalled && !dismissed && (Boolean(deferredPrompt) || ios);
 
-  // The moment the banner is actually about to be shown, immediately start
-  // its cooldown — same as if the person had dismissed it. Without this,
-  // someone who never taps the close button (just reopens the app a few
-  // times that day) would see the banner on every single open instead of
-  // just once per cooldown window.
   useEffect(() => {
     if (!canShow) return;
     try {
@@ -93,5 +83,12 @@ export function useInstallPrompt() {
     }
   }, [canShow]);
 
-  return { canShow, ios, alreadyInstalled, promptInstall, dismiss };
+  return {
+    canShow,
+    ios,
+    alreadyInstalled,
+    promptInstall,
+    dismiss,
+    hasNativePrompt: Boolean(deferredPrompt),
+  };
 }
