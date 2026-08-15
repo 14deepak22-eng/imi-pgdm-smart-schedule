@@ -8,19 +8,14 @@ import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { MessMenuModal } from './MessMenuModal';
 import { AboutModal } from './AboutModal';
 
-/**
- * Replaces the old plain Settings link icon. Same slot in the header
- * (right before the theme toggle), but now opens a small dropdown with
- * quick access to Settings, Mess Menu, installing the app, and About —
- * instead of navigating straight to /settings.
- */
 export function SettingsMenu() {
   const [open, setOpen] = useState(false);
   const [showMessMenu, setShowMessMenu] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const { canShow: canInstall, ios, alreadyInstalled, promptInstall } = useInstallPrompt();
+  const { alreadyInstalled, ios, promptInstall, hasNativePrompt } = useInstallPrompt();
+  const needsManualAndroidSteps = !alreadyInstalled && !ios && !hasNativePrompt;
 
   useEffect(() => {
     if (!open) return;
@@ -43,13 +38,13 @@ export function SettingsMenu() {
 
   const handleDownloadClick = () => {
     if (alreadyInstalled) return;
-    if (canInstall && !ios) {
+    if (hasNativePrompt && !ios) {
       void promptInstall();
+      setOpen(false);
+      return;
     }
-    // On iOS (or before the browser has offered a real prompt) there's
-    // no programmatic install — the item just stays open with the
-    // "Add to Home Screen" hint below it instead of closing the menu.
-    if (!ios) setOpen(false);
+    // No real one-tap install available right now — keep the menu open
+    // and show manual steps below instead of silently closing.
   };
 
   return (
@@ -123,6 +118,11 @@ export function SettingsMenu() {
           {open && !alreadyInstalled && ios && (
             <p className="text-muted px-2.5 pb-1.5 text-[11px] leading-snug">
               Tap Share, then &quot;Add to Home Screen&quot;.
+            </p>
+          )}
+          {open && needsManualAndroidSteps && (
+            <p className="text-muted px-2.5 pb-1.5 text-[11px] leading-snug">
+              Tap the ⋮ menu (top-right in Chrome), then &quot;Install app&quot;.
             </p>
           )}
 
