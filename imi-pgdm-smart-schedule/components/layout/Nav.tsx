@@ -13,6 +13,7 @@ const LINKS = [
   { href: '/events', label: 'Events' },
   { href: '/notices', label: 'Notice' },
   { href: '/progress', label: 'Progress' },
+  { href: '/feedback', label: 'Feedback' },
   { href: '/settings', label: 'Settings' },
 ];
 
