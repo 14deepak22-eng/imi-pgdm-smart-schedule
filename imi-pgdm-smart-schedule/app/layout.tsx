@@ -13,6 +13,7 @@ import { AnnouncementModal } from '@/components/shared/AnnouncementModal';
 import { InstallPrompt } from '@/components/shared/InstallPrompt';
 import { AnimatedBackground } from '@/components/shared/AnimatedBackground';
 import { SeoFooter } from '@/components/layout/SeoFooter';
+import { FeedbackPopup } from '@/components/FeedbackPopup';
 
 import './globals.css';
 
@@ -288,6 +289,7 @@ export default function RootLayout({
           <YearGate>
             {children}
             <AnnouncementModal />
+            <FeedbackPopup />
             <InstallPrompt />
           </YearGate>
         </ScheduleProvider>
