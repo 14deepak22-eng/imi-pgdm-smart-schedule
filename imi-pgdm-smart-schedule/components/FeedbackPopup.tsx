@@ -18,13 +18,11 @@ interface Review {
   comment: string;
 }
 
-const POPUP_LAST_SHOWN_KEY = 'pgdm-feedback-popup-last-shown';
-const HAS_RATED_KEY = 'pgdm-feedback-has-rated';
+const POPUP_SEEN_KEY = 'pgdm-feedback-popup-seen';
 const REPROMPT_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
 
 export function FeedbackPopup() {
   const [open, setOpen] = useState(false);
-  const [hasRated, setHasRated] = useState(true); // default true to avoid flash before check
   const [name, setName] = useState('');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -33,25 +31,24 @@ export function FeedbackPopup() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Check on load: has this device already rated? If not, has it been
-  // 2+ days since we last showed the popup?
   useEffect(() => {
     try {
-      const rated = localStorage.getItem(HAS_RATED_KEY) === '1' || localStorage.getItem('pgdm-feedback-popup-seen') === '1';
-      setHasRated(rated);
-
-      if (!rated) {
-        const lastShown = localStorage.getItem(POPUP_LAST_SHOWN_KEY);
-        const lastShownTime = lastShown ? parseInt(lastShown, 10) : 0;
+      const seen = localStorage.getItem(POPUP_SEEN_KEY);
+      if (!seen) {
+        // First visit — set timestamp silently, no popup yet
+        localStorage.setItem(POPUP_SEEN_KEY, String(Date.now()));
+      } else if (seen !== '1') {
+        // Has a timestamp (dismissed or first visit) — check if 2 days passed
+        const lastShownTime = parseInt(seen, 10);
         const dueForReprompt = Date.now() - lastShownTime >= REPROMPT_INTERVAL_MS;
-
         if (dueForReprompt) {
           const timer = setTimeout(() => setOpen(true), 2000);
           return () => clearTimeout(timer);
         }
       }
+      // seen === '1' means already rated — never show again
     } catch {
-      setHasRated(false);
+      // storage unavailable — skip
     }
   }, []);
 
@@ -73,10 +70,12 @@ export function FeedbackPopup() {
   const closePopup = () => {
     setOpen(false);
     try {
-      localStorage.setItem(POPUP_LAST_SHOWN_KEY, String(Date.now()));
-    } catch {
-      // ignore
-    }
+      // Store timestamp so we can re-prompt after 2 days
+      const current = localStorage.getItem(POPUP_SEEN_KEY);
+      if (current !== '1') {
+        localStorage.setItem(POPUP_SEEN_KEY, String(Date.now()));
+      }
+    } catch { /* ignore */ }
   };
 
   const handleSubmit = async () => {
@@ -94,11 +93,9 @@ export function FeedbackPopup() {
       });
       setSubmitted(true);
       try {
-        localStorage.setItem(HAS_RATED_KEY, '1');
-      } catch {
-        // ignore
-      }
-      setHasRated(true);
+        // '1' means rated — never auto-show again
+        localStorage.setItem(POPUP_SEEN_KEY, '1');
+      } catch { /* ignore */ }
     } catch (err) {
       console.error(err);
       alert('Something went wrong. Try again.');
@@ -109,7 +106,7 @@ export function FeedbackPopup() {
 
   return (
     <>
-      {/* Floating button — always visible, even after rating */}
+      {/* Floating button — always visible */}
       <button
         onClick={() => setOpen(true)}
         className="fixed bottom-4 right-4 z-40 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-blue-700"
@@ -195,7 +192,7 @@ export function FeedbackPopup() {
 
                 {reviews.length > 0 && (
                   <p className="mt-3 text-xs text-gray-400">
-                    {reviews.length} students have rated so far — avg{' '}
+                    {reviews.length} students rated so far — avg{' '}
                     {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)} ⭐
                   </p>
                 )}
