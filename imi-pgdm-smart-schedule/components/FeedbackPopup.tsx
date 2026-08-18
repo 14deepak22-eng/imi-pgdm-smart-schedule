@@ -18,10 +18,13 @@ interface Review {
   comment: string;
 }
 
-const POPUP_SEEN_KEY = 'pgdm-feedback-popup-seen';
+const POPUP_LAST_SHOWN_KEY = 'pgdm-feedback-popup-last-shown';
+const HAS_RATED_KEY = 'pgdm-feedback-has-rated';
+const REPROMPT_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
 
 export function FeedbackPopup() {
   const [open, setOpen] = useState(false);
+  const [hasRated, setHasRated] = useState(true); // default true to avoid flash before check
   const [name, setName] = useState('');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -30,16 +33,25 @@ export function FeedbackPopup() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Auto-show once per browser, after a short delay
+  // Check on load: has this device already rated? If not, has it been
+  // 2+ days since we last showed the popup?
   useEffect(() => {
     try {
-      const seen = localStorage.getItem(POPUP_SEEN_KEY);
-      if (!seen) {
-        const timer = setTimeout(() => setOpen(true), 2000);
-        return () => clearTimeout(timer);
+      const rated = localStorage.getItem(HAS_RATED_KEY) === '1';
+      setHasRated(rated);
+
+      if (!rated) {
+        const lastShown = localStorage.getItem(POPUP_LAST_SHOWN_KEY);
+        const lastShownTime = lastShown ? parseInt(lastShown, 10) : 0;
+        const dueForReprompt = Date.now() - lastShownTime >= REPROMPT_INTERVAL_MS;
+
+        if (dueForReprompt) {
+          const timer = setTimeout(() => setOpen(true), 2000);
+          return () => clearTimeout(timer);
+        }
       }
     } catch {
-      // storage unavailable — just skip auto-popup
+      setHasRated(false);
     }
   }, []);
 
@@ -61,7 +73,7 @@ export function FeedbackPopup() {
   const closePopup = () => {
     setOpen(false);
     try {
-      localStorage.setItem(POPUP_SEEN_KEY, '1');
+      localStorage.setItem(POPUP_LAST_SHOWN_KEY, String(Date.now()));
     } catch {
       // ignore
     }
@@ -82,10 +94,11 @@ export function FeedbackPopup() {
       });
       setSubmitted(true);
       try {
-        localStorage.setItem(POPUP_SEEN_KEY, '1');
+        localStorage.setItem(HAS_RATED_KEY, '1');
       } catch {
         // ignore
       }
+      setHasRated(true);
     } catch (err) {
       console.error(err);
       alert('Something went wrong. Try again.');
@@ -96,7 +109,7 @@ export function FeedbackPopup() {
 
   return (
     <>
-      {/* Small floating button to reopen anytime */}
+      {/* Floating button — always visible, even after rating */}
       <button
         onClick={() => setOpen(true)}
         className="fixed bottom-4 right-4 z-40 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-blue-700"
@@ -122,7 +135,7 @@ export function FeedbackPopup() {
               <div className="py-6 text-center">
                 <p className="mb-4 text-lg">Thanks for your feedback! 🎉</p>
                 <button
-                  onClick={closePopup}
+                  onClick={() => setOpen(false)}
                   className="rounded bg-blue-600 px-4 py-2 text-white"
                 >
                   Close
