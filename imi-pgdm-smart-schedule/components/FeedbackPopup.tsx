@@ -37,7 +37,7 @@ export function FeedbackPopup() {
   // 2+ days since we last showed the popup?
   useEffect(() => {
     try {
-      const rated = localStorage.getItem(HAS_RATED_KEY) === '1';
+      const rated = localStorage.getItem(HAS_RATED_KEY) === '1' || localStorage.getItem('pgdm-feedback-popup-seen') === '1';
       setHasRated(rated);
 
       if (!rated) {
