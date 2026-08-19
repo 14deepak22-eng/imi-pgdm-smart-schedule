@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Star, X, Sparkles } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import {
   collection,
@@ -21,6 +22,14 @@ interface Review {
 const POPUP_SEEN_KEY = 'pgdm-feedback-popup-seen';
 const REPROMPT_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
 
+const RATING_LABELS: Record<number, string> = {
+  1: 'Poor',
+  2: 'Fair',
+  3: 'Good',
+  4: 'Great',
+  5: 'Excellent',
+};
+
 export function FeedbackPopup() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -30,6 +39,8 @@ export function FeedbackPopup() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [poppedStar, setPoppedStar] = useState<number | null>(null);
+  const [glowPulse, setGlowPulse] = useState(false);
 
   useEffect(() => {
     try {
@@ -78,15 +89,55 @@ export function FeedbackPopup() {
     } catch { /* ignore */ }
   };
 
+  // Golden sparkle burst from the clicked star
+  const spawnSparkles = (target: HTMLElement) => {
+    const rect = target.getBoundingClientRect();
+    for (let i = 0; i < 6; i++) {
+      const el = document.createElement('div');
+      el.style.position = 'fixed';
+      el.style.left = `${rect.left + rect.width / 2}px`;
+      el.style.top = `${rect.top + rect.height / 2}px`;
+      el.style.width = '6px';
+      el.style.height = '6px';
+      el.style.borderRadius = '9999px';
+      el.style.background = '#f7bd63';
+      el.style.pointerEvents = 'none';
+      el.style.zIndex = '9999';
+      el.style.transition = 'transform 0.6s ease-out, opacity 0.6s ease-out';
+      document.body.appendChild(el);
+
+      const angle = ((Math.PI * 2) / 6) * i;
+      const dist = 26 + Math.random() * 14;
+
+      requestAnimationFrame(() => {
+        el.style.transform = `translate(${Math.cos(angle) * dist}px, ${
+          Math.sin(angle) * dist
+        }px) scale(0.3)`;
+        el.style.opacity = '0';
+      });
+
+      setTimeout(() => el.remove(), 650);
+    }
+  };
+
+  const handleStarClick = (star: number, e: React.MouseEvent<HTMLButtonElement>) => {
+    setRating(star);
+    setPoppedStar(star);
+    spawnSparkles(e.currentTarget);
+    setGlowPulse(true);
+    setTimeout(() => setGlowPulse(false), 400);
+    setTimeout(() => setPoppedStar(null), 220);
+  };
+
   const handleSubmit = async () => {
-    if (!name.trim() || rating === 0) {
-      alert('Please enter your name and select a star rating.');
+    if (rating === 0) {
+      alert('Please select a star rating.');
       return;
     }
     setSubmitting(true);
     try {
       await addDoc(collection(db, 'reviews'), {
-        name: name.trim(),
+        name: name.trim() || 'Anonymous',
         rating,
         comment: comment.trim(),
         createdAt: serverTimestamp(),
@@ -104,96 +155,137 @@ export function FeedbackPopup() {
     }
   };
 
+  const displayRating = hoverRating || rating;
+
   return (
     <>
       {/* Floating button — always visible */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-40 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-blue-700"
+        className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-blue-700"
       >
-        ⭐ Rate Us
+        <Star size={14} fill="currentColor" />
+        Rate Us
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-md rounded-xl border border-white/10 bg-neutral-900 p-6 text-white shadow-xl">
-            <div className="mb-3 flex items-start justify-between">
-              <h2 className="text-lg font-bold">Rate the Schedule Dashboard</h2>
+          <div
+            className="w-full max-w-md rounded-2xl border border-white/10 bg-neutral-900 p-6 text-white transition-shadow duration-300"
+            style={{
+              boxShadow: glowPulse
+                ? '0 0 0 1px rgba(240,168,60,0.45), 0 0 20px rgba(240,168,60,0.15)'
+                : '0 0 0 1px rgba(240,168,60,0.15)',
+            }}
+          >
+            <div className="mb-5 flex items-start justify-between">
+              <h2 className="text-lg font-semibold">Rate the dashboard</h2>
               <button
                 onClick={closePopup}
                 className="text-gray-400 hover:text-white"
                 aria-label="Close"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
             {submitted ? (
               <div className="py-6 text-center">
-                <p className="mb-4 text-lg">Thanks for your feedback! 🎉</p>
+                <Sparkles className="mx-auto mb-2 text-amber-400" size={28} />
+                <p className="mb-4 text-lg">Thanks for your feedback!</p>
                 <button
                   onClick={() => setOpen(false)}
-                  className="rounded bg-blue-600 px-4 py-2 text-white"
+                  className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                 >
                   Close
                 </button>
               </div>
             ) : (
               <>
+                {/* Stars */}
+                <div className="mb-1 flex justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const filled = star <= displayRating;
+                    const popped = poppedStar === star;
+                    return (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={(e) => handleStarClick(star, e)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                        className="p-0.5 transition-transform duration-300"
+                        style={{
+                          transform: popped ? 'scale(1.35)' : 'scale(1)',
+                          transitionTimingFunction: 'cubic-bezier(.34,1.8,.64,1)',
+                        }}
+                      >
+                        <Star
+                          size={40}
+                          color={filled ? (hoverRating ? '#f7bd63' : '#f0a83c') : '#454850'}
+                          fill={filled ? 'currentColor' : 'none'}
+                          style={{
+                            filter: filled
+                              ? 'drop-shadow(0 0 6px rgba(240,168,60,0.65))'
+                              : 'none',
+                            transition: 'color 0.2s ease, filter 0.2s ease',
+                          }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <p
+                  className="mb-4 text-center text-sm font-medium transition-all duration-300"
+                  style={{
+                    color: '#f0a83c',
+                    height: 16,
+                    opacity: rating ? 1 : 0,
+                    transform: rating ? 'translateY(0)' : 'translateY(-4px)',
+                  }}
+                >
+                  {rating ? RATING_LABELS[rating] : ''}
+                </p>
+
                 <input
                   type="text"
                   placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mb-3 w-full rounded border border-white/20 bg-transparent p-2"
+                  className="mb-3 w-full rounded-lg border border-white/10 bg-white/5 p-2.5 text-sm outline-none transition-shadow focus:border-amber-400 focus:shadow-[0_0_0_3px_rgba(240,168,60,0.15)]"
                 />
-
-                <div className="mb-3 flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                      key={star}
-                      onClick={() => setRating(star)}
-                      onMouseEnter={() => setHoverRating(star)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      style={{
-                        cursor: 'pointer',
-                        fontSize: '28px',
-                        color: star <= (hoverRating || rating) ? '#facc15' : '#6b7280',
-                      }}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
 
                 <textarea
                   placeholder="Your comment (optional)"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="mb-3 w-full rounded border border-white/20 bg-transparent p-2"
+                  className="mb-4 w-full rounded-lg border border-white/10 bg-white/5 p-2.5 text-sm outline-none transition-shadow focus:border-amber-400 focus:shadow-[0_0_0_3px_rgba(240,168,60,0.15)]"
                   rows={3}
                 />
 
-                <div className="flex gap-2">
+                <div className="flex gap-2.5">
                   <button
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="flex-1 rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+                    className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 active:scale-95 disabled:opacity-50"
                   >
-                    {submitting ? 'Submitting...' : 'Submit Review'}
+                    {submitting ? 'Submitting...' : 'Submit review'}
                   </button>
                   <button
                     onClick={closePopup}
-                    className="rounded border border-white/20 px-4 py-2 text-white"
+                    className="flex-1 rounded-lg border border-white/15 px-4 py-3 text-sm text-gray-300 hover:bg-white/5"
                   >
                     Maybe later
                   </button>
                 </div>
 
                 {reviews.length > 0 && (
-                  <p className="mt-3 text-xs text-gray-400">
+                  <p className="mt-3.5 text-center text-xs text-gray-500">
                     {reviews.length} students rated so far — avg{' '}
-                    {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)} ⭐
+                    {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}{' '}
+                    <Star size={12} className="inline text-amber-400" fill="currentColor" />
                   </p>
                 )}
               </>
