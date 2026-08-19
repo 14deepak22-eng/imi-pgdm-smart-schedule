@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Star, X, Sparkles } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import {
@@ -41,6 +41,13 @@ export function FeedbackPopup() {
   const [submitted, setSubmitted] = useState(false);
   const [poppedStar, setPoppedStar] = useState<number | null>(null);
   const [glowPulse, setGlowPulse] = useState(false);
+
+  // Drag-to-rate star row
+  const starRowRef = useRef<HTMLDivElement | null>(null);
+  const starRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const isDraggingRef = useRef(false);
+  const startStarRef = useRef<number | null>(null);
+  const movedRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -120,14 +127,69 @@ export function FeedbackPopup() {
     }
   };
 
-  const handleStarClick = (star: number, e: React.MouseEvent<HTMLButtonElement>) => {
+  const applyRating = (star: number) => {
     setRating(star);
     setPoppedStar(star);
-    spawnSparkles(e.currentTarget);
+    const target = starRefs.current[star - 1];
+    if (target) spawnSparkles(target);
     setGlowPulse(true);
     setTimeout(() => setGlowPulse(false), 400);
     setTimeout(() => setPoppedStar(null), 220);
   };
+
+  // Given a pointer clientX, figure out which star (1-5) it's over
+  const getStarFromClientX = (clientX: number) => {
+    const el = starRowRef.current;
+    if (!el) return 1;
+    const rect = el.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const star = Math.ceil((x / rect.width) * 5);
+    return Math.min(5, Math.max(1, star));
+  };
+
+  const handlePointerMove = (e: PointerEvent) => {
+    if (!isDraggingRef.current) return;
+    const star = getStarFromClientX(e.clientX);
+    if (star !== startStarRef.current) movedRef.current = true;
+    setHoverRating(star);
+  };
+
+  const handlePointerUp = (e: PointerEvent) => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    window.removeEventListener('pointermove', handlePointerMove);
+    window.removeEventListener('pointerup', handlePointerUp);
+
+    const endStar = getStarFromClientX(e.clientX);
+
+    if (!movedRef.current && rating === endStar) {
+      // Tapped a star that's already selected — deselect it
+      setRating(0);
+    } else {
+      applyRating(endStar);
+    }
+    setHoverRating(0);
+    startStarRef.current = null;
+  };
+
+  const handleStarPointerDown = (star: number, e: React.PointerEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    isDraggingRef.current = true;
+    movedRef.current = false;
+    startStarRef.current = star;
+    setHoverRating(star);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+  };
+
+  // Clean up any dangling drag listeners if the component unmounts mid-drag
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async () => {
     if (rating === 0) {
@@ -164,7 +226,7 @@ export function FeedbackPopup() {
         onClick={() => setOpen(true)}
         className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-blue-700"
       >
-        <Star size={14} fill="currentColor" />
+        <Star size={14} className="text-amber-400" fill="currentColor" />
         Rate Us
       </button>
 
@@ -202,8 +264,12 @@ export function FeedbackPopup() {
               </div>
             ) : (
               <>
-                {/* Stars */}
-                <div className="mb-1 flex justify-center gap-2">
+                {/* Stars — tap to rate, tap again to clear, or swipe across to rate */}
+                <div
+                  ref={starRowRef}
+                  className="mb-1 flex justify-center gap-2"
+                  style={{ touchAction: 'none' }}
+                >
                   {[1, 2, 3, 4, 5].map((star) => {
                     const filled = star <= displayRating;
                     const popped = poppedStar === star;
@@ -211,14 +277,16 @@ export function FeedbackPopup() {
                       <button
                         key={star}
                         type="button"
-                        onClick={(e) => handleStarClick(star, e)}
-                        onMouseEnter={() => setHoverRating(star)}
-                        onMouseLeave={() => setHoverRating(0)}
+                        ref={(el) => {
+                          starRefs.current[star - 1] = el;
+                        }}
+                        onPointerDown={(e) => handleStarPointerDown(star, e)}
                         aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
                         className="p-0.5 transition-transform duration-300"
                         style={{
                           transform: popped ? 'scale(1.35)' : 'scale(1)',
                           transitionTimingFunction: 'cubic-bezier(.34,1.8,.64,1)',
+                          touchAction: 'none',
                         }}
                       >
                         <Star
