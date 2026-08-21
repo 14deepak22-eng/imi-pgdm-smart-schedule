@@ -14,6 +14,7 @@ import { InstallPrompt } from '@/components/shared/InstallPrompt';
 import { AnimatedBackground } from '@/components/shared/AnimatedBackground';
 import { SeoFooter } from '@/components/layout/SeoFooter';
 import { FeedbackPopup } from '@/components/FeedbackPopup';
+import { ClassReminder } from '@/components/notifications/ClassReminder';
 
 import './globals.css';
 
@@ -290,6 +291,7 @@ export default function RootLayout({
             {children}
             <AnnouncementModal />
             <FeedbackPopup />
+            <ClassReminder />
             <InstallPrompt />
           </YearGate>
         </ScheduleProvider>
