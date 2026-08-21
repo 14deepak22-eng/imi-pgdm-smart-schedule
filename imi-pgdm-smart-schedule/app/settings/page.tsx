@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ChevronDown } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { SubjectPicker } from "@/components/settings/SubjectPicker";
@@ -11,6 +11,7 @@ import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { useSchedule } from "@/components/providers/ScheduleProvider";
 import { deriveAvailableSubjectIdentities } from "@/lib/schedule/deriveAvailableSubjects";
 import { cn } from "@/lib/utils/cn";
+import { REMINDER_ENABLED_KEY } from "@/components/notifications/ClassReminder";
 
 // Must match the same key Nav.tsx reads to decide whether to show the
 // first-visit green dot on the Settings tab.
@@ -47,6 +48,43 @@ export default function SettingsPage() {
     }
   }, []);
 
+  const [remindersEnabled, setRemindersEnabled] = useState(false);
+  const [remindersBlocked, setRemindersBlocked] = useState(false);
+
+  useEffect(() => {
+    try {
+      setRemindersEnabled(localStorage.getItem(REMINDER_ENABLED_KEY) === "1");
+      if (typeof Notification !== "undefined" && Notification.permission === "denied") {
+        setRemindersBlocked(true);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleToggleReminders = useCallback(async (next: boolean) => {
+    if (next) {
+      if (typeof Notification === "undefined") return;
+      if (Notification.permission === "denied") {
+        setRemindersBlocked(true);
+        return;
+      }
+      if (Notification.permission !== "granted") {
+        const result = await Notification.requestPermission();
+        if (result !== "granted") {
+          setRemindersBlocked(result === "denied");
+          return;
+        }
+      }
+    }
+    setRemindersEnabled(next);
+    try {
+      localStorage.setItem(REMINDER_ENABLED_KEY, next ? "1" : "0");
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Sheet Source is rarely touched, so it stays tucked away by default —
   // keeps the page short without turning every section into an accordion.
   const [showSheetSource, setShowSheetSource] = useState(false);
@@ -71,6 +109,19 @@ export default function SettingsPage() {
             onChange={setShowAllSections}
             label="Show all sections"
             description="Combine A, B, C into one view."
+          />
+        </Card>
+
+        <Card className="p-3">
+          <ToggleSwitch
+            checked={remindersEnabled}
+            onChange={handleToggleReminders}
+            label="Class Reminders"
+            description={
+              remindersBlocked
+                ? "Notifications blocked — enable them in your browser settings."
+                : "Get notified 10 minutes before each class."
+            }
           />
         </Card>
 
