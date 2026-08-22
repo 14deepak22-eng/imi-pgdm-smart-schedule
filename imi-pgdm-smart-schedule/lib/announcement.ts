@@ -37,12 +37,13 @@
 export const ANNOUNCEMENT = {
   enabled: true,
   id: "sheet-year-error-26ju",
-  title: "🔎 Now on Google! 🎉",
-  message:`Just search "IMI PGDM Smart Schedule" on Google and you can find the website directly. 🌐
-No need to search for the link separately anymore! 😄`,
+  title: "Your Feedback Matters! ❤️",
+  message:`Using the IMI PGDM Smart Schedule? Share your feedback, suggestions, or any issues you face.
+  👉 Click “Rate Us” and share your experience with us.
+Your feedback will help me make the app better! 🚀`,
   videoUrl: null as string | null,
-  imageUrl: "/announcements/logo imi.jpeg" as string | null,
+  imageUrl: null as string | null,
   // Example: live from right now until end of day tomorrow (IST).
-  startAt: "2026-08-11T00:00:00+05:30" as string | null,
-  endAt: "2026-08-12T17:59:59+05:30" as string | null,
+  startAt: "2026-08-23T00:00:00+05:30" as string | null,
+  endAt: "2026-08-24T17:59:59+05:30" as string | null,
 };
