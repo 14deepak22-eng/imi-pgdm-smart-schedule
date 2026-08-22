@@ -71,17 +71,17 @@ export function WeeklyTimetable({
 
   // Auto-scroll the horizontally-scrollable table so today's column is the
   // first thing visible, instead of making the user scroll right to find it.
+  // Scrolled on the inner container directly (not scrollIntoView) so this
+  // never affects the page's vertical scroll position on load.
   useEffect(() => {
     if (weekOffset !== 0) return;
-    todayColRef.current?.scrollIntoView({
-      behavior: 'auto',
-      inline: 'start',
-      block: 'nearest',
-    });
+    const container = scrollContainerRef.current;
+    const cell = todayColRef.current;
+    if (!container || !cell) return;
+    container.scrollLeft = cell.offsetLeft - container.offsetLeft;
     // Re-run whenever the visible date range or "today" changes (e.g. app
     // left open overnight), not just on first mount.
   }, [weekOffset, todayISO, visibleDates.join(',')]);
-
   return (
     <Card className="p-3 sm:p-4">
       <div ref={scrollContainerRef} className="overflow-x-auto">
