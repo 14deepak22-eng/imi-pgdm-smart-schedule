@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Coffee, UtensilsCrossed, Cookie, Moon, ChevronDown, Clock, Hand } from 'lucide-react';
+import { X, Coffee, UtensilsCrossed, Cookie, Moon, ChevronDown, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { Skeleton } from '@/components/shared/Skeleton';
@@ -58,27 +58,12 @@ function useMealServingStatus(): MealServingStatus {
   return status;
 }
 
-/** Soft light sweep across the hero card background. Purely decorative. */
-function ShimmerSweep() {
-  return (
-    <div
-      className="pointer-events-none absolute top-0 left-[-60%] h-full w-3/5"
-      style={{
-        background:
-          'linear-gradient(100deg, transparent, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent)',
-        animation: 'mess-shimmer-sweep 3.2s ease-in-out infinite',
-      }}
-      aria-hidden="true"
-    />
-  );
-}
-
 /** Two rising "steam" wisps over a meal icon — shown only while that meal is actively being served. */
 function Steam() {
   return (
     <>
       <span
-        className="absolute bottom-3.5 left-1.5 h-2 w-[3px] rounded-full"
+        className="absolute bottom-3 left-1 h-1.5 w-[2.5px] rounded-full"
         style={{
           background: 'color-mix(in srgb, var(--color-accent) 60%, transparent)',
           animation: 'mess-steam-rise 1.8s ease-in infinite',
@@ -86,7 +71,7 @@ function Steam() {
         aria-hidden="true"
       />
       <span
-        className="absolute bottom-3.5 left-3.5 h-2 w-[3px] rounded-full"
+        className="absolute bottom-3 left-3 h-1.5 w-[2.5px] rounded-full"
         style={{
           background: 'color-mix(in srgb, var(--color-accent) 60%, transparent)',
           animation: 'mess-steam-rise 1.8s ease-in infinite',
@@ -120,27 +105,15 @@ interface NowServingCardProps {
 }
 
 function NowServingCard({ status, today, tomorrow }: NowServingCardProps) {
-  const gradientStyle = {
-    background:
-      'linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 14%, transparent), color-mix(in srgb, var(--color-accent) 2%, transparent))',
-  };
-
   if (status.status === 'day-over') {
     const items = tomorrow?.breakfast ?? [];
     return (
-      <div className="border-accent/35 relative mb-4 overflow-hidden rounded-2xl border p-4" style={gradientStyle}>
-        <ShimmerSweep />
-        <p className="text-muted relative mb-2 text-[11px] font-bold tracking-wide uppercase">
-          Mess is closed for today
-        </p>
-        <div className="relative mb-1.5 flex items-center gap-2.5">
-          <Coffee className="text-accent h-5 w-5" />
-          <span className="text-foreground text-base font-medium">Breakfast &middot; tomorrow</span>
+      <div className="border-accent/30 bg-accent/[0.06] relative mb-2.5 flex items-center gap-2.5 rounded-xl border px-3 py-2.5">
+        <Coffee className="text-accent h-4 w-4 flex-shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-muted text-[9.5px] font-bold tracking-wide uppercase">Breakfast &middot; tomorrow</p>
+          <p className="text-foreground truncate text-xs">{items.length > 0 ? items.join(', ') : 'Menu not listed yet'}</p>
         </div>
-        <p className="text-foreground relative text-[14.5px] leading-relaxed">
-          {items.length > 0 ? items.join(', ') : 'Menu not listed yet'}
-        </p>
-        <p className="text-muted relative mt-2 text-[11px]">{formatMealTimeRange('breakfast')}</p>
       </div>
     );
   }
@@ -151,34 +124,24 @@ function NowServingCard({ status, today, tomorrow }: NowServingCardProps) {
   const isCurrent = status.status === 'current';
 
   return (
-    <div className="border-accent/35 relative mb-4 overflow-hidden rounded-2xl border p-4" style={gradientStyle}>
-      <ShimmerSweep />
-      <div className="relative mb-2 flex items-center justify-between">
-        <div className="text-accent flex items-center gap-1.5 text-[11px] font-bold tracking-wide uppercase">
-          <span
-            className="bg-accent h-1.5 w-1.5 rounded-full"
-            style={isCurrent ? { animation: 'mess-badge-pulse 1.8s ease-out infinite' } : undefined}
-          />
-          {isCurrent ? 'Now serving' : 'Next up'}
-        </div>
-        {status.minutesRemaining !== null && (
-          <span className="text-muted text-[11px]">
-            {isCurrent ? 'ends in ' : 'starts in '}
-            {formatMinutesRemaining(status.minutesRemaining)}
-          </span>
-        )}
+    <div className="border-accent/30 bg-accent/[0.08] relative mb-2.5 flex items-center gap-2.5 rounded-xl border px-3 py-2.5">
+      <div className="relative flex h-5 w-5 flex-shrink-0 items-center justify-center">
+        {MEAL_ICONS_LG[meal]}
+        {isCurrent && <Steam />}
       </div>
-      <div className="relative mb-1.5 flex items-center gap-2.5">
-        <div className="relative flex h-6 w-6 items-center justify-center">
-          {MEAL_ICONS_LG[meal]}
-          {isCurrent && <Steam />}
-        </div>
-        <span className="text-foreground text-base font-medium">{MEAL_LABELS[meal]}</span>
-        <span className="text-muted text-[11px]">{formatMealTimeRange(meal)}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-accent text-[9.5px] font-bold tracking-wide uppercase">
+          {isCurrent ? 'Now serving' : 'Next up'} &middot; {MEAL_LABELS[meal]}
+        </p>
+        <p className="text-foreground truncate text-xs">
+          {items.length > 0 ? items.join(', ') : 'Menu not listed for today'}
+        </p>
       </div>
-      <p className="text-foreground relative text-[14.5px] leading-relaxed">
-        {items.length > 0 ? items.join(', ') : 'Menu not listed for today'}
-      </p>
+      {status.minutesRemaining !== null && (
+        <span className="text-muted flex-shrink-0 text-[10px]">
+          {formatMinutesRemaining(status.minutesRemaining)} {isCurrent ? 'left' : 'to go'}
+        </span>
+      )}
     </div>
   );
 }
@@ -193,32 +156,32 @@ interface MealRowProps {
 }
 
 function MealRow({ meal, items, isNow, isNext, expanded, onToggle }: MealRowProps) {
-  const preview = items.length > 3 ? `${items.slice(0, 3).join(', ')}, \u2026` : items.join(', ');
+  const preview = items.length > 0 ? items.join(', ') : '\u2014';
   return (
-    <div className="rounded-lg">
+    <div>
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="hover:bg-foreground/[0.03] flex w-full items-start justify-between gap-2 rounded-lg px-2 py-2.5 text-left transition-colors"
+        className="hover:bg-foreground/[0.03] flex w-full items-center gap-2 rounded-md py-1.5 text-left transition-colors"
       >
-        <div className="min-w-0">
-          <div
+        <span className={cn('flex-shrink-0', isNow ? 'text-accent' : 'text-muted')}>{MEAL_ICONS[meal]}</span>
+        <span className="min-w-0 flex-1">
+          <span
             className={cn(
-              'mb-1.5 flex items-center gap-1.5 text-[10.5px] font-bold tracking-wide uppercase',
+              'mb-0.5 flex items-center gap-1 text-[10px] font-bold tracking-wide uppercase',
               isNow ? 'text-accent' : 'text-muted',
             )}
           >
-            {MEAL_ICONS[meal]}
             {MEAL_LABELS[meal]}
             {isNow && <NowBadge label="NOW" />}
             {isNext && <NowBadge label="NEXT" />}
-          </div>
-          <p className="text-foreground text-[14.5px] leading-relaxed">{items.length > 0 ? preview : '\u2014'}</p>
-        </div>
+          </span>
+          <span className="text-foreground block truncate text-xs">{preview}</span>
+        </span>
         <ChevronDown
           className={cn(
-            'text-muted mt-4 h-3.5 w-3.5 flex-shrink-0 transition-transform duration-300',
+            'text-muted h-3.5 w-3.5 flex-shrink-0 transition-transform duration-300',
             expanded && 'rotate-180',
           )}
         />
@@ -230,12 +193,9 @@ function MealRow({ meal, items, isNow, isNext, expanded, onToggle }: MealRowProp
         )}
       >
         <div className="overflow-hidden">
-          <div className="border-border/60 mt-0.5 space-y-1.5 border-t px-2 pt-2 pb-2.5">
-            <p className="text-foreground text-[13px] leading-relaxed">
-              <span className="text-muted">Full menu: </span>
-              {items.length > 0 ? items.join(', ') : '\u2014'}
-            </p>
-            <p className="text-accent flex items-center gap-1.5 text-[11.5px]">
+          <div className="border-border/60 mt-0.5 space-y-1 border-t py-1.5 pl-[22px]">
+            <p className="text-foreground text-xs leading-relaxed">{items.length > 0 ? items.join(', ') : '\u2014'}</p>
+            <p className="text-accent flex items-center gap-1 text-[10.5px]">
               <Clock className="h-3 w-3" />
               {formatMealTimeRange(meal)}
             </p>
@@ -265,11 +225,11 @@ function DayCard({
     });
 
   return (
-    <div className="border-border bg-surface w-full flex-shrink-0 rounded-xl border-2 p-4">
-      <p className="text-accent mb-2 text-[11px] font-bold tracking-wide uppercase">
+    <div className="border-border bg-surface w-full flex-shrink-0 rounded-xl border-2 px-3 py-2.5">
+      <p className="text-accent mb-1 text-[10px] font-bold tracking-wide uppercase">
         {isToday ? `Today \u00b7 ${day.day}` : day.day}
       </p>
-      <div className="space-y-0.5">
+      <div className="divide-border/60 divide-y">
         {MEAL_KEYS.map((meal) => (
           <MealRow
             key={meal}
@@ -413,7 +373,7 @@ export function MessMenuModal({ onClose }: MessMenuModalProps) {
       onClick={onClose}
     >
       <Card
-        className="relative max-h-[85vh] w-full max-w-lg overflow-y-auto p-6"
+        className="relative max-h-[85vh] w-full max-w-lg overflow-y-auto p-4 sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -424,7 +384,7 @@ export function MessMenuModal({ onClose }: MessMenuModalProps) {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-3 flex items-center gap-2">
           <MessMenuIcon className="text-accent h-5 w-5" />
           <h2 id="mess-menu-title" className="font-display text-lg font-bold tracking-wide uppercase">
             Mess Menu
@@ -447,14 +407,14 @@ export function MessMenuModal({ onClose }: MessMenuModalProps) {
             {displayDays.length > 0 && (
               <>
                 {/* Day tabs */}
-                <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1">
+                <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1">
                   {displayDays.map((d, i) => (
                     <button
                       key={d.day}
                       type="button"
                       onClick={() => snapTo(i, true)}
                       className={cn(
-                        'flex-shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors',
+                        'flex-shrink-0 rounded-full border px-3 py-1 text-[11px] font-medium transition-colors',
                         i === selectedIndex
                           ? 'border-accent bg-accent text-background'
                           : 'border-border text-muted hover:border-accent/50',
@@ -466,7 +426,7 @@ export function MessMenuModal({ onClose }: MessMenuModalProps) {
                 </div>
 
                 {/* Swipeable day card */}
-                <div ref={viewportRef} className="mb-2 overflow-hidden rounded-xl">
+                <div ref={viewportRef} className="overflow-hidden rounded-xl">
                   <div
                     ref={trackRef}
                     className="flex"
@@ -483,28 +443,6 @@ export function MessMenuModal({ onClose }: MessMenuModalProps) {
                     ))}
                   </div>
                 </div>
-
-                {/* Dots */}
-                {displayDays.length > 1 && (
-                  <div className="mb-3 flex justify-center gap-1.5">
-                    {displayDays.map((d, i) => (
-                      <span
-                        key={d.day}
-                        className={cn(
-                          'rounded-full transition-all duration-200',
-                          i === selectedIndex ? 'bg-accent h-1.5 w-3.5' : 'bg-foreground/20 h-1.5 w-1.5',
-                        )}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {displayDays.length > 1 && (
-                  <p className="text-muted flex items-center justify-center gap-1.5 text-[11px]">
-                    <Hand className="h-3 w-3" />
-                    drag to switch days &middot; tap a meal to expand
-                  </p>
-                )}
               </>
             )}
 
