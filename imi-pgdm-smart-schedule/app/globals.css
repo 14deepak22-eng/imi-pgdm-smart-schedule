@@ -136,3 +136,20 @@ body {
   25%, 55% { transform: rotate(-20deg); }
   70%, 100% { transform: rotate(0deg); }
 }
+
+/* "Now serving" hero card on the mess menu modal: rising steam off the
+   active meal's icon, a soft pulse on the NOW badge, and a slow light
+   sweep across the card background. */
+@keyframes mess-steam-rise {
+  0% { opacity: 0; transform: translateY(0) scale(0.6); }
+  30% { opacity: 0.55; }
+  100% { opacity: 0; transform: translateY(-14px) scale(1.1); }
+}
+@keyframes mess-badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 163, 61, 0.45); }
+  50% { box-shadow: 0 0 0 5px rgba(232, 163, 61, 0); }
+}
+@keyframes mess-shimmer-sweep {
+  0% { left: -60%; }
+  100% { left: 120%; }
+}
