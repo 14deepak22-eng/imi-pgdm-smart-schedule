@@ -9,7 +9,14 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { X, Coffee, UtensilsCrossed, Cookie, Moon } from "lucide-react";
+import {
+  X,
+  Coffee,
+  UtensilsCrossed,
+  Cookie,
+  Moon,
+  ChevronDown,
+} from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { Skeleton } from "@/components/shared/Skeleton";
@@ -72,8 +79,8 @@ function NowServingCard({ status, today, tomorrow }: NowServingCardProps) {
   if (status.status === "day-over") {
     const items = tomorrow?.breakfast ?? [];
     return (
-      <div className="bg-accent/10 mb-3 rounded-xl px-3.5 py-3">
-        <div className="mb-1.5 flex items-center gap-2">
+      <div className="bg-accent/10 mb-2.5 rounded-xl px-3 py-2.5">
+        <div className="mb-1 flex items-center gap-2">
           <Coffee className="text-accent h-4 w-4 flex-shrink-0" />
           <span className="text-accent text-[10.5px] font-bold tracking-wide uppercase">
             Breakfast &middot; tomorrow
@@ -92,8 +99,8 @@ function NowServingCard({ status, today, tomorrow }: NowServingCardProps) {
   const isCurrent = status.status === "current";
 
   return (
-    <div className="bg-accent/10 mb-3 rounded-xl px-3.5 py-3">
-      <div className="mb-1.5 flex items-center justify-between gap-2">
+    <div className="bg-accent/10 mb-2.5 rounded-xl px-3 py-2.5">
+      <div className="mb-1 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {MEAL_ICONS_LG[meal]}
           <span className="text-accent text-[10.5px] font-bold tracking-wide uppercase">
@@ -118,7 +125,7 @@ function NowServingCard({ status, today, tomorrow }: NowServingCardProps) {
  *  expand interaction, just an icon, label, and the full item list. */
 function TodayMealBlock({ meal, items }: { meal: MealType; items: string[] }) {
   return (
-    <div className="mb-3.5 last:mb-0">
+    <div className="mb-2.5 last:mb-0">
       <div className="text-muted mb-0.5 flex items-center gap-1.5 text-[10.5px] font-bold tracking-wide uppercase">
         {MEAL_ICONS[meal]}
         {MEAL_LABELS[meal]}
@@ -133,17 +140,33 @@ function TodayMealBlock({ meal, items }: { meal: MealType; items: string[] }) {
 /** A single compact meal row inside the "This week" swipeable card —
  *  truncated to one line since it's a quick-scan preview, not the main event. */
 function WeekMealRow({ meal, items }: { meal: MealType; items: string[] }) {
+  const [expanded, setExpanded] = useState(false);
   const preview = items.length > 0 ? items.join(", ") : "\u2014";
   return (
-    <div className="flex items-center gap-2 py-1.5">
+    <button
+      type="button"
+      onClick={() => setExpanded((v) => !v)}
+      aria-expanded={expanded}
+      className="hover:bg-foreground/[0.04] flex w-full items-center gap-2 rounded-md py-1.5 text-left transition-colors"
+    >
       <span className="text-muted flex-shrink-0">{MEAL_ICONS[meal]}</span>
       <div className="min-w-0 flex-1">
         <div className="text-muted text-[9.5px] font-bold tracking-wide uppercase">
           {MEAL_LABELS[meal]}
         </div>
-        <div className="text-foreground truncate text-[12px]">{preview}</div>
+        <div
+          className={cn("text-foreground text-[12px]", !expanded && "truncate")}
+        >
+          {preview}
+        </div>
       </div>
-    </div>
+      <ChevronDown
+        className={cn(
+          "text-muted h-3 w-3 flex-shrink-0 transition-transform duration-300",
+          expanded && "rotate-180",
+        )}
+      />
+    </button>
   );
 }
 
@@ -298,14 +321,14 @@ export function MessMenuModal({ onClose }: MessMenuModalProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/60 p-4 pt-16 sm:pt-24"
+      className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/60 p-3 pt-10 sm:pt-20"
       role="dialog"
       aria-modal="true"
       aria-labelledby="mess-menu-title"
       onClick={onClose}
     >
       <Card
-        className="relative max-h-[85vh] w-full max-w-lg overflow-y-auto p-4 sm:p-6"
+        className="relative max-h-[75vh] w-full max-w-lg overflow-y-auto p-3.5 sm:p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -316,7 +339,7 @@ export function MessMenuModal({ onClose }: MessMenuModalProps) {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-2.5 flex items-center gap-2">
           <MessMenuIcon className="text-accent h-5 w-5" />
           <h2
             id="mess-menu-title"
@@ -346,8 +369,8 @@ export function MessMenuModal({ onClose }: MessMenuModalProps) {
             />
 
             {today && (
-              <section className="mb-4">
-                <p className="text-muted mb-2 text-[10.5px] font-bold tracking-wide uppercase">
+              <section className="mb-3">
+                <p className="text-muted mb-1.5 text-[10.5px] font-bold tracking-wide uppercase">
                   Today &middot; {today.day}
                 </p>
                 {todayMealsToList.map((meal) => (
