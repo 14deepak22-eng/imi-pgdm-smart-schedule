@@ -11,13 +11,23 @@ const STORAGE_KEY = 'pgdm-week-offset';
  */
 export const MAX_WEEK_OFFSET = 11;
 
+/**
+ * Storage-level floor only — a generous backstop (10 years) so a
+ * corrupted localStorage value can't wedge the app. The *meaningful*
+ * lower bound (term start) is computed per-section from real data by
+ * lib/schedule/deriveWeekOffsetBounds.ts and enforced in the UI
+ * (WeekArrowBar's disabled state, the jump-to-date picker's min), not
+ * here — this hook just needs to not reject a legitimate negative value.
+ */
+const STORAGE_MIN_WEEK_OFFSET = -520;
+
 export type WeekOffset = number;
 
 function isValidOffset(value: number): value is WeekOffset {
-  return Number.isInteger(value) && value >= 0 && value <= MAX_WEEK_OFFSET;
+  return Number.isInteger(value) && value >= STORAGE_MIN_WEEK_OFFSET && value <= MAX_WEEK_OFFSET;
 }
 
-/** 0 = this week, 1 = next week, and so on. Persists across visits. */
+/** 0 = this week, negative = past weeks, positive = future weeks. Persists across visits. */
 export function useWeekOffset(): [WeekOffset, (value: WeekOffset) => void] {
   const [offset, setOffsetState] = useState<WeekOffset>(0);
 
@@ -33,7 +43,7 @@ export function useWeekOffset(): [WeekOffset, (value: WeekOffset) => void] {
   }, []);
 
   const setOffset = (value: WeekOffset) => {
-    const clamped = Math.min(MAX_WEEK_OFFSET, Math.max(0, value));
+    const clamped = Math.min(MAX_WEEK_OFFSET, Math.max(STORAGE_MIN_WEEK_OFFSET, value));
     if (!isValidOffset(clamped)) return;
     setOffsetState(clamped);
     try {

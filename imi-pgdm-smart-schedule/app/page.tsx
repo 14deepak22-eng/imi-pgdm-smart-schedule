@@ -7,6 +7,7 @@ import { StatsCards } from "@/components/dashboard/StatsCards";
 import { TodayClasses } from "@/components/dashboard/TodayClasses";
 import { WeeklyTimetable } from "@/components/dashboard/WeeklyTimetable";
 import { WeekPillToggle, WeekArrowBar } from "@/components/dashboard/WeekNav";
+import { SearchBox } from "@/components/shared/SearchBox";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { useSchedule } from "@/components/providers/ScheduleProvider";
@@ -15,6 +16,7 @@ import { useWeekOffset } from "@/hooks/useWeekOffset";
 import { useDayComplete } from "@/hooks/useDayComplete";
 import { DayCompleteBanner } from "@/components/dashboard/DayCompleteBanner";
 import { computeDashboardStats } from "@/lib/schedule/deriveStats";
+import { deriveWeekOffsetBounds } from "@/lib/schedule/deriveWeekOffsetBounds";
 import { filterClassesBySubjects } from "@/lib/schedule/filterSubjects";
 import {
   filterClassesByBatch,
@@ -64,12 +66,13 @@ export default function DashboardPage() {
   );
   const stats = computeDashboardStats(filteredClasses, effectiveSection, now);
   const dayComplete = useDayComplete(current, stats.classesToday, now);
+  const weekOffsetBounds = deriveWeekOffsetBounds(filteredClasses, effectiveSection, now);
 
   return (
     <>
       <Header />
 
-     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pt-3 pb-6">
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6">
         {error && !initialLoading && (
           <ErrorState message={error} onRetry={refresh} />
         )}
@@ -95,10 +98,13 @@ export default function DashboardPage() {
 
             <StatsCards stats={stats} current={current} nextEvent={nextEvent} />
 
-            <section className="-mt-3 flex flex-col gap-3">
-              <h2 className="font-display text-lg font-bold tracking-wide uppercase">
-                Today&apos;s Classes
-              </h2>
+            <section className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-display text-lg font-bold tracking-wide uppercase">
+                  Today&apos;s Classes
+                </h2>
+                <SearchBox value={query} onChange={setQuery} />
+              </div>
               <TodayClasses
                 days={filteredClasses}
                 section={effectiveSection}
@@ -108,7 +114,7 @@ export default function DashboardPage() {
               />
             </section>
 
-            <section className="flex flex-col gap-2 pb-8">
+            <section className="flex flex-col gap-3 pb-8">
               <div className="flex flex-nowrap items-center justify-between gap-2 sm:gap-3">
                 <h2 className="font-display text-base font-bold tracking-wide uppercase sm:text-lg">
                   Weekly Timetable
@@ -121,6 +127,8 @@ export default function DashboardPage() {
                 days={filteredClasses}
                 section={effectiveSection}
                 now={now}
+                minOffset={weekOffsetBounds.min}
+                maxOffset={weekOffsetBounds.max}
               />
               <WeeklyTimetable
                 days={filteredClasses}
