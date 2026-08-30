@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CalendarClock } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { NextClassCard } from "@/components/dashboard/NextClassCard";
 import { StatsCards } from "@/components/dashboard/StatsCards";
@@ -137,6 +138,17 @@ export default function DashboardPage() {
                 query={query}
                 weekOffset={weekOffset}
               />
+
+              {weekOffsetBounds.min < 0 && (
+                <button
+                  type="button"
+                  onClick={() => setWeekOffset(weekOffsetBounds.min)}
+                  className="text-muted hover:text-accent mx-auto mt-1 flex items-center gap-1.5 text-sm transition-colors"
+                >
+                  <CalendarClock className="h-4 w-4" aria-hidden="true" />
+                  Track your past schedule
+                </button>
+              )}
             </section>
           </>
         )}
