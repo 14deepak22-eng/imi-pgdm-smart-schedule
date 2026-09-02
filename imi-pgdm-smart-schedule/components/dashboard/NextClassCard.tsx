@@ -94,7 +94,7 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
   }
 
   const toneVar = isLive ? 'var(--color-accent)' : STARTS_IN_BLUE;
-  const toneGlowRgb = isLive ? '232,163,61' : '79,182,168';
+  const toneGlowRgb = isLive ? '232,163,61' : '46,125,250';
 
   return (
     <div
@@ -135,12 +135,15 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
               {state.kind === 'upcoming-today' ? 'Next up today' : 'Next class'}
             </Badge>
           )}
-          <span className="text-strong flex items-center gap-1.5 text-sm font-semibold tabular-nums">
-            <Clock className="text-accent-2 h-3.5 w-3.5 shrink-0" aria-hidden />
+        </div>
+
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-strong flex items-center gap-1 text-xs font-semibold tabular-nums">
+            <Clock className="text-accent-2 h-3 w-3 shrink-0" aria-hidden />
             {formatTimeShort(session.start)}&ndash;{formatTimeShort(session.end)}
           </span>
-          <span className="text-muted ml-auto flex items-center gap-1.5 text-xs">
-            <CalendarClock className="h-3.5 w-3.5" aria-hidden />
+          <span className="text-muted ml-auto flex items-center gap-1 text-xs">
+            <CalendarClock className="h-3 w-3 shrink-0" aria-hidden />
             {new Date(session.start).toLocaleDateString('en-IN', {
               weekday: 'short',
               month: 'short',
@@ -245,14 +248,14 @@ function CountdownRing({ digits, ratio, isLive, toneVar, toneGlowRgb, label }: C
   return (
     <div className="relative h-20 w-20 shrink-0 sm:h-[100px] sm:w-[100px]">
       <>
-        {[0, 0.9, 1.8].map((delay) => (
+        {[0, 1.4, 2.8].map((delay) => (
           <span
             key={delay}
             className="absolute inset-0 rounded-full"
             style={{
               background: `radial-gradient(circle, transparent 58%, rgba(${toneGlowRgb},0.55) 64%, rgba(${toneGlowRgb},0.12) 72%, transparent 82%)`,
               filter: 'blur(1.5px)',
-              animation: `nextclass-wave-pulse 2.7s cubic-bezier(0.22, 0.61, 0.36, 1) ${delay}s infinite`,
+              animation: `nextclass-wave-pulse 4.2s cubic-bezier(0.22, 0.61, 0.36, 1) ${delay}s infinite`,
             }}
             aria-hidden
           />
@@ -261,7 +264,7 @@ function CountdownRing({ digits, ratio, isLive, toneVar, toneGlowRgb, label }: C
           className="absolute -inset-1 rounded-full"
           style={{
             background: `radial-gradient(circle, rgba(${toneGlowRgb},0.16) 0%, transparent 70%)`,
-            animation: 'nextclass-halo-breathe 2.7s ease-in-out infinite',
+            animation: 'nextclass-halo-breathe 4.2s ease-in-out infinite',
           }}
           aria-hidden
         />
