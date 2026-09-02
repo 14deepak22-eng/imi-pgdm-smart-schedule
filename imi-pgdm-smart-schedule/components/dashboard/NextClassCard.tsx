@@ -135,20 +135,20 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
               {state.kind === 'upcoming-today' ? 'Next up today' : 'Next class'}
             </Badge>
           )}
-        </div>
-
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="text-strong flex items-center gap-1 text-xs font-semibold tabular-nums">
-            <Clock className="text-accent-2 h-3 w-3 shrink-0" aria-hidden />
-            {formatTimeShort(session.start)}&ndash;{formatTimeShort(session.end)}
-          </span>
-          <span className="text-muted ml-auto flex items-center gap-1 text-xs">
-            <CalendarClock className="h-3 w-3 shrink-0" aria-hidden />
+          <span className="text-strong ml-auto flex items-center gap-1.5 text-xs">
+            <CalendarClock className="h-3.5 w-3.5" aria-hidden />
             {new Date(session.start).toLocaleDateString('en-IN', {
               weekday: 'short',
               month: 'short',
               day: 'numeric',
             })}
+          </span>
+        </div>
+
+        <div className="mt-1.5 flex items-center">
+          <span className="text-strong flex items-center gap-1.5 text-sm font-semibold tabular-nums">
+            <Clock className="text-accent-2 h-3.5 w-3.5 shrink-0" aria-hidden />
+            {formatTimeShort(session.start)}&ndash;{formatTimeShort(session.end)}
           </span>
         </div>
 
