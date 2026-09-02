@@ -37,6 +37,34 @@ const BASE_CODE_PATTERN = /^[A-Z]{2,4}\d{3}/;
 // row — e.g. "MK630(B)(B) (CR-3)" has three: "B", "B", "CR-3".
 const NEXT_GROUP_PATTERN = /^\s*\(([^)]+)\)/;
 
+/**
+ * Splits a cell's text on "/" the way sheet authors actually mean it:
+ * as a separator between whole parallel/alternate subjects, e.g.
+ * "MK629 (A) (CR-5)/MK630 (A) (CR-2)". A "/" that appears *inside* a
+ * "(...)" bracket group — e.g. "QM502(A)(RK /ad)(10:30)" — is a slash
+ * within that subject's own qualifier text, not a separator between two
+ * subjects, so it's kept intact rather than split on.
+ */
+function splitTopLevelSlash(text: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = '';
+
+  for (const char of text) {
+    if (char === '(') depth += 1;
+    else if (char === ')') depth = Math.max(0, depth - 1);
+
+    if (char === '/' && depth === 0) {
+      parts.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  parts.push(current);
+  return parts;
+}
+
 function isRoomLike(group: string): boolean {
   return /CR|CL|Tutorial/i.test(group);
 }
@@ -140,8 +168,7 @@ export function parseSessionCell(cellText: string, batchPrefix: string): ClassEn
   const trimmed = cellText.trim();
   if (!trimmed) return [];
 
-  return trimmed
-    .split('/')
+  return splitTopLevelSlash(trimmed)
     .map((part) => part.trim())
     .filter(Boolean)
     .map((part) => {
@@ -163,8 +190,7 @@ export function looksLikeSubjectCell(cellText: string): boolean {
   const trimmed = cellText.trim();
   if (!trimmed) return false;
 
-  return trimmed
-    .split('/')
+  return splitTopLevelSlash(trimmed)
     .map((part) => part.trim())
     .filter(Boolean)
     .some((part) => BASE_CODE_PATTERN.test(part));
