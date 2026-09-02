@@ -199,10 +199,15 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
           0%, 100% { transform: translate(0, 0) scale(1); }
           50% { transform: translate(-15px, -10px) scale(1.08); }
         }
-        @keyframes nextclass-pulse-ring {
-          0% { transform: scale(0.9); opacity: 0.8; }
-          70% { transform: scale(1.4); opacity: 0; }
-          100% { opacity: 0; }
+        @keyframes nextclass-wave-pulse {
+          0%   { transform: scale(0.72); opacity: 0; }
+          12%  { opacity: 0.45; }
+          55%  { opacity: 0.18; }
+          100% { transform: scale(2.05); opacity: 0; }
+        }
+        @keyframes nextclass-halo-breathe {
+          0%, 100% { opacity: 0.35; transform: scale(0.94); }
+          50% { opacity: 0.6; transform: scale(1.04); }
         }
       `}</style>
     </div>
@@ -239,14 +244,29 @@ function CountdownRing({ digits, ratio, isLive, toneVar, label }: CountdownRingP
   return (
     <div className="relative h-20 w-20 shrink-0 sm:h-[100px] sm:w-[100px]">
       {isLive && (
-        <span
-          className="absolute -inset-1.5 rounded-full"
-          style={{
-            background: 'rgba(232,163,61,0.12)',
-            animation: 'nextclass-pulse-ring 2.4s 0.3s ease-out infinite',
-          }}
-          aria-hidden
-        />
+        <>
+          {[0, 0.9, 1.8].map((delay) => (
+            <span
+              key={delay}
+              className="absolute inset-0 rounded-full"
+              style={{
+                background:
+                  'radial-gradient(circle, transparent 58%, rgba(232,163,61,0.55) 64%, rgba(232,163,61,0.12) 72%, transparent 82%)',
+                filter: 'blur(1.5px)',
+                animation: `nextclass-wave-pulse 2.7s cubic-bezier(0.22, 0.61, 0.36, 1) ${delay}s infinite`,
+              }}
+              aria-hidden
+            />
+          ))}
+          <span
+            className="absolute -inset-1 rounded-full"
+            style={{
+              background: 'radial-gradient(circle, rgba(232,163,61,0.16) 0%, transparent 70%)',
+              animation: 'nextclass-halo-breathe 2.7s ease-in-out infinite',
+            }}
+            aria-hidden
+          />
+        </>
       )}
       <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="relative -rotate-90">
         <circle
