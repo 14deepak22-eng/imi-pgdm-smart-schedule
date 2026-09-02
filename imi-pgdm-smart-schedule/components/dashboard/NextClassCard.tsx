@@ -246,7 +246,7 @@ function CountdownRing({ digits, ratio, isLive, toneVar, toneGlowRgb, label }: C
   }, [ratio, circumference]);
 
   return (
-    <div className="relative h-20 w-20 shrink-0 sm:h-[100px] sm:w-[100px]">
+    <div className="relative h-24 w-24 shrink-0 sm:h-[124px] sm:w-[124px]">
       <>
         {[0, 1.4, 2.8].map((delay) => (
           <span
@@ -295,12 +295,12 @@ function CountdownRing({ digits, ratio, isLive, toneVar, toneGlowRgb, label }: C
         <span
           className={cn(
             'text-strong tabular-nums font-extrabold tracking-tight',
-            digits.length > 5 ? 'text-xs sm:text-sm' : 'text-base sm:text-lg',
+            digits.length > 5 ? 'text-sm sm:text-base' : 'text-lg sm:text-xl',
           )}
         >
           {digits}
         </span>
-        <span className="text-muted mt-0.5 text-[8px] tracking-wide uppercase sm:text-[9px]">{label}</span>
+        <span className="text-muted mt-0.5 text-[9px] tracking-wide uppercase sm:text-[10px]">{label}</span>
       </div>
     </div>
   );
