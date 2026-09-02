@@ -185,7 +185,7 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
               </span>
             </div>
           ) : (
-            <CountdownRing digits={digits} ratio={ratio} isLive={isLive} toneVar={toneVar} label={isLive ? 'left' : 'starts in'} />
+            <CountdownRing digits={digits} ratio={ratio} isLive={isLive} toneVar={toneVar} toneGlowRgb={toneGlowRgb} label={isLive ? 'left' : 'starts in'} />
           )}
         </div>
       </div>
@@ -219,6 +219,7 @@ interface CountdownRingProps {
   ratio: number;
   isLive: boolean;
   toneVar: string;
+  toneGlowRgb: string;
   label: string;
 }
 
@@ -228,7 +229,7 @@ interface CountdownRingProps {
  *  Sized via the wrapper's height/width classes so it can shrink on
  *  narrow phones — the SVG itself scales to fill whatever box it's given.
  */
-function CountdownRing({ digits, ratio, isLive, toneVar, label }: CountdownRingProps) {
+function CountdownRing({ digits, ratio, isLive, toneVar, toneGlowRgb, label }: CountdownRingProps) {
   const size = 100;
   const strokeWidth = 7;
   const radius = (size - strokeWidth) / 2;
@@ -243,31 +244,28 @@ function CountdownRing({ digits, ratio, isLive, toneVar, label }: CountdownRingP
 
   return (
     <div className="relative h-20 w-20 shrink-0 sm:h-[100px] sm:w-[100px]">
-      {isLive && (
-        <>
-          {[0, 0.9, 1.8].map((delay) => (
-            <span
-              key={delay}
-              className="absolute inset-0 rounded-full"
-              style={{
-                background:
-                  'radial-gradient(circle, transparent 58%, rgba(232,163,61,0.55) 64%, rgba(232,163,61,0.12) 72%, transparent 82%)',
-                filter: 'blur(1.5px)',
-                animation: `nextclass-wave-pulse 2.7s cubic-bezier(0.22, 0.61, 0.36, 1) ${delay}s infinite`,
-              }}
-              aria-hidden
-            />
-          ))}
+      <>
+        {[0, 0.9, 1.8].map((delay) => (
           <span
-            className="absolute -inset-1 rounded-full"
+            key={delay}
+            className="absolute inset-0 rounded-full"
             style={{
-              background: 'radial-gradient(circle, rgba(232,163,61,0.16) 0%, transparent 70%)',
-              animation: 'nextclass-halo-breathe 2.7s ease-in-out infinite',
+              background: `radial-gradient(circle, transparent 58%, rgba(${toneGlowRgb},0.55) 64%, rgba(${toneGlowRgb},0.12) 72%, transparent 82%)`,
+              filter: 'blur(1.5px)',
+              animation: `nextclass-wave-pulse 2.7s cubic-bezier(0.22, 0.61, 0.36, 1) ${delay}s infinite`,
             }}
             aria-hidden
           />
-        </>
-      )}
+        ))}
+        <span
+          className="absolute -inset-1 rounded-full"
+          style={{
+            background: `radial-gradient(circle, rgba(${toneGlowRgb},0.16) 0%, transparent 70%)`,
+            animation: 'nextclass-halo-breathe 2.7s ease-in-out infinite',
+          }}
+          aria-hidden
+        />
+      </>
       <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="relative -rotate-90">
         <circle
           cx={size / 2}
