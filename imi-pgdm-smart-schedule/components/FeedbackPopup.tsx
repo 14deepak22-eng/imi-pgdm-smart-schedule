@@ -235,7 +235,11 @@ export function FeedbackPopup() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+          role="dialog"
+          aria-modal="true"
+        >
           <div
             className="w-full max-w-md rounded-2xl border border-white/10 bg-neutral-900 p-6 text-white transition-shadow duration-300"
             style={{
