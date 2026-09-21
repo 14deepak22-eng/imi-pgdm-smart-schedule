@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import type { DaySchedule, TargetSection } from '@/types/timetable';
 import type { SubjectLegendEntry } from '@/lib/sheet/parseSubjectNames';
 import { resolveSubjectIdentity } from '@/lib/sheet/resolveSubjectIdentity';
@@ -9,7 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { sessionLabel, toLocalISODate } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
-import { CalendarCheck2, Check, ChevronDown, MapPin, Radio } from 'lucide-react';
+import { CalendarCheck2, Check, MapPin, Radio } from 'lucide-react';
 
 interface TodayClassesProps {
   days: DaySchedule[];
@@ -53,7 +52,6 @@ function formatTimeShort(date: Date): string {
 }
 
 export function TodayClasses({ days, section, now, query = '', subjectLegend }: TodayClassesProps) {
-  const [showDone, setShowDone] = useState(false);
   const todayISO = toLocalISODate(now);
   const today = days.find((d) => d.date === todayISO && d.section === section);
 
@@ -129,28 +127,10 @@ export function TodayClasses({ days, section, now, query = '', subjectLegend }: 
       <div className="bg-border absolute top-1 bottom-1 left-2.5 w-px" aria-hidden />
 
       {doneRows.length > 0 && (
-        <div className="relative">
-          <span className="bg-surface-2 border-border absolute -left-8 top-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2">
-            <Check className="text-muted h-2.5 w-2.5" aria-hidden />
-          </span>
-          <button
-            type="button"
-            onClick={() => setShowDone((v) => !v)}
-            className="text-muted hover:text-foreground flex items-center gap-1 text-xs transition-colors"
-          >
-            {doneRows.length} class{doneRows.length > 1 ? 'es' : ''} completed
-            <ChevronDown
-              className={cn('h-3 w-3 transition-transform', showDone && 'rotate-180')}
-              aria-hidden
-            />
-          </button>
-          {showDone && (
-            <div className="mt-3 flex flex-col gap-3">
-              {doneRows.map((row) => (
-                <DoneRow key={row.session} row={row} />
-              ))}
-            </div>
-          )}
+        <div className="flex flex-col gap-3">
+          {doneRows.map((row) => (
+            <DoneRow key={row.session} row={row} />
+          ))}
         </div>
       )}
 
