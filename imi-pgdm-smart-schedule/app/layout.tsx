@@ -14,6 +14,7 @@ import { InstallPrompt } from '@/components/shared/InstallPrompt';
 import { AnimatedBackground } from '@/components/shared/AnimatedBackground';
 import { SeoFooter } from '@/components/layout/SeoFooter';
 import { FeedbackPopup } from '@/components/FeedbackPopup';
+import { SwipeNavigator } from '@/components/layout/SwipeNavigator';
 
 import './globals.css';
 
@@ -288,6 +289,7 @@ export default function RootLayout({
         <ScheduleProvider>
           <YearGate>
             {children}
+            <SwipeNavigator />
             <AnnouncementModal />
             <FeedbackPopup />
             <InstallPrompt />
