@@ -14,6 +14,7 @@ import { deriveSubjectCompletionCounts } from "@/lib/schedule/deriveSubjectCompl
 import { filterClassesByBatch } from "@/lib/schedule/filterBatch";
 import { mergeAllDaySections } from "@/lib/schedule/mergeSections";
 import { isSubjectSelected } from "@/hooks/useSubjectPreferences";
+import { toMasterSubjects } from "@/lib/schedule/subjectSelectionView";
 
 const OLT_URL =
   "https://online.imibh.edu.in/academic/default.aspx?ReturnUrl=%2facademic%2fstudent%2ffrmStuddet.aspx";
@@ -24,6 +25,7 @@ export default function ProgressPage() {
     section,
     showAllSections,
     selectedBatch,
+    availableBatches,
     selectedSubjects,
     subjectLegend,
     initialLoading,
@@ -41,11 +43,20 @@ export default function ProgressPage() {
     ? mergeAllDaySections(batchClasses)
     : batchClasses;
 
-  const availableSubjects = deriveAvailableSubjectIdentities(
+  // 1st-year with "Show all sections" OFF: one row per master subject
+  // (counts pooled across sections), matching the Settings picker.
+  const isFirstYear =
+    availableBatches.find((b) => b.batchPrefix === selectedBatch)?.rank === 0;
+  const masterMode = isFirstYear && !showAllSections;
+
+  const sectionSubjects = deriveAvailableSubjectIdentities(
     classes,
     selectedBatch,
     subjectLegend,
   );
+  const availableSubjects = masterMode
+    ? toMasterSubjects(sectionSubjects)
+    : sectionSubjects;
   const subjectsToShow = availableSubjects
     .map((s) => s.code)
     .filter((code) => isSubjectSelected(selectedSubjects, code, subjectLegend));
@@ -56,6 +67,7 @@ export default function ProgressPage() {
     effectiveSection,
     now,
     subjectLegend,
+    masterMode ? "base" : "code",
   );
 
   return (
