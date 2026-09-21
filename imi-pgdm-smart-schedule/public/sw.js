@@ -1,7 +1,7 @@
-// Bumped to v3: forces every existing visitor's browser to drop the old
-// (stale-serving) cache the moment this new service worker activates —
-// needed again now because the icon files themselves changed.
-const CACHE_NAME = 'pgdm-session-board-v3';
+// Bumped to v4: forces every existing visitor's browser to drop the old
+// cache and reload once, so everyone gets the latest version (new sheet,
+// swipe navigation, subject picker changes, etc).
+const CACHE_NAME = 'pgdm-session-board-v4';
 const APP_SHELL = ['/', '/events', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
