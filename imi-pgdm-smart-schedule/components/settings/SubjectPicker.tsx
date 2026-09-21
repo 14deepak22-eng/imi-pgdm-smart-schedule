@@ -49,12 +49,21 @@ export function SubjectPicker({
   const hasSyncedRef = useRef(false);
   useEffect(() => {
     if (!loaded || hasSyncedRef.current) return;
+    // The saved-preference read (`loaded`) is fast (localStorage) and
+    // usually flips true before the actual subject list has finished
+    // fetching from the schedule API — `allCodes` can still be empty at
+    // that moment. If we synced right then, a brand-new user (no saved
+    // preference) would get seeded with an empty draft ("nothing
+    // selected") instead of "everything selected", and since we only
+    // sync once, it would never self-correct when the real list arrived.
+    // So: wait for both signals before locking the one-time sync in.
+    if (allCodes.length === 0) return;
     hasSyncedRef.current = true;
     setDraft(selected && selected.length > 0 ? selected : [...allCodes]);
-    // Only re-run when `loaded` flips — not on every `selected`/`allCodes`
+    // Only re-run when `loaded`/`allCodes` change — not on every `selected`
     // change, or in-progress edits would keep getting clobbered.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaded]);
+  }, [loaded, allCodes]);
 
   const [saved, setSaved] = useState(false);
   const [query, setQuery] = useState("");
