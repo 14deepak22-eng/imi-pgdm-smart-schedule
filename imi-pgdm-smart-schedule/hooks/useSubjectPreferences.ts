@@ -125,6 +125,10 @@ export function isSubjectSelected(
 
   if (selected.includes(resolved.code)) return true;
 
+  // A plain base code (saved from the 1st-year "master subjects" picker,
+  // which has no per-section rows) selects every section of that subject.
+  if (selected.includes(resolved.baseCode)) return true;
+
   // Sheet 1 sometimes lists a subject WITHOUT its section suffix (e.g.
   // just "MK630" instead of "MK630(B)") — typically a joint session that
   // applies to every parallel section at once. In that case `resolved`
