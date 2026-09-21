@@ -1,83 +1,85 @@
-import type { DaySchedule } from "@/types/timetable";
-import type { SubjectLegendEntry } from "@/lib/sheet/parseSubjectNames";
-import {
-  resolveSubjectIdentity,
-  type ResolvedSubject,
-} from "@/lib/sheet/resolveSubjectIdentity";
+import type { DaySchedule } from '@/types/timetable';
+import type { ScheduleEvent } from '@/types/events';
+
+export interface BatchOption {
+  /** e.g. "PGDM 2025-27" */
+  batchPrefix: string;
+  startYear: number;
+  /** 0 = most recently started batch, 1 = the one before that, etc. */
+  rank: number;
+  /** "1st Year", "2nd Year", "3rd Year", "4th Year", ... */
+  yearLabel: string;
+}
+
+function parseStartYear(batchPrefix: string): number {
+  const match = batchPrefix.match(/(\d{4})/);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+function ordinalYearLabel(rank: number): string {
+  const n = rank + 1;
+  const lastTwo = n % 100;
+  const lastDigit = n % 10;
+  let suffix = 'th';
+  if (lastTwo < 11 || lastTwo > 13) {
+    if (lastDigit === 1) suffix = 'st';
+    else if (lastDigit === 2) suffix = 'nd';
+    else if (lastDigit === 3) suffix = 'rd';
+  }
+  return `${n}${suffix} Year`;
+}
 
 /**
- * Returns the full list of subjects to offer in the Settings picker for
- * ONE specific batch. The list itself comes straight from the sheet 2
- * legend, filtered to whichever subjects are tagged with this batch —
- * so every subject for that year shows up immediately, even ones that
- * haven't had a class appear in the schedule yet.
+ * Finds every distinct batch present in the parsed schedule and ranks
+ * them by how recently each started — the most recently started batch
+ * is rank 0 ("1st Year"), the one before it is rank 1 ("2nd Year"), and
+ * so on. This ranking is fully relative (based on start year, not a
+ * hardcoded list), so it keeps working correctly as batches graduate
+ * and new ones begin, with no code changes needed year over year.
  *
- * Sheet 1 (the actual schedule) is only cross-checked to find out
- * whether a given subject is genuinely split into parallel sections
- * (A/B/C) — if so, it's offered as separate section rows; otherwise
- * it's one single row.
- *
- * Returns an empty list if no batch is selected yet.
+ * A batch only counts if it has at least one real class session (a
+ * non-holiday day with an actual subject entry). A batch that appears
+ * ONLY on a standalone event row (e.g. a single mislabeled holiday/
+ * seminar entry with a typo'd batch year) is deliberately excluded —
+ * one stray event cell shouldn't be enough to conjure up a whole new
+ * selectable year that doesn't really exist in the sheet.
  */
-export function deriveAvailableSubjectIdentities(
-  days: DaySchedule[],
-  batchPrefix: string | null,
-  legend: Record<string, SubjectLegendEntry>,
-): ResolvedSubject[] {
-  if (!batchPrefix) return [];
-
-  const baseCodesForBatch = Object.entries(legend)
-    .filter(([, entry]) => entry.batch === batchPrefix)
-    .map(([code]) => code);
-
-  if (baseCodesForBatch.length === 0) return [];
-
-  // Cross-check sheet 1 purely to find which sections (if any) each
-  // subject is actually split into for this batch.
-  const sectionsByBaseCode = new Map<string, Set<string>>();
-  for (const day of days) {
-    if (day.batch !== batchPrefix) continue;
+export function deriveAvailableBatches(
+  classes: DaySchedule[],
+  events: ScheduleEvent[],
+): BatchOption[] {
+  const batchesWithSubjects = new Set<string>();
+  for (const day of classes) {
     if (day.isHoliday) continue;
-    for (const slot of day.sessions) {
-      for (const entry of slot.entries) {
-        if (!entry.subjectCode) continue;
-        const resolved = resolveSubjectIdentity(entry.subjectCode, legend);
-        if (!resolved.section) continue;
-        if (!sectionsByBaseCode.has(resolved.baseCode)) {
-          sectionsByBaseCode.set(resolved.baseCode, new Set());
-        }
-        sectionsByBaseCode.get(resolved.baseCode)!.add(resolved.section);
-      }
-    }
+    const hasSubject = day.sessions.some((slot) =>
+      slot.entries.some((entry) => entry.subjectCode),
+    );
+    if (hasSubject) batchesWithSubjects.add(day.batch);
   }
 
-  const result: ResolvedSubject[] = [];
-  for (const baseCode of baseCodesForBatch) {
-    const entry = legend[baseCode];
-    const sections = sectionsByBaseCode.get(baseCode);
-    if (sections && sections.size > 0) {
-      for (const section of Array.from(sections).sort()) {
-        result.push({
-          code: `${baseCode}(${section})`,
-          baseCode,
-          section,
-          name: entry.name,
-          faculty: entry.faculty,
-        });
-      }
-    } else {
-      result.push({
-        code: baseCode,
-        baseCode,
-        name: entry.name,
-        faculty: entry.faculty,
-      });
-    }
+  // Events only ever confirm/extend a batch that already has real
+  // subjects — they never introduce a brand-new batch on their own.
+  const batchSet = new Set(batchesWithSubjects);
+  for (const event of events) {
+    if (batchesWithSubjects.has(event.batch)) batchSet.add(event.batch);
   }
 
-  return result.sort(
-    (a, b) =>
-      a.baseCode.localeCompare(b.baseCode) ||
-      (a.section ?? "").localeCompare(b.section ?? ""),
-  );
+  const sorted = Array.from(batchSet).sort((a, b) => parseStartYear(b) - parseStartYear(a));
+
+  return sorted.map((batchPrefix, index) => ({
+    batchPrefix,
+    startYear: parseStartYear(batchPrefix),
+    rank: index,
+    yearLabel: ordinalYearLabel(index),
+  }));
+}
+
+/**
+ * Per the requested rule: a 1st-year batch (rank 0, most recently
+ * started) defaults to requiring an explicit section choice (not all
+ * sections merged), while 2nd-year and beyond (rank >= 1) default to
+ * showing all sections combined.
+ */
+export function defaultShowAllSectionsForRank(rank: number): boolean {
+  return rank >= 1;
 }
