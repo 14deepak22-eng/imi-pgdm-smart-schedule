@@ -20,7 +20,8 @@ interface Review {
 }
 
 const POPUP_SEEN_KEY = 'pgdm-feedback-popup-seen';
-const REPROMPT_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
+// Show the popup exactly once per visitor, this long after their first visit.
+const SHOW_AFTER_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 const RATING_LABELS: Record<number, string> = {
   1: 'Poor',
@@ -49,28 +50,38 @@ export function FeedbackPopup() {
   const startStarRef = useRef<number | null>(null);
   const movedRef = useRef(false);
 
+  // Storage value: absent = brand-new visitor, a number = timestamp of the
+  // first visit, '1' = popup already shown (or rated) — never show again.
   useEffect(() => {
     try {
-      const seen = localStorage.getItem(POPUP_SEEN_KEY);
-      if (!seen) {
-        // First visit — set timestamp silently, no popup yet
+      const stored = localStorage.getItem(POPUP_SEEN_KEY);
+      if (stored === '1') return;
+
+      const firstVisit = stored ? parseInt(stored, 10) : NaN;
+      if (Number.isNaN(firstVisit)) {
+        // First visit — start the 7-day clock, no popup yet
         localStorage.setItem(POPUP_SEEN_KEY, String(Date.now()));
-      } else if (seen !== '1') {
-        // Has a timestamp (dismissed or first visit) — check if 2 days passed
-        const lastShownTime = parseInt(seen, 10);
-        const dueForReprompt = Date.now() - lastShownTime >= REPROMPT_INTERVAL_MS;
-        if (dueForReprompt) {
-          const timer = setTimeout(() => setOpen(true), 2000);
-          return () => clearTimeout(timer);
-        }
+        return;
       }
-      // seen === '1' means already rated — never show again
+
+      if (Date.now() - firstVisit >= SHOW_AFTER_MS) {
+        const timer = setTimeout(() => {
+          setOpen(true);
+          // Mark as shown right away so it never appears again,
+          // whether the user rates, dismisses, or just ignores it.
+          try {
+            localStorage.setItem(POPUP_SEEN_KEY, '1');
+          } catch { /* ignore */ }
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
     } catch {
       // storage unavailable — skip
     }
   }, []);
 
   useEffect(() => {
+    if (!open) return; // don't read Firestore for visitors who never see the popup
     const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
       setReviews(
@@ -83,17 +94,10 @@ export function FeedbackPopup() {
       );
     });
     return () => unsub();
-  }, []);
+  }, [open]);
 
   const closePopup = () => {
     setOpen(false);
-    try {
-      // Store timestamp so we can re-prompt after 2 days
-      const current = localStorage.getItem(POPUP_SEEN_KEY);
-      if (current !== '1') {
-        localStorage.setItem(POPUP_SEEN_KEY, String(Date.now()));
-      }
-    } catch { /* ignore */ }
   };
 
   // Golden sparkle burst from the clicked star
