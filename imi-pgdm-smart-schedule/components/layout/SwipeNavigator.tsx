@@ -31,23 +31,31 @@ const DIRECTION_RATIO = 1.5; // horizontal must beat vertical by this factor
 const INTERACTIVE_SELECTOR =
   'input, textarea, select, [contenteditable="true"], [role="slider"], [data-no-swipe]';
 
-function canScrollFurther(el: HTMLElement, dx: number): boolean {
-  const max = el.scrollWidth - el.clientWidth;
-  if (max <= 1) return false;
-  // dx < 0: finger moved left, content moves to reveal its right side
-  return dx < 0 ? el.scrollLeft < max - 1 : el.scrollLeft > 1;
-}
-
-function insideScrollableArea(target: Element | null, dx: number): boolean {
+function findScrollableAncestor(target: Element | null): HTMLElement | null {
   let el = target as HTMLElement | null;
   while (el && el !== document.body && el !== document.documentElement) {
     const overflowX = getComputedStyle(el).overflowX;
-    if ((overflowX === 'auto' || overflowX === 'scroll') && canScrollFurther(el, dx)) {
-      return true;
-    }
+    if (overflowX === 'auto' || overflowX === 'scroll') return el;
     el = el.parentElement;
   }
-  return false;
+  return null;
+}
+
+// Whether `el` had room to scroll further in the swiped direction, using
+// the scroll position captured at touchstart — NOT the live position.
+// Native touch scrolling happens continuously during the swipe (these
+// listeners are passive), so by touchend a container that's only
+// slightly wider than the viewport (e.g. the weekly timetable on a
+// narrow phone) has often already scrolled itself to the edge in the
+// same gesture the user meant to use for scrolling. Deciding from the
+// pre-swipe snapshot means "was there anywhere to scroll when this
+// swipe began", so a single scroll-then-land-at-edge gesture is never
+// mistaken for "already at the edge, so treat this as a page-swipe".
+function couldScrollFurther(el: HTMLElement, startScrollLeft: number, dx: number): boolean {
+  const max = el.scrollWidth - el.clientWidth;
+  if (max <= 1) return false;
+  // dx < 0: finger moved left, content moves to reveal its right side
+  return dx < 0 ? startScrollLeft < max - 1 : startScrollLeft > 1;
 }
 
 interface TouchStart {
@@ -55,6 +63,10 @@ interface TouchStart {
   y: number;
   time: number;
   target: Element | null;
+  /** Nearest horizontally-scrollable ancestor, if any, snapshotted at touchstart. */
+  scrollableEl: HTMLElement | null;
+  /** That ancestor's scrollLeft at touchstart, before any native scrolling from this gesture. */
+  scrollableStartLeft: number;
 }
 
 export function SwipeNavigator() {
@@ -85,11 +97,15 @@ export function SwipeNavigator() {
       const target = e.target instanceof Element ? e.target : null;
       if (target?.closest(INTERACTIVE_SELECTOR)) return;
 
+      const scrollableEl = findScrollableAncestor(target);
+
       startRef.current = {
         x: touch.clientX,
         y: touch.clientY,
         time: Date.now(),
         target,
+        scrollableEl,
+        scrollableStartLeft: scrollableEl ? scrollableEl.scrollLeft : 0,
       };
     };
 
@@ -106,7 +122,12 @@ export function SwipeNavigator() {
       if (Math.abs(dx) < MIN_DISTANCE_PX) return;
       if (Math.abs(dx) < Math.abs(dy) * DIRECTION_RATIO) return;
       if (window.getSelection()?.toString()) return;
-      if (insideScrollableArea(start.target, dx)) return;
+      if (
+        start.scrollableEl &&
+        couldScrollFurther(start.scrollableEl, start.scrollableStartLeft, dx)
+      ) {
+        return;
+      }
 
       const next = dx < 0 ? index + 1 : index - 1;
       if (next < 0 || next >= ROUTES.length) return;
