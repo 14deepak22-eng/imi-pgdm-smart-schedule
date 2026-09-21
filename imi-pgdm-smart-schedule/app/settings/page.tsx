@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { SubjectPicker } from "@/components/settings/SubjectPicker";
@@ -10,6 +10,11 @@ import { Card } from "@/components/ui/Card";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { useSchedule } from "@/components/providers/ScheduleProvider";
 import { deriveAvailableSubjectIdentities } from "@/lib/schedule/deriveAvailableSubjects";
+import {
+  toMasterSelection,
+  toMasterSubjects,
+  toSectionSelection,
+} from "@/lib/schedule/subjectSelectionView";
 import { cn } from "@/lib/utils/cn";
 
 // Must match the same key Nav.tsx reads to decide whether to show the
@@ -31,11 +36,34 @@ export default function SettingsPage() {
     selectedBatch,
     selectBatch,
   } = useSchedule();
-  const availableSubjects = deriveAvailableSubjectIdentities(
+  const sectionSubjects = deriveAvailableSubjectIdentities(
     classes,
     selectedBatch,
     subjectLegend,
   );
+
+  // 1st-year only (rank 0): when "Show all sections" is OFF the student's
+  // section is already picked elsewhere, so the picker lists just the
+  // master subjects — no per-section rows. With it ON, subjects are shown
+  // with their sections as before. 2nd-year+ is unchanged.
+  const isFirstYear =
+    availableBatches.find((b) => b.batchPrefix === selectedBatch)?.rank === 0;
+  const masterMode = isFirstYear && !showAllSections;
+
+  const availableSubjects = useMemo(
+    () => (masterMode ? toMasterSubjects(sectionSubjects) : sectionSubjects),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [masterMode, classes, selectedBatch, subjectLegend],
+  );
+
+  // A selection saved in one view is translated for the other, so
+  // flipping the toggle never makes the picker look like it forgot.
+  const pickerSelected = useMemo(() => {
+    if (!isFirstYear) return selectedSubjects;
+    return masterMode
+      ? toMasterSelection(selectedSubjects, availableSubjects)
+      : toSectionSelection(selectedSubjects, availableSubjects);
+  }, [isFirstYear, masterMode, selectedSubjects, availableSubjects]);
 
   // Opening this page clears the first-visit green dot on the Settings
   // nav tab, permanently — it never reappears after this.
@@ -56,11 +84,11 @@ export default function SettingsPage() {
       <Header />
 
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-6">
-        {/* Keyed by batch so the picker's draft state resets cleanly when switching years. */}
+        {/* Keyed by batch + view so the picker's draft state resets cleanly when switching years or toggling "Show all sections". */}
         <SubjectPicker
-          key={selectedBatch ?? "none"}
+          key={`${selectedBatch ?? "none"}-${masterMode ? "master" : "sections"}`}
           availableSubjects={availableSubjects}
-          selected={selectedSubjects}
+          selected={pickerSelected}
           loaded={selectedSubjectsLoaded}
           onSave={setSelectedSubjects}
         />

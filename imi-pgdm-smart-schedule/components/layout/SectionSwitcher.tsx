@@ -18,13 +18,19 @@ export function SectionSwitcher({ value, onChange, disabled }: SectionSwitcherPr
       aria-disabled={disabled}
       title={disabled ? 'Disabled while "Show all sections" is on in Settings' : undefined}
       className={cn(
-        'border-border bg-surface tabular inline-flex shrink-0 rounded-md border p-0.5',
+        'border-border bg-surface tabular inline-flex shrink-0 items-center rounded-md border p-0.5',
         disabled && 'opacity-40',
       )}
     >
+      {/* "Sec" tag inside the pill, in front of A / B / C */}
+      <span className="border-border-strong text-muted mr-0.5 border-r py-0.5 pr-2 pl-1.5 text-[11px] leading-tight font-medium select-none sm:pr-2.5 sm:pl-2 sm:text-xs">
+        Sec
+      </span>
+
       {TARGET_SECTIONS.map((section) => (
         <button
           key={section}
+          type="button"
           role="radio"
           aria-checked={value === section}
           onClick={() => !disabled && onChange(section)}

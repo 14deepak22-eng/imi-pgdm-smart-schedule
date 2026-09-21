@@ -24,6 +24,8 @@ export function deriveSubjectCompletionCounts(
   section: TargetSection,
   now: Date,
   legend: Record<string, SubjectLegendEntry>,
+  /** "code" (default) counts per section-specific code; "base" pools all sections of a subject. */
+  groupBy: "code" | "base" = "code",
 ): Record<string, number> {
   const counts: Record<string, number> = {};
   if (!batchPrefix) return counts;
@@ -45,8 +47,9 @@ export function deriveSubjectCompletionCounts(
       }
 
       for (const entry of slot.entries) {
-        const code = resolveSubjectIdentity(entry.subjectCode, legend).code;
-        counts[code] = (counts[code] ?? 0) + 1;
+        const resolved = resolveSubjectIdentity(entry.subjectCode, legend);
+        const key = groupBy === "base" ? resolved.baseCode : resolved.code;
+        counts[key] = (counts[key] ?? 0) + 1;
       }
     }
   }
