@@ -143,10 +143,19 @@ function extractCodeAndRoom(
     match = rest.match(NEXT_GROUP_PATTERN);
   }
 
-  // The full code exactly as written in sheet 1 — base code plus every
-  // non-room bracket qualifier (e.g. a time like "(10:00)") — with the
-  // room stripped out. This is what's shown on the dashboard.
-  const identityCandidate = baseMatch[0] + identityGroups.map((g) => `(${g})`).join('');
+  // Anything left over after the bracket groups — e.g. a plain
+  // (non-bracketed) time range like "-10:30-12:00" or " 10:30 onward" —
+  // isn't a room or a new subject, so it's kept as-is rather than
+  // dropped, and appended below to show the full text exactly as
+  // written in the sheet.
+  const trailingText = rest.trimEnd();
+
+  // The full code exactly as written in sheet 1 — base code, every
+  // non-room bracket qualifier (e.g. a time like "(10:00)"), and any
+  // trailing text after that — with the room stripped out. This is
+  // what's shown on the dashboard.
+  const identityCandidate =
+    baseMatch[0] + identityGroups.map((g) => `(${g})`).join('') + trailingText;
   // The canonical code used for matching against Settings selections,
   // grouping, and counting — collapses "MK630(B)(10:00)" down to
   // "MK630(B)" so it still falls under the subject the student picked.
