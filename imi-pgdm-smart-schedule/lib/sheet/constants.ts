@@ -8,9 +8,12 @@
 export const TARGET_SECTIONS = ['A', 'B', 'C'] as const;
 export type TargetSection = (typeof TARGET_SECTIONS)[number];
 
-// Credit line shown in the header. Change this if you'd like the wording
+// Credit line shown in the footer. Change this if you'd like the wording
 // or name updated.
 export const CREATOR_CREDIT = 'Made by Deepak Kumar · 25PGDM-BHU081';
+
+// Where the Help & Support page's "Mail me" button sends messages.
+export const SUPPORT_EMAIL = 'deepakcat2024@gmail.com';
 
 /**
  * The complete, authoritative list of subject codes offered per batch.
