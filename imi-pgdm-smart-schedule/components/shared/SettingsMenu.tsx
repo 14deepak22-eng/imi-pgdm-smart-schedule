@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Settings, UtensilsCrossed, Download, Info, Check } from 'lucide-react';
+import { Settings, UtensilsCrossed, Download, Info, Check, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { MessMenuModal } from './MessMenuModal';
@@ -138,6 +138,16 @@ export function SettingsMenu() {
             <Info className="text-muted h-4 w-4 shrink-0" aria-hidden />
             About the App
           </button>
+
+          <Link
+            href="/help"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="text-foreground hover:bg-surface-2 flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors"
+          >
+            <HelpCircle className="text-muted h-4 w-4 shrink-0" aria-hidden />
+            Help & Support
+          </Link>
         </div>
       )}
 
