@@ -4,7 +4,6 @@ import { RefreshCw } from 'lucide-react';
 import { useLiveClock } from '@/hooks/useLiveClock';
 import { useSchedule } from '@/components/providers/ScheduleProvider';
 import { formatClockTime, formatFullDate } from '@/lib/utils/date';
-import { CREATOR_CREDIT } from '@/lib/sheet/constants';
 import { Nav } from './Nav';
 import { SectionSwitcher } from './SectionSwitcher';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
@@ -29,7 +28,6 @@ export function Header() {
               {selectedBatch ?? 'Session Board'} ·{' '}
               {showAllSections ? 'All Sections' : 'Sections A/B/C'}
             </p>
-            <p className="text-accent/80 mt-0.5 text-[11px] font-medium">{CREATOR_CREDIT}</p>
           </div>
           <div className="flex items-center gap-1 sm:hidden">
             <SettingsMenu />
