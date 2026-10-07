@@ -148,7 +148,26 @@ function extractCodeAndRoom(
   // isn't a room or a new subject, so it's kept as-is rather than
   // dropped, and appended below to show the full text exactly as
   // written in the sheet.
-  const trailingText = rest.trimEnd();
+  let trailingText = rest.trimEnd();
+
+  // Some sheets (e.g. the 2026-28 batch) write the room as plain trailing
+  // text instead of a "(...)" group, like "FN506 (A) - SKJ - CR1" — the
+  // room is the LAST " - "-separated segment. Only kicks in if a room
+  // wasn't already found in brackets above, and only splits on a hyphen
+  // that has spaces on both sides, so a room code that itself contains a
+  // hyphen (e.g. "CR-1") is never torn apart by this.
+  if (!room && trailingText) {
+    const segments = trailingText
+      .split(/\s-\s/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const lastSegment = segments[segments.length - 1];
+    if (lastSegment && isRoomLike(lastSegment)) {
+      room = lastSegment;
+      segments.pop();
+      trailingText = segments.length > 0 ? ` - ${segments.join(' - ')}` : '';
+    }
+  }
 
   // The full code exactly as written in sheet 1 — base code, every
   // non-room bracket qualifier (e.g. a time like "(10:00)"), and any
