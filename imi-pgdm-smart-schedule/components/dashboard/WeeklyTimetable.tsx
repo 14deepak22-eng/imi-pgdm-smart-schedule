@@ -84,7 +84,7 @@ export function WeeklyTimetable({
   }, [weekOffset, todayISO, visibleDates.join(',')]);
   return (
     <Card className="p-3 sm:p-4">
-      <div ref={scrollContainerRef} className="overflow-x-auto">
+      <div ref={scrollContainerRef} className="snap-x snap-mandatory overflow-x-auto pr-3 sm:pr-4">
         <table className="w-full border-separate border-spacing-x-1 border-spacing-y-1 text-sm sm:border-spacing-x-1.5 sm:border-spacing-y-1.5">
           <colgroup>
             <col />
@@ -106,7 +106,7 @@ export function WeeklyTimetable({
                     key={iso}
                     ref={isToday ? todayColRef : undefined}
                     className={cn(
-                      'scroll-ml-10 px-1 py-1.5 text-center text-[10px] font-medium tracking-wide uppercase sm:scroll-ml-14 sm:text-xs',
+                      'snap-start scroll-ml-10 px-1 py-1.5 text-center text-[10px] font-medium tracking-wide uppercase sm:scroll-ml-14 sm:text-xs',
                       isToday ? 'text-accent border-accent border-b-2' : 'text-muted',
                     )}
                   >
@@ -151,7 +151,7 @@ export function WeeklyTimetable({
                     <td
                       key={iso}
                       className={cn(
-                        'rounded-lg px-2 py-1.5 align-top text-center sm:px-3 sm:py-2',
+                        'snap-start rounded-lg px-2 py-1.5 align-top text-center sm:px-3 sm:py-2',
                         hasClass ? 'bg-surface-2' : 'bg-surface-2/30',
                         isToday && 'ring-accent ring-1 ring-inset',
                       )}
