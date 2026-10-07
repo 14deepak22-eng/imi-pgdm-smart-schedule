@@ -37,12 +37,17 @@
 export const ANNOUNCEMENT = {
   enabled: true,
   id: "sheet-year-error-26ju",
-  title: "Mess Menu Updated!🍽️",
-  message:`The new mess menu has been updated on the app.
-Please check the app to view the latest menu.`,
+  title: "iPhone Users — Make It an App!",
+  message:`Follow these simple steps 👇
+🔹 1. Open the website in Safari
+🔹 2. Tap the Share button 📤
+🔹 3. Select Add to Home Screen 🏠
+🔹 4. Tap Add ➕
+
+🎉 Done!The website is now on your home screen and works just like an app.`,
   videoUrl: null as string | null,
   imageUrl: null as string | null,
   // Example: live from right now until end of day tomorrow (IST).
-  startAt: "2026-10-02T00:00:00+05:30" as string | null,
-  endAt: "2026-10-03T17:59:59+05:30" as string | null,
+  startAt: "2026-10-07T00:00:00+05:30" as string | null,
+  endAt: "2026-10-08T17:59:59+05:30" as string | null,
 };
