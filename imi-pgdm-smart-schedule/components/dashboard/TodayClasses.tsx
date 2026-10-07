@@ -71,24 +71,23 @@ function connectorVariant(
   return 'dim';
 }
 
+// Shares the exact same horizontal box as the dot (-left-8, w-5) and
+// centers the bar inside it with flexbox, instead of a separately
+// guessed pixel offset — so it's always perfectly centered under the
+// dots no matter where this row sits, rather than relying on both
+// numbers being kept in sync by hand.
 function Connector({ variant }: { variant: 'solid' | 'flowing' | 'dim' }) {
-  if (variant === 'dim') {
-    return <div className="bg-border absolute top-5 -bottom-5 left-2.5 w-px" aria-hidden />;
-  }
-  if (variant === 'solid') {
-    return (
-      <div
-        className="bg-accent absolute top-5 -bottom-5 left-2.5 w-px shadow-[0_0_6px_0_rgba(232,163,61,0.6)]"
-        aria-hidden
-      />
-    );
-  }
-  // flowing -- the segment between the most recently finished class and now
+  const barClass =
+    variant === 'dim'
+      ? 'bg-border'
+      : variant === 'solid'
+        ? 'bg-accent shadow-[0_0_6px_0_rgba(232,163,61,0.6)]'
+        : 'schedule-line-flow shadow-[0_0_6px_0_rgba(232,163,61,0.6)]';
+
   return (
-    <div
-      className="schedule-line-flow absolute top-5 -bottom-5 left-2.5 w-px shadow-[0_0_6px_0_rgba(232,163,61,0.6)]"
-      aria-hidden
-    />
+    <div className="absolute -left-8 top-5 -bottom-5 flex w-5 justify-center" aria-hidden>
+      <div className={cn('h-full w-0.5 rounded-full', barClass)} />
+    </div>
   );
 }
 
