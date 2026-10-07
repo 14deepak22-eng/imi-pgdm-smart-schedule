@@ -90,14 +90,19 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            <NextClassCard state={current} subjectLegend={subjectLegend} />
+            {/* Tighter gap just between the next-class card and the stats
+                row below it — the rest of the page keeps the wider gap-6
+                spacing from `main`. */}
+            <div className="flex flex-col gap-3">
+              <NextClassCard state={current} subjectLegend={subjectLegend} />
 
-            <DayCompleteBanner
-              show={dayComplete.show}
-              onDismiss={dayComplete.dismiss}
-            />
+              <DayCompleteBanner
+                show={dayComplete.show}
+                onDismiss={dayComplete.dismiss}
+              />
 
-            <StatsCards stats={stats} current={current} nextEvent={nextEvent} />
+              <StatsCards stats={stats} current={current} nextEvent={nextEvent} />
+            </div>
 
             <section className="flex flex-col gap-3">
               <h2 className="font-display text-lg font-bold tracking-wide uppercase">
