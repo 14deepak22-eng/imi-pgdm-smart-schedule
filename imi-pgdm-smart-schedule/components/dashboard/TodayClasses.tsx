@@ -51,6 +51,47 @@ function formatTimeShort(date: Date): string {
   return date.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
+/**
+ * How the connector segment BELOW a row should look, based on this row's
+ * status and the status of whatever comes right after it:
+ * - done -> done: both already happened, solid bright line all the way.
+ * - done -> anything else: this is the most recently finished class, and
+ *   the segment right after it is "now" -- animated/flowing to show time
+ *   actively passing, whether that's into a live class or into a gap
+ *   before the next one.
+ * - live / upcoming -> *: hasn't happened yet, stays dim.
+ * No connector is rendered after the very last row (nextStatus undefined).
+ */
+function connectorVariant(
+  status: RowStatus,
+  nextStatus: RowStatus | undefined,
+): 'solid' | 'flowing' | 'dim' | null {
+  if (!nextStatus) return null;
+  if (status === 'done') return nextStatus === 'done' ? 'solid' : 'flowing';
+  return 'dim';
+}
+
+function Connector({ variant }: { variant: 'solid' | 'flowing' | 'dim' }) {
+  if (variant === 'dim') {
+    return <div className="bg-border absolute top-5 -bottom-5 left-2.5 w-px" aria-hidden />;
+  }
+  if (variant === 'solid') {
+    return (
+      <div
+        className="bg-accent absolute top-5 -bottom-5 left-2.5 w-px shadow-[0_0_6px_0_rgba(232,163,61,0.6)]"
+        aria-hidden
+      />
+    );
+  }
+  // flowing -- the segment between the most recently finished class and now
+  return (
+    <div
+      className="schedule-line-flow absolute top-5 -bottom-5 left-2.5 w-px shadow-[0_0_6px_0_rgba(232,163,61,0.6)]"
+      aria-hidden
+    />
+  );
+}
+
 export function TodayClasses({ days, section, now, query = '', subjectLegend }: TodayClassesProps) {
   const todayISO = toLocalISODate(now);
   const today = days.find((d) => d.date === todayISO && d.section === section);
@@ -118,41 +159,69 @@ export function TodayClasses({ days, section, now, query = '', subjectLegend }: 
     };
   });
 
-  const doneRows = rows.filter((r) => r.status === 'done');
-  const liveRows = rows.filter((r) => r.status === 'live');
-  const upcomingRows = rows.filter((r) => r.status === 'upcoming');
+  // Done rows first, then the live one (if any), then what's left today --
+  // this ordering is also what each row's connector uses to know what
+  // comes next, so it has to match the actual visual stacking order below.
+  const orderedRows: Row[] = [
+    ...rows.filter((r) => r.status === 'done'),
+    ...rows.filter((r) => r.status === 'live'),
+    ...rows.filter((r) => r.status === 'upcoming'),
+  ];
 
   return (
-    <div className="relative flex flex-col gap-5 pl-8">
-      <div className="bg-border absolute top-1 bottom-1 left-2.5 w-px" aria-hidden />
+    <div className="flex flex-col gap-5 pl-8">
+      {orderedRows.map((row, i) => {
+        const nextStatus = orderedRows[i + 1]?.status;
+        const variant = connectorVariant(row.status, nextStatus);
 
-      {doneRows.length > 0 && (
-        <div className="flex flex-col gap-3">
-          {doneRows.map((row) => (
-            <DoneRow key={row.session} row={row} />
-          ))}
-        </div>
-      )}
+        if (row.status === 'live') {
+          return (
+            <LiveRow key={row.session} row={row} now={now}>
+              {variant && <Connector variant={variant} />}
+            </LiveRow>
+          );
+        }
+        if (row.status === 'done') {
+          return (
+            <DoneRow key={row.session} row={row}>
+              {variant && <Connector variant={variant} />}
+            </DoneRow>
+          );
+        }
+        return (
+          <UpcomingRow key={row.session} row={row} now={now}>
+            {variant && <Connector variant={variant} />}
+          </UpcomingRow>
+        );
+      })}
 
-      {liveRows.map((row) => (
-        <LiveRow key={row.session} row={row} now={now} />
-      ))}
-
-      {upcomingRows.map((row) => (
-        <UpcomingRow key={row.session} row={row} now={now} />
-      ))}
+      <style>{`
+        @keyframes schedule-line-flow-dash {
+          from { background-position: 0 0; }
+          to { background-position: 0 24px; }
+        }
+        .schedule-line-flow {
+          background-image: repeating-linear-gradient(
+            180deg,
+            var(--color-accent) 0,
+            var(--color-accent) 10px,
+            rgba(232, 163, 61, 0.35) 10px,
+            rgba(232, 163, 61, 0.35) 14px
+          );
+          background-size: 100% 24px;
+          animation: schedule-line-flow-dash 1s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }
 
-function LiveRow({ row, now }: { row: Row; now: Date }) {
-  const total = row.end.getTime() - row.start.getTime();
-  const elapsed = now.getTime() - row.start.getTime();
-  const percent = Math.min(100, Math.max(0, total > 0 ? (elapsed / total) * 100 : 0));
+function LiveRow({ row, now, children }: { row: Row; now: Date; children?: React.ReactNode }) {
   const remaining = formatShortDuration(row.end.getTime() - now.getTime());
 
   return (
     <div className="relative">
+      {children}
       <span className="bg-accent/20 absolute -left-8 top-0.5 flex h-5 w-5 items-center justify-center rounded-full">
         <span className="bg-accent h-2 w-2 animate-pulse rounded-full" aria-hidden />
       </span>
@@ -181,25 +250,29 @@ function LiveRow({ row, now }: { row: Row; now: Date }) {
             </span>
           )}
         </div>
-        {row.faculty && <p className="text-muted mt-0.5 text-xs">{row.faculty}</p>}
-
-        <div className="bg-surface-2 mt-3 h-1 overflow-hidden rounded-full">
-          <div
-            className="bg-accent h-full rounded-full transition-[width] duration-1000"
-            style={{ width: `${percent}%` }}
-          />
+        <div className="mt-0.5 flex flex-wrap items-center justify-between gap-2">
+          {row.faculty && <p className="text-muted text-xs">{row.faculty}</p>}
+          <span className="text-muted shrink-0 text-xs">{remaining} left</span>
         </div>
-        <p className="text-muted mt-1 text-xs">{remaining} left</p>
       </Card>
     </div>
   );
 }
 
-function UpcomingRow({ row, now }: { row: Row; now: Date }) {
+function UpcomingRow({
+  row,
+  now,
+  children,
+}: {
+  row: Row;
+  now: Date;
+  children?: React.ReactNode;
+}) {
   const countdown = formatShortDuration(row.start.getTime() - now.getTime());
 
   return (
     <div className="relative">
+      {children}
       <span
         className="border-border bg-surface absolute -left-8 top-0.5 h-5 w-5 rounded-full border-2"
         aria-hidden
@@ -226,13 +299,19 @@ function UpcomingRow({ row, now }: { row: Row; now: Date }) {
   );
 }
 
-function DoneRow({ row }: { row: Row }) {
+function DoneRow({ row, children }: { row: Row; children?: React.ReactNode }) {
   return (
-    <div className="relative opacity-50">
-      <span className="bg-surface-2 border-border absolute -left-8 top-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2">
-        <Check className="text-muted h-2.5 w-2.5" aria-hidden />
+    <div className="relative">
+      {children}
+      {/* Dot + connector stay at full brightness — only the row's own text
+          fades, so the glowing tick/line isn't washed out along with it. */}
+      <span
+        className="bg-accent absolute -left-8 top-0.5 flex h-5 w-5 items-center justify-center rounded-full shadow-[0_0_8px_0_rgba(232,163,61,0.6)]"
+        aria-hidden
+      >
+        <Check className="text-background h-2.5 w-2.5" strokeWidth={3} aria-hidden />
       </span>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 opacity-50">
         <div>
           <p className="text-muted text-xs">
             {formatTimeShort(row.start)} – {formatTimeShort(row.end)} · {sessionLabel(row.session)}
