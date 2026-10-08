@@ -6,7 +6,6 @@ import { Header } from "@/components/layout/Header";
 import { SubjectPicker } from "@/components/settings/SubjectPicker";
 import { SheetSourceForm } from "@/components/settings/SheetSourceForm";
 import { YearSwitcher } from "@/components/settings/YearSwitcher";
-import { Card } from "@/components/ui/Card";
 import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { useSchedule } from "@/components/providers/ScheduleProvider";
 import { deriveAvailableSubjectIdentities } from "@/lib/schedule/deriveAvailableSubjects";
@@ -83,7 +82,7 @@ export default function SettingsPage() {
     <>
       <Header />
 
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-6">
+      <main className="divide-border mx-auto flex w-full max-w-3xl flex-1 flex-col divide-y px-4 py-2">
         {/* Keyed by batch + view so the picker's draft state resets cleanly when switching years or toggling "Show all sections". */}
         <SubjectPicker
           key={`${selectedBatch ?? "none"}-${masterMode ? "master" : "sections"}`}
@@ -93,14 +92,14 @@ export default function SettingsPage() {
           onSave={setSelectedSubjects}
         />
 
-        <Card className="p-3">
+        <section className="py-5">
           <ToggleSwitch
             checked={showAllSections}
             onChange={setShowAllSections}
             label="Show all sections"
             description="Combine A, B, C into one view."
           />
-        </Card>
+        </section>
 
         <YearSwitcher
           availableBatches={availableBatches}
@@ -108,12 +107,12 @@ export default function SettingsPage() {
           onSelect={selectBatch}
         />
 
-        <Card className="overflow-hidden p-0">
+        <section>
           <button
             type="button"
             onClick={() => setShowSheetSource((v) => !v)}
             aria-expanded={showSheetSource}
-            className="hover:bg-surface-2 flex w-full items-center justify-between gap-4 p-4 text-left transition-colors"
+            className="flex w-full items-center justify-between gap-4 py-5 text-left"
           >
             <div>
               <h2 className="font-display text-lg font-bold tracking-wide uppercase">
@@ -131,11 +130,11 @@ export default function SettingsPage() {
             />
           </button>
           {showSheetSource && (
-            <div className="border-border border-t p-4">
+            <div className="pb-5">
               <SheetSourceForm currentOverride={sheetId} onSave={setSheetId} />
             </div>
           )}
-        </Card>
+        </section>
       </main>
     </>
   );
