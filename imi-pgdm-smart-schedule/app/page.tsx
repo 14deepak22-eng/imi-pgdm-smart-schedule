@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { CalendarClock } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { NextClassCard } from "@/components/dashboard/NextClassCard";
@@ -8,7 +7,6 @@ import { StatsCards } from "@/components/dashboard/StatsCards";
 import { TodayClasses } from "@/components/dashboard/TodayClasses";
 import { WeeklyTimetable } from "@/components/dashboard/WeeklyTimetable";
 import { WeekPillToggle, WeekArrowBar } from "@/components/dashboard/WeekNav";
-import { SearchBox } from "@/components/shared/SearchBox";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { ErrorState } from "@/components/shared/ErrorState";
 import { useSchedule } from "@/components/providers/ScheduleProvider";
@@ -41,7 +39,6 @@ export default function DashboardPage() {
     showAllSections,
     selectedBatch,
   } = useSchedule();
-  const [query, setQuery] = useState("");
   const [weekOffset, setWeekOffset] = useWeekOffset();
 
   const batchClasses = filterClassesByBatch(classes, selectedBatch);
@@ -118,14 +115,13 @@ export default function DashboardPage() {
               />
             </section>
 
-            <section className="mt-6 flex flex-col gap-3 pb-8">
+            <section className="mt-3 flex flex-col gap-3 pb-8">
               <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
                 <h2 className="font-display text-base font-bold tracking-wide uppercase sm:text-lg">
                   Weekly Timetable
                 </h2>
                 <WeekPillToggle value={weekOffset} onChange={setWeekOffset} />
               </div>
-              <SearchBox value={query} onChange={setQuery} />
               <WeekArrowBar
                 value={weekOffset}
                 onChange={setWeekOffset}
@@ -139,7 +135,6 @@ export default function DashboardPage() {
                 days={filteredClasses}
                 section={effectiveSection}
                 now={now}
-                query={query}
                 weekOffset={weekOffset}
               />
 
