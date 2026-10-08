@@ -73,9 +73,11 @@ export default function DashboardPage() {
     <>
       <Header />
 
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6">
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pt-1 pb-6">
         {error && !initialLoading && (
-          <ErrorState message={error} onRetry={refresh} />
+          <div className="mb-3">
+            <ErrorState message={error} onRetry={refresh} />
+          </div>
         )}
 
         {initialLoading ? (
@@ -90,10 +92,10 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* Tighter gap just between the next-class card and the stats
-                row below it — the rest of the page keeps the wider gap-6
-                spacing from `main`. */}
-            <div className="flex flex-col gap-3">
+            {/* Spacing between sections is set explicitly per section
+                (mt-*) instead of one shared gap on `main`, so each gap can
+                be tuned on its own. */}
+            <div className="flex flex-col gap-1">
               <NextClassCard state={current} subjectLegend={subjectLegend} />
 
               <DayCompleteBanner
@@ -104,7 +106,7 @@ export default function DashboardPage() {
               <StatsCards stats={stats} current={current} nextEvent={nextEvent} />
             </div>
 
-            <section className="flex flex-col gap-3">
+            <section className="mt-3 flex flex-col gap-3">
               <h2 className="font-display text-lg font-bold tracking-wide uppercase">
                 Today&apos;s Classes
               </h2>
@@ -116,7 +118,7 @@ export default function DashboardPage() {
               />
             </section>
 
-            <section className="flex flex-col gap-3 pb-8">
+            <section className="mt-6 flex flex-col gap-3 pb-8">
               <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
                 <h2 className="font-display text-base font-bold tracking-wide uppercase sm:text-lg">
                   Weekly Timetable
