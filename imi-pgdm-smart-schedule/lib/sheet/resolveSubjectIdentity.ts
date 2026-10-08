@@ -17,10 +17,14 @@ export interface ResolvedSubject {
 }
 
 // A trailing bracket group is only ever treated as a "section" if it's
-// exactly one letter — A, B, or C — and nothing else is left over
-// after it. Anything else left over (faculty initials, a time, a typo)
-// is dropped rather than treated as a new subject.
-const SECTION_ONLY = /^\(([ABC])\)$/;
+// exactly one letter — A, B, or C. The only thing allowed after it is a
+// hyphen-separated tail like "-15:15-16:45" or "-SKJ" (a time range or
+// faculty initials written after the code in the sheet, e.g.
+// "MK631 (B) (CR 2) - 15:15 - 16:45") — without this, that tail made the
+// section go undetected, and the class was wrongly treated as a joint
+// session shown to every section. Any other leftover (a different
+// bracket, a typo) is still dropped rather than treated as a new subject.
+const SECTION_ONLY = /^\(([ABC])\)(?:[-\u2013\u2014].*)?$/;
 
 /**
  * Resolves a raw subject code as it appears in the schedule (sheet 1)
