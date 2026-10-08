@@ -123,7 +123,7 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
         aria-hidden
       />
 
-      <div className="bg-surface/85 relative p-5 backdrop-blur-sm sm:p-6">
+      <div className="bg-surface/85 relative px-4 py-3.5 backdrop-blur-sm sm:px-5 sm:py-4">
         <div className="flex flex-wrap items-center gap-2.5">
           {isLive ? (
             <Badge tone="amber" className="gap-1.5">
@@ -145,20 +145,17 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
           </span>
         </div>
 
-        <div className="mt-1.5 flex items-center">
-          <span className="text-strong flex items-center gap-1.5 text-sm font-semibold tabular-nums">
-            <Clock className="text-accent-2 h-3.5 w-3.5 shrink-0" aria-hidden />
-            {formatTimeShort(session.start)}&ndash;{formatTimeShort(session.end)}
-          </span>
-        </div>
-
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:mt-4">
+        <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="min-w-0">
-            <p className="text-strong font-display text-2xl leading-tight font-extrabold tracking-wide uppercase sm:text-3xl">
+            <span className="text-strong flex items-center gap-1.5 text-sm font-semibold tabular-nums">
+              <Clock className="text-accent-2 h-3.5 w-3.5 shrink-0" aria-hidden />
+              {formatTimeShort(session.start)}&ndash;{formatTimeShort(session.end)}
+            </span>
+            <p className="text-strong font-display mt-1.5 text-[26px] leading-tight font-extrabold tracking-wide uppercase sm:text-3xl">
               {primaryEntry?.displayCode ?? 'Class'}
             </p>
             {primaryEntry?.room && (
-              <p className="text-muted mt-2 flex items-center gap-1.5 text-sm">
+              <p className="text-muted mt-1.5 flex items-center gap-1.5 text-sm">
                 <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 Room {primaryEntry.room}
               </p>
@@ -176,7 +173,7 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
           </div>
 
           {isDayScale ? (
-            <div className="flex flex-col items-end gap-0.5 pt-1">
+            <div className="flex flex-col items-end gap-0.5 self-center">
               <span className="text-muted text-[10px] tracking-wide uppercase">
                 {isLive ? 'Time remaining' : 'Starts in'}
               </span>
@@ -246,7 +243,7 @@ function CountdownRing({ digits, ratio, isLive, toneVar, toneGlowRgb, label }: C
   }, [ratio, circumference]);
 
   return (
-    <div className="relative h-24 w-24 shrink-0 sm:h-[124px] sm:w-[124px]">
+    <div className="relative h-24 w-24 shrink-0 self-center sm:h-[108px] sm:w-[108px]">
       <>
         {[0, 1.4, 2.8].map((delay) => (
           <span
