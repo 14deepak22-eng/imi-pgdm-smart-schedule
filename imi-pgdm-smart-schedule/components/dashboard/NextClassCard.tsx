@@ -275,7 +275,7 @@ function CountdownRing({ digits, ratio, isLive, toneVar, toneGlowRgb, label }: C
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.28)"
+          stroke="rgba(255,255,255,0.16)"
           strokeWidth={strokeWidth}
         />
         <circle
