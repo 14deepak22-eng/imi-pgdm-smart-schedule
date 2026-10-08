@@ -116,8 +116,8 @@ export default function DashboardPage() {
             </section>
 
             <section className="mt-2 flex flex-col gap-3 pb-8">
-              <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-                <h2 className="font-display text-base font-bold tracking-wide uppercase sm:text-lg">
+              <div className="flex items-center justify-between gap-2 sm:gap-3">
+                <h2 className="font-display min-w-0 truncate text-base font-bold tracking-wide uppercase sm:text-lg">
                   Weekly Timetable
                 </h2>
                 <WeekPillToggle value={weekOffset} onChange={setWeekOffset} />
