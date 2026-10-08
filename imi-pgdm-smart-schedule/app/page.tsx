@@ -115,7 +115,7 @@ export default function DashboardPage() {
               />
             </section>
 
-            <section className="mt-1 flex flex-col gap-3 pb-8">
+            <section className="mt-2 flex flex-col gap-3 pb-8">
               <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
                 <h2 className="font-display text-base font-bold tracking-wide uppercase sm:text-lg">
                   Weekly Timetable
