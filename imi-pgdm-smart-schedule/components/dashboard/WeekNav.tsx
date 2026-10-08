@@ -34,36 +34,40 @@ function countWeekClasses(days: DaySchedule[], section: TargetSection, weekStart
     .reduce((sum, d) => sum + d.sessions.filter((s) => s.entries.length > 0).length, 0);
 }
 
-/** The "This week / Next week" pill toggle — sits beside the section heading. */
+const WEEK_OPTIONS = [
+  { value: 0, label: 'This week' },
+  { value: 1, label: 'Next week' },
+] as const;
+
+/**
+ * The "This week / Next week" pill toggle — sits on the same row as the
+ * section heading. Both buttons share one equal-width grid (so they are
+ * always the same size) and everything is fully rounded.
+ */
 export function WeekPillToggle({ value, onChange }: Pick<WeekNavProps, 'value' | 'onChange'>) {
   return (
     <div
       role="radiogroup"
       aria-label="Select week"
-      className="border-border bg-surface inline-flex w-fit rounded-md border p-0.5"
+      className="border-border bg-surface grid shrink-0 grid-cols-2 rounded-full border p-0.5"
     >
-      <button
-        role="radio"
-        aria-checked={value === 0}
-        onClick={() => onChange(0)}
-        className={cn(
-          'rounded-[5px] px-3 py-1.5 text-sm font-medium transition-colors',
-          value === 0 ? 'bg-accent text-background' : 'text-muted hover:text-foreground',
-        )}
-      >
-        This week
-      </button>
-      <button
-        role="radio"
-        aria-checked={value === 1}
-        onClick={() => onChange(1)}
-        className={cn(
-          'rounded-[5px] px-3 py-1.5 text-sm font-medium transition-colors',
-          value === 1 ? 'bg-accent text-background' : 'text-muted hover:text-foreground',
-        )}
-      >
-        Next week
-      </button>
+      {WEEK_OPTIONS.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={value === option.value}
+          onClick={() => onChange(option.value)}
+          className={cn(
+            'w-[76px] rounded-full py-1.5 text-center text-xs font-medium whitespace-nowrap transition-colors sm:w-24 sm:text-sm',
+            value === option.value
+              ? 'bg-accent text-background'
+              : 'text-muted hover:text-foreground',
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }
