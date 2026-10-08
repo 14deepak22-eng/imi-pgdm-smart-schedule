@@ -103,7 +103,7 @@ export default function DashboardPage() {
               <StatsCards stats={stats} current={current} nextEvent={nextEvent} />
             </div>
 
-            <section className="mt-3 flex flex-col gap-3">
+            <section className="mt-0 flex flex-col gap-3">
               <h2 className="font-display text-lg font-bold tracking-wide uppercase">
                 Today&apos;s Classes
               </h2>
