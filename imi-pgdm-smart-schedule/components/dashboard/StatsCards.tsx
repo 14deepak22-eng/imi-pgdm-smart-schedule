@@ -83,7 +83,7 @@ export function StatsCards({ stats, current, nextEvent }: StatsCardsProps) {
   return (
     <div
       ref={containerRef}
-      className="bg-surface relative overflow-hidden rounded-2xl px-4 py-5"
+      className="bg-surface relative overflow-hidden rounded-2xl px-4 py-2.5"
     >
       {line && (
         <svg
@@ -113,7 +113,7 @@ export function StatsCards({ stats, current, nextEvent }: StatsCardsProps) {
         </svg>
       )}
 
-      <div className="relative flex flex-col gap-[18px]">
+      <div className="relative flex flex-col gap-2.5">
         {/* Classes today — animated progress ring */}
         <div className="flex items-center gap-3.5">
           <div ref={todayNodeRef} className="relative h-11 w-11 shrink-0">
