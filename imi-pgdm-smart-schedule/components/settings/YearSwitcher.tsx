@@ -1,6 +1,5 @@
 'use client';
 
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import type { BatchOption } from '@/lib/schedule/deriveAvailableBatches';
 import { cn } from '@/lib/utils/cn';
@@ -17,7 +16,7 @@ export function YearSwitcher({ availableBatches, selectedBatch, onSelect }: Year
   }
 
   return (
-    <Card className="flex flex-col gap-3 p-4">
+    <section className="flex flex-col gap-3 py-5">
       <h2 className="font-display text-lg font-bold tracking-wide uppercase">Your Year</h2>
 
       <div className="flex flex-col gap-1.5">
@@ -43,6 +42,6 @@ export function YearSwitcher({ availableBatches, selectedBatch, onSelect }: Year
           );
         })}
       </div>
-    </Card>
+    </section>
   );
 }
