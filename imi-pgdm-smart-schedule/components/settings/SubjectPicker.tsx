@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check } from "lucide-react";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SearchBox } from "@/components/shared/SearchBox";
 import type { ResolvedSubject } from "@/lib/sheet/resolveSubjectIdentity";
@@ -118,7 +117,7 @@ export function SubjectPicker({
 
   if (availableSubjects.length === 0) {
     return (
-      <Card className="p-5">
+      <section className="py-5">
         <h2 className="font-display text-lg font-bold tracking-wide uppercase">
           My Subjects
         </h2>
@@ -126,12 +125,12 @@ export function SubjectPicker({
           No subjects found yet — once the schedule finishes loading,
           they&apos;ll show up here.
         </p>
-      </Card>
+      </section>
     );
   }
 
   return (
-    <Card className="flex flex-col gap-4 p-5">
+    <section className="flex flex-col gap-4 py-5">
       <div>
         <h2 className="font-display text-lg font-bold tracking-wide uppercase">
           My Subjects
@@ -229,6 +228,6 @@ export function SubjectPicker({
           Saved
         </span>
       </div>
-    </Card>
+    </section>
   );
 }
