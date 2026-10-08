@@ -82,7 +82,7 @@ export default function SettingsPage() {
     <>
       <Header />
 
-      <main className="divide-border mx-auto flex w-full max-w-3xl flex-1 flex-col divide-y px-4 py-2">
+      <main className="divide-border mx-auto flex w-full max-w-3xl flex-1 flex-col divide-y px-4 pt-0 pb-2">
         {/* Keyed by batch + view so the picker's draft state resets cleanly when switching years or toggling "Show all sections". */}
         <SubjectPicker
           key={`${selectedBatch ?? "none"}-${masterMode ? "master" : "sections"}`}
