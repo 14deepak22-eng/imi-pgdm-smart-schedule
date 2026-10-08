@@ -117,7 +117,7 @@ export function SubjectPicker({
 
   if (availableSubjects.length === 0) {
     return (
-      <section className="py-5">
+      <section className="pt-0 pb-5">
         <h2 className="font-display text-lg font-bold tracking-wide uppercase">
           My Subjects
         </h2>
@@ -130,7 +130,7 @@ export function SubjectPicker({
   }
 
   return (
-    <section className="flex flex-col gap-4 py-5">
+    <section className="flex flex-col gap-4 pt-0 pb-5">
       <div>
         <h2 className="font-display text-lg font-bold tracking-wide uppercase">
           My Subjects
