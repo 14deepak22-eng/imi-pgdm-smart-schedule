@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { CalendarClock } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { NextClassCard } from "@/components/dashboard/NextClassCard";
@@ -40,6 +41,16 @@ export default function DashboardPage() {
     selectedBatch,
   } = useSchedule();
   const [weekOffset, setWeekOffset] = useWeekOffset();
+
+  // Always open at the very top. Browsers (and the installed PWA) restore the
+  // last scroll position on reopen/reload, which made the app open halfway
+  // down the page — switch that off and jump to the top once on mount.
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
 
   const batchClasses = filterClassesByBatch(classes, selectedBatch);
   const batchEvents = filterEventsByBatch(events, selectedBatch);
