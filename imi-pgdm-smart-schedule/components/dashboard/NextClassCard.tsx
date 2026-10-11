@@ -123,7 +123,7 @@ export function NextClassCard({ state, subjectLegend }: NextClassCardProps) {
         aria-hidden
       />
 
-      <div className="bg-surface/85 relative px-3 py-5 backdrop-blur-sm sm:px-4 sm:py-6">
+      <div className="bg-surface/85 relative p-5 backdrop-blur-sm sm:p-6">
         <div className="flex flex-wrap items-center gap-2.5">
           {isLive ? (
             <Badge tone="amber" className="gap-1.5">
