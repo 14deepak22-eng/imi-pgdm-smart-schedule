@@ -125,9 +125,18 @@ export function isSubjectSelected(
 
   if (selected.includes(resolved.code)) return true;
 
-  // A plain base code (saved from the 1st-year "master subjects" picker,
-  // which has no per-section rows) selects every section of that subject.
-  if (selected.includes(resolved.baseCode)) return true;
+  if (selected.includes(resolved.code)) return true;
+
+  // NOTE: a plain base code (e.g. "MK630") in `selected` is deliberately
+  // NOT treated as matching every section ("MK630(A)", "MK630(B)", ...).
+  // The 1st-year "master subjects" picker always expands a master pick
+  // into its concrete section codes at save time (see app/settings/page.tsx),
+  // so a real master selection never needs this. A bare base code showing
+  // up here instead means a subject that used to have no sections was
+  // picked before it got split into sections later in the term — that
+  // selection is stale and should show as fully deselected (matching
+  // what the Settings picker itself shows) rather than silently keep
+  // matching every section in the background.
 
   // Sheet 1 sometimes lists a subject WITHOUT its section suffix (e.g.
   // just "MK630" instead of "MK630(B)") — typically a joint session that
