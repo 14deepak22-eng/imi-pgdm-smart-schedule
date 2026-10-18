@@ -64,6 +64,21 @@ export default function SettingsPage() {
       : toSectionSelection(selectedSubjects, availableSubjects);
   }, [isFirstYear, masterMode, selectedSubjects, availableSubjects]);
 
+  // Storage always holds concrete, exact subject codes — never a bare
+  // base code standing in for "every section". So a master-mode pick
+  // (which has no per-section rows to choose from) is expanded here,
+  // at save time, into the actual section codes available right now.
+  // This keeps the dashboard's filtering in exact sync with whatever
+  // the picker is showing, including later in the term if a subject
+  // that had no sections gets split into sections — an old flat pick
+  // then simply stops matching anything, instead of quietly matching
+  // every new section.
+  const handleSaveSubjects = (draft: string[]) => {
+    setSelectedSubjects(
+      masterMode ? (toSectionSelection(draft, sectionSubjects) ?? []) : draft,
+    );
+  };
+
   // Opening this page clears the first-visit green dot on the Settings
   // nav tab, permanently — it never reappears after this.
   useEffect(() => {
