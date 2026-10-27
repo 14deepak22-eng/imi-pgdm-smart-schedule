@@ -125,8 +125,6 @@ export function isSubjectSelected(
 
   if (selected.includes(resolved.code)) return true;
 
-  if (selected.includes(resolved.code)) return true;
-
   // NOTE: a plain base code (e.g. "MK630") in `selected` is deliberately
   // NOT treated as matching every section ("MK630(A)", "MK630(B)", ...).
   // The 1st-year "master subjects" picker always expands a master pick
