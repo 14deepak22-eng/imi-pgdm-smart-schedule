@@ -104,7 +104,7 @@ export default function SettingsPage() {
           availableSubjects={availableSubjects}
           selected={pickerSelected}
           loaded={selectedSubjectsLoaded}
-          onSave={setSelectedSubjects}
+          onSave={handleSaveSubjects}
         />
 
         <section className="py-5">
