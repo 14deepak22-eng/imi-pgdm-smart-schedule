@@ -17,14 +17,24 @@ export interface ResolvedSubject {
 }
 
 // A trailing bracket group is only ever treated as a "section" if it's
-// exactly one letter — A, B, or C. The only thing allowed after it is a
-// hyphen-separated tail like "-15:15-16:45" or "-SKJ" (a time range or
-// faculty initials written after the code in the sheet, e.g.
-// "MK631 (B) (CR 2) - 15:15 - 16:45") — without this, that tail made the
-// section go undetected, and the class was wrongly treated as a joint
-// session shown to every section. Any other leftover (a different
-// bracket, a typo) is still dropped rather than treated as a new subject.
-const SECTION_ONLY = /^\(([ABC])\)(?:[-\u2013\u2014].*)?$/;
+// exactly one letter — A, B, or C. After that section group, the only
+// things allowed are:
+//   - more bracket groups that are clearly a TIME RANGE, e.g.
+//     "(8.00-9.30)" or "(11.30-1.00)", or a ROOM, e.g. "(CR1)" — the
+//     sheet often writes "ST607 (C) (8.00 - 9.30) (CR1)", and without
+//     this the time group made the section go undetected, so the class
+//     was wrongly treated as a joint session shown to every section;
+//   - a hyphen-separated tail like "-15:15-16:45" or "-SKJ" (a time
+//     range or faculty initials written after the code, e.g.
+//     "MK631 (B) (CR 2) - 15:15 - 16:45").
+// Any other leftover (a different bracket such as faculty initials, a
+// typo) is still dropped rather than treated as a new subject.
+// Note: `rawCode` is whitespace-stripped and upper-cased before matching.
+const TIME_GROUP = String.raw`[\d:.\-\u2013\u2014]+(?:AM|PM)?`;
+const ROOM_GROUP = String.raw`[^()]*(?:CR|CL|TUTORIAL)[^()]*`;
+const SECTION_ONLY = new RegExp(
+  String.raw`^\(([ABC])\)(?:\((?:${TIME_GROUP}|${ROOM_GROUP})\))*(?:[-\u2013\u2014].*)?$`,
+);
 
 /**
  * Resolves a raw subject code as it appears in the schedule (sheet 1)
