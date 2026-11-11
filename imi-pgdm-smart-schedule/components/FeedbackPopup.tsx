@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Star, X, Sparkles } from 'lucide-react';
+import { Check, Star, X, Sparkles } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import {
   collection,
   addDoc,
+  doc,
+  updateDoc,
   serverTimestamp,
   onSnapshot,
   orderBy,
@@ -20,6 +22,9 @@ interface Review {
 }
 
 const POPUP_SEEN_KEY = 'pgdm-feedback-popup-seen';
+// This visitor's own review (id + a copy of its content), kept on the device
+// so it can be shown instantly after a refresh — no waiting for Firestore.
+const MY_REVIEW_KEY = 'pgdm-my-review-id';
 // Show the popup exactly once per visitor, this long after their first visit.
 const SHOW_AFTER_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -31,15 +36,50 @@ const RATING_LABELS: Record<number, string> = {
   5: 'Excellent',
 };
 
+function readMine(): Review | null {
+  try {
+    const raw = localStorage.getItem(MY_REVIEW_KEY);
+    if (!raw) return null;
+    if (raw.startsWith('{')) {
+      const p = JSON.parse(raw);
+      if (p && typeof p.id === 'string') {
+        return {
+          id: p.id,
+          name: typeof p.name === 'string' ? p.name : '',
+          rating: typeof p.rating === 'number' ? p.rating : 0,
+          comment: typeof p.comment === 'string' ? p.comment : '',
+        };
+      }
+      return null;
+    }
+    // Older versions stored just the id — content fills in from Firestore.
+    return { id: raw, name: '', rating: 0, comment: '' };
+  } catch {
+    return null;
+  }
+}
+
+function writeMine(review: Review | null) {
+  try {
+    if (review) localStorage.setItem(MY_REVIEW_KEY, JSON.stringify(review));
+    else localStorage.removeItem(MY_REVIEW_KEY);
+  } catch { /* ignore */ }
+}
+
 export function FeedbackPopup() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [reviews, setReviews] = useState<Review[]>([]);
+  // null = still loading from Firestore
+  const [reviews, setReviews] = useState<Review[] | null>(null);
+  // This visitor's saved review. null = they haven't given feedback yet.
+  const [mine, setMine] = useState<Review | null>(null);
+  // true = showing the edit form for an existing review
+  const [editing, setEditing] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [poppedStar, setPoppedStar] = useState<number | null>(null);
   const [glowPulse, setGlowPulse] = useState(false);
 
@@ -49,6 +89,12 @@ export function FeedbackPopup() {
   const isDraggingRef = useRef(false);
   const startStarRef = useRef<number | null>(null);
   const movedRef = useRef(false);
+
+  // Load the saved review from this device right away on every page load,
+  // so the button and popup already say "feedback given" after a refresh.
+  useEffect(() => {
+    queueMicrotask(() => setMine(readMine()));
+  }, []);
 
   // Storage value: absent = brand-new visitor, a number = timestamp of the
   // first visit, '1' = popup already shown (or rated) — never show again.
@@ -84,21 +130,59 @@ export function FeedbackPopup() {
     if (!open) return; // don't read Firestore for visitors who never see the popup
     const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
-      setReviews(
-        snap.docs.map((d) => ({
-          id: d.id,
-          name: d.data().name,
-          rating: d.data().rating,
-          comment: d.data().comment,
-        })),
-      );
+      const list: Review[] = snap.docs.map((d) => ({
+        id: d.id,
+        name: d.data().name,
+        rating: d.data().rating,
+        comment: d.data().comment ?? '',
+      }));
+      setReviews(list);
+
+      // Keep the saved copy of this visitor's review in sync with Firestore.
+      const saved = readMine();
+      if (!saved) return;
+      const found = list.find((r) => r.id === saved.id);
+      if (found) {
+        writeMine(found);
+        setMine((prev) =>
+          prev &&
+          prev.id === found.id &&
+          prev.name === found.name &&
+          prev.rating === found.rating &&
+          prev.comment === found.comment
+            ? prev
+            : found,
+        );
+      } else if (!snap.metadata.fromCache && !snap.metadata.hasPendingWrites) {
+        // The review was really removed from the database — forget it.
+        writeMine(null);
+        setMine(null);
+        setEditing(false);
+      }
     });
     return () => unsub();
   }, [open]);
 
   const closePopup = () => {
     setOpen(false);
+    setEditing(false);
+    setNotice(null);
   };
+
+  const startEditing = () => {
+    if (!mine) return;
+    setName(mine.name === 'Anonymous' ? '' : mine.name);
+    setRating(mine.rating);
+    setComment(mine.comment);
+    setNotice(null);
+    setEditing(true);
+  };
+
+  const count = reviews?.length ?? 0;
+  const average =
+    reviews && count > 0
+      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / count).toFixed(1)
+      : null;
 
   // Golden sparkle burst from the clicked star
   const spawnSparkles = (target: HTMLElement) => {
@@ -202,13 +286,31 @@ export function FeedbackPopup() {
     }
     setSubmitting(true);
     try {
-      await addDoc(collection(db, 'reviews'), {
+      const payload = {
         name: name.trim() || 'Anonymous',
         rating,
         comment: comment.trim(),
-        createdAt: serverTimestamp(),
-      });
-      setSubmitted(true);
+      };
+      let saved: Review;
+      if (mine) {
+        // Update: overwrite this visitor's existing review (count stays the same)
+        await updateDoc(doc(db, 'reviews', mine.id), {
+          ...payload,
+          updatedAt: serverTimestamp(),
+        });
+        saved = { id: mine.id, ...payload };
+        setNotice('Feedback updated');
+      } else {
+        const ref = await addDoc(collection(db, 'reviews'), {
+          ...payload,
+          createdAt: serverTimestamp(),
+        });
+        saved = { id: ref.id, ...payload };
+        setNotice('Thanks for your feedback!');
+      }
+      writeMine(saved);
+      setMine(saved);
+      setEditing(false);
       try {
         // '1' means rated — never auto-show again
         localStorage.setItem(POPUP_SEEN_KEY, '1');
@@ -222,6 +324,8 @@ export function FeedbackPopup() {
   };
 
   const displayRating = hoverRating || rating;
+  const showForm = !mine || editing;
+  const title = !mine ? 'Rate the dashboard' : editing ? 'Update your feedback' : 'Your feedback';
 
   return (
     <>
@@ -230,8 +334,17 @@ export function FeedbackPopup() {
         onClick={() => setOpen(true)}
         className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-blue-700"
       >
-        <Star size={14} className="text-amber-400" fill="currentColor" />
-        Rate Us
+        {mine ? (
+          <>
+            <Check size={14} className="text-emerald-300" />
+            Feedback given
+          </>
+        ) : (
+          <>
+            <Star size={14} className="text-amber-400" fill="currentColor" />
+            Rate Us
+          </>
+        )}
       </button>
 
       {open && (
@@ -249,7 +362,7 @@ export function FeedbackPopup() {
             }}
           >
             <div className="mb-5 flex items-start justify-between">
-              <h2 className="text-lg font-semibold">Rate the dashboard</h2>
+              <h2 className="text-lg font-semibold">{title}</h2>
               <button
                 onClick={closePopup}
                 className="text-gray-400 hover:text-white"
@@ -259,16 +372,78 @@ export function FeedbackPopup() {
               </button>
             </div>
 
-            {submitted ? (
-              <div className="py-6 text-center">
-                <Sparkles className="mx-auto mb-2 text-amber-400" size={28} />
-                <p className="mb-4 text-lg">Thanks for your feedback!</p>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                  Close
-                </button>
+            {/* Average rating + number of reviewers — always visible */}
+            <div className="mb-4 flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-sm text-gray-200">
+              <Star size={16} className="text-amber-400" fill="currentColor" />
+              {reviews === null ? (
+                <span className="text-gray-400">Loading ratings…</span>
+              ) : count === 0 ? (
+                <span>No ratings yet — be the first</span>
+              ) : (
+                <span>
+                  <span className="font-medium text-white">{average}</span> average ·{' '}
+                  {count} {count === 1 ? 'student' : 'students'} rated
+                </span>
+              )}
+            </div>
+
+            {!showForm && mine ? (
+              /* Feedback already given — read-only until they tap Update feedback */
+              <div className="text-center">
+                {notice && (
+                  <p className="mb-3 flex items-center justify-center gap-1.5 text-sm text-amber-400">
+                    <Sparkles size={16} />
+                    {notice}
+                  </p>
+                )}
+                <p className="mb-3 flex items-center justify-center gap-1.5 text-sm text-emerald-300">
+                  <Check size={16} />
+                  You&apos;ve already given feedback
+                </p>
+
+                <div className="mb-1 flex justify-center gap-1.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      size={30}
+                      color={star <= mine.rating ? '#f0a83c' : '#454850'}
+                      fill={star <= mine.rating ? 'currentColor' : 'none'}
+                      style={{
+                        filter:
+                          star <= mine.rating
+                            ? 'drop-shadow(0 0 6px rgba(240,168,60,0.5))'
+                            : 'none',
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="mb-3 h-5 text-sm font-medium" style={{ color: '#f0a83c' }}>
+                  {mine.rating ? RATING_LABELS[mine.rating] : 'Loading your review…'}
+                </p>
+
+                {mine.name && mine.name !== 'Anonymous' && (
+                  <p className="mb-1 text-sm text-gray-300">{mine.name}</p>
+                )}
+                {mine.comment && (
+                  <p className="mb-4 rounded-lg bg-white/5 p-3 text-left text-sm text-gray-300">
+                    {mine.comment}
+                  </p>
+                )}
+
+                <div className="mt-4 flex gap-2.5">
+                  <button
+                    onClick={startEditing}
+                    className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 active:scale-95"
+                  >
+                    Update feedback
+                  </button>
+                  <button
+                    onClick={closePopup}
+                    className="flex-1 rounded-lg border border-white/15 px-4 py-3 text-sm text-gray-300 hover:bg-white/5"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             ) : (
               <>
@@ -347,23 +522,21 @@ export function FeedbackPopup() {
                     disabled={submitting}
                     className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-blue-700 active:scale-95 disabled:opacity-50"
                   >
-                    {submitting ? 'Submitting...' : 'Submit review'}
+                    {submitting
+                      ? mine
+                        ? 'Updating...'
+                        : 'Submitting...'
+                      : mine
+                        ? 'Save changes'
+                        : 'Submit review'}
                   </button>
                   <button
-                    onClick={closePopup}
+                    onClick={mine ? () => setEditing(false) : closePopup}
                     className="flex-1 rounded-lg border border-white/15 px-4 py-3 text-sm text-gray-300 hover:bg-white/5"
                   >
-                    Maybe later
+                    {mine ? 'Cancel' : 'Maybe later'}
                   </button>
                 </div>
-
-                {reviews.length > 0 && (
-                  <p className="mt-3.5 text-center text-xs text-gray-500">
-                    {reviews.length} students rated so far — avg{' '}
-                    {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}{' '}
-                    <Star size={12} className="inline text-amber-400" fill="currentColor" />
-                  </p>
-                )}
               </>
             )}
           </div>
