@@ -147,6 +147,14 @@ export default function DashboardPage() {
                 section={effectiveSection}
                 now={now}
                 weekOffset={weekOffset}
+                onSwipeWeek={(direction) =>
+                  setWeekOffset(
+                    Math.min(
+                      weekOffsetBounds.max,
+                      Math.max(weekOffsetBounds.min, weekOffset + direction),
+                    ),
+                  )
+                }
               />
 
               {weekOffsetBounds.min < 0 && (
