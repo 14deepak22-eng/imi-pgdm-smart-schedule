@@ -68,6 +68,7 @@ export function noticeSlotKey(
 }
 
 interface ClassSlotInfo {
+  entries: { subjectCode: string; room?: string }[];
   desc: string;
   date: string;
   dayLabel: string;
@@ -90,6 +91,7 @@ function buildClassMap(days: DaySchedule[]): Map<string, ClassSlotInfo> {
       // Includes batch so two different batches never collide on the same key.
       const key = `${day.batch}|${day.date}|${day.section}|${slot.session}`;
       map.set(key, {
+        entries: slot.entries.map((e) => ({ subjectCode: e.subjectCode, room: e.room })),
         desc: describeEntries(slot.entries),
         date: day.date,
         dayLabel: day.dayLabel,
@@ -152,6 +154,48 @@ export function diffSchedules(
         session: before.session,
       });
     } else if (before && after && before.desc !== after.desc) {
+      // A different SUBJECT now sits in this slot: the old class is gone and
+      // a new one is scheduled, so report them as two separate notices
+      // (removed + added) instead of one "updated" notice. Only the
+      // subjects that actually changed are reported, so in a multi-subject
+      // slot the untouched ones are left out.
+      const beforeCodes = new Set(before.entries.map((e) => e.subjectCode));
+      const afterCodes = new Set(after.entries.map((e) => e.subjectCode));
+      const goneEntries = before.entries.filter((e) => !afterCodes.has(e.subjectCode));
+      const newEntries = after.entries.filter((e) => !beforeCodes.has(e.subjectCode));
+
+      if (goneEntries.length > 0 || newEntries.length > 0) {
+        if (goneEntries.length > 0) {
+          notices.push({
+            id: `${detectedAt}-removed-${key}`,
+            detectedAt,
+            batch: before.batch,
+            section: before.section,
+            category: 'class-removed',
+            message: `Class removed: ${describeEntries(goneEntries)} that was on ${before.dayLabel} (Session ${before.session})`,
+            subjectCodes: goneEntries.map((e) => e.subjectCode),
+            date: before.date,
+            session: before.session,
+          });
+        }
+        if (newEntries.length > 0) {
+          notices.push({
+            id: `${detectedAt}-added-${key}`,
+            detectedAt,
+            batch: after.batch,
+            section: after.section,
+            category: 'class-added',
+            message: `New class added: ${describeEntries(newEntries)} on ${after.dayLabel} (Session ${after.session})`,
+            subjectCodes: newEntries.map((e) => e.subjectCode),
+            date: after.date,
+            session: after.session,
+          });
+        }
+        continue;
+      }
+
+      // Same subject(s), only something else differs (e.g. the room):
+      // that really is an update to the existing class.
       notices.push({
         id: `${detectedAt}-changed-${key}`,
         detectedAt,
