@@ -28,8 +28,11 @@ const MAX_DURATION_MS = 800;
 const EDGE_GUARD_PX = 24;
 const DIRECTION_RATIO = 1.5; // horizontal must beat vertical by this factor
 
+// [data-week-swipe] = the weekly timetable. It handles its own swipes
+// (scroll the days, then change week at the edge), so the page-level
+// swipe must never also fire and jump to another page.
 const INTERACTIVE_SELECTOR =
-  'input, textarea, select, [contenteditable="true"], [role="slider"], [data-no-swipe]';
+  'input, textarea, select, [contenteditable="true"], [role="slider"], [data-no-swipe], [data-week-swipe]';
 
 function findScrollableAncestor(target: Element | null): HTMLElement | null {
   let el = target as HTMLElement | null;
