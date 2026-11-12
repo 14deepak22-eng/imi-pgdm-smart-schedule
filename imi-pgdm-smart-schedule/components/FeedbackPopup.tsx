@@ -336,8 +336,8 @@ export function FeedbackPopup() {
       >
         {mine ? (
           <>
-            <Check size={14} className="text-emerald-300" />
-            Feedback given
+            <Star size={14} className="text-emerald-300" />
+            Rate US 
           </>
         ) : (
           <>
